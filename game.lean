@@ -7,7 +7,7 @@ import .point .dist .board .state .move .strategy
 noncomputable theory
 open_locale classical
 
-structure Game (pw : ℕ) : Type :=
+@[ext] structure Game (pw : ℕ) : Type :=
 (a : Angel_st pw)
 (d : Devil_st)
 (s : State)

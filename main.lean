@@ -45,33 +45,47 @@ begin
   sorry
 end
 
+lemma angel_wins_at_play_move_of {pw : ℕ} {g : Game pw}
+  (h : angel_wins_at g) : angel_wins_at (play_move_at g) :=
+begin
+  sorry
+end
+
+lemma play_move_at_angel_eq {pw : ℕ} {g : Game pw} :
+  (play_move_at g).a = g.a :=
+begin
+  sorry
+end
+
+lemma play_move_at_devil_eq {pw : ℕ} {g : Game pw} :
+  (play_move_at g).d = g.d :=
+begin
+  sorry
+end
+
+-- #exit
+
+def mk_angel_pw_ge {pw pw₁ : ℕ} (a : Angel_st pw)
+  (h₁ : pw ≤ pw₁) : Angel_st pw₁ :=
+begin
+  rintro s h, by_cases h₃ : angel_has_valid_move pw s.board,
+  { obtain ⟨p, h₄, h₅, h₆⟩ := a s h₃, refine ⟨p, h₄, le_trans h₅ h₁, h₆⟩ },
+  { refine ⟨_, h.some_spec⟩ },
+end
+
+lemma angel_pw_ge_wins_at_of {pw pw₁ : ℕ}
+  (h₁ : pw ≤ pw₁) {g : Game pw} (h₂ : angel_wins_at g) :
+  ∃ (a₁ : Angel_st pw₁), angel_wins_at {g with a := a₁} :=
+begin
+  sorry
+end
+
+#exit
+
 lemma angel_pw_ge_hws_of {pw pw₁ : ℕ}
   (h₁ : pw ≤ pw₁) (h₂ : angel_hws pw) : angel_hws pw₁ :=
 begin
-  refine ⟨λ s h, _, _⟩,
-  { have h₃ := angel_has_valid_move_le_of h₁ h, use (h₂.some s h₃).m,
-    apply angel_move_valid_ge_of h₁, exact (h₂.some s h₃).h },
-  {
-    rintro d n,
-    let a := h₂.some,
-    have h₃ := h₂.some_spec d n,
-    induction' n, exact h₃,
-    specialize ih h₁ d (mt done_play_at_succ_of h₃),
-
-    unfold play_at,
-    rw function.iterate_succ_apply',
-
-    let g := _,
-    change ¬Game.done g at ih,
-    change ¬Game.done (play_move_at g),
-    change ¬Game.done (ite _ _ _),
-    split_ifs,
-
-    change ¬Game.done (dite _ _ _),
-    split_ifs,
-    sorry,
-    sorry,
-  },
+  sorry
 end
 
 #exit
