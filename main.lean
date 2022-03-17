@@ -58,6 +58,12 @@ def Angel_st (pw : ℕ) : Type :=
 def Devil_st : Type :=
 Π (s : State), Valid_devil_move s.board
 
+instance {pw : ℕ} : inhabited (Angel_st pw) :=
+⟨λ s h, ⟨h.some, h.some_spec⟩⟩
+
+instance : inhabited Devil_st :=
+⟨λ s, ⟨none, trivial⟩⟩
+
 structure Game (pw : ℕ) : Type :=
 (a : Angel_st pw)
 (d : Devil_st)
@@ -108,24 +114,88 @@ angel_wins_at (init_game a d)
 def devil_wins {pw : ℕ} (a : Angel_st pw) (d : Devil_st) :=
 ¬angel_wins a d
 
-def angel_has_win_st (pw : ℕ) :=
+def angel_hws (pw : ℕ) :=
 ∃ (a : Angel_st pw), ∀ (d : Devil_st), angel_wins a d
 
-def devil_has_win_st (pw : ℕ) :=
+def devil_hws (pw : ℕ) :=
 ∃ (d : Devil_st), ∀ (a : Angel_st pw), devil_wins a d
 
 -----
 
-theorem angel_has_win_st_iff_pw_ge_2 {pw : ℕ} :
-  angel_has_win_st pw ↔ 2 ≤ pw :=
+lemma dist_self {p} : dist p p = 0 :=
+begin
+  change int.to_nat _ = 0,
+  simp_rw [sub_self, abs_zero, max_self], refl,
+end
+
+lemma eq_zero_left_of_max_eq_zero {a b : ℤ}
+  (h : (max (|a|) (|b|)).to_nat = 0) : a = 0 :=
+begin
+  by_contra h₁,
+  replace h₁ := lt_max_of_lt_left (abs_pos.mpr h₁),
+  replace h₁ : int.to_nat 0 < (max (|a|) (|b|)).to_nat,
+  { rw int.to_nat_lt_to_nat; assumption },
+  rw h at h₁, cases h₁,
+end
+
+lemma eq_zero_right_of_max_eq_zero {a b : ℤ}
+  (h : (max (|a|) (|b|)).to_nat = 0) : b = 0 :=
+by { rw max_comm at h, exact eq_zero_left_of_max_eq_zero h }
+
+lemma eq_zero_of_max_eq_zero {a b : ℤ}
+  (h : (max (|a|) (|b|)).to_nat = 0) : a = 0 ∧ b = 0 :=
+⟨eq_zero_left_of_max_eq_zero h, eq_zero_right_of_max_eq_zero h⟩
+
+lemma dist_eq_zero_iff {p₁ p₂ : Point} : dist p₁ p₂ = 0 ↔ p₁ = p₂ :=
+begin
+  split; intro h,
+  { obtain ⟨h₁, h₂⟩ := eq_zero_of_max_eq_zero h,
+    rw sub_eq_zero at h₁ h₂, ext; assumption },
+  { subst h, exact dist_self },
+end
+
+-----
+
+lemma angel_pw_0_has_not_win_st : ¬angel_hws 0 :=
+begin
+  rintro ⟨st, h⟩, apply h default, clear h, use 1,
+  change Game.done (ite _ _ _), split_ifs, { exact h }, clear h,
+  change Game.done (dite _ _ _), split_ifs, swap, { trivial },
+  rcases h with ⟨p, h₁, h₂, h₃⟩,
+  rw [nat.le_zero_iff, dist_eq_zero_iff] at h₂, contradiction,
+end
+
+lemma angel_pw_1_has_not_win_st : ¬angel_hws 1 :=
 begin
   sorry
 end
 
--- example {a b c : ℕ}
---   (h₁ : a < b)
---   (h₂ : b ≤ c) :
---   a < c :=
--- begin
---   library_search,
--- end
+lemma angel_pw_2_hws : angel_hws 2 :=
+begin
+  sorry
+end
+
+lemma angel_pw_ge_hws_of_angel_hws {pw₁ pw₂ : ℕ}
+  (h₁ : angel_hws pw₁) (h₂ : pw₁ ≤ pw₂) : angel_hws pw₂ :=
+begin
+  sorry
+end
+
+-----
+
+theorem angel_hws_iff_pw_ge_2 {pw : ℕ} :
+  angel_hws pw ↔ 2 ≤ pw :=
+begin
+  cases pw, simp [angel_pw_0_has_not_win_st],
+  cases pw, simp [angel_pw_1_has_not_win_st], simp [nat.succ_le_succ],
+  apply angel_pw_ge_hws_of_angel_hws angel_pw_2_hws, simp [nat.succ_le_succ],
+end
+
+#exit
+
+example {a : ℤ}
+  (h : 0 < a) :
+  int.to_nat 0 < a.to_nat :=
+begin
+  library_search,
+end
