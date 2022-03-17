@@ -38,3 +38,19 @@ def apply_devil_move (s : State) : Devil_move → State
 | (option.none) := apply_move s s.board
 | (option.some p) := apply_move s
   {s.board with squares := s.board.squares \ {p}}
+
+-----
+
+lemma angel_move_valid_ge_of {pw pw₁ : ℕ} {b : Board} {p : Angel_move}
+  (h₁ : pw ≤ pw₁) (h₂ : angel_move_valid pw b p) :
+  angel_move_valid pw₁ b p :=
+begin
+  sorry
+end
+
+lemma angel_has_valid_move_le_of {pw pw₁ : ℕ} {b : Board}
+  (h₁ : pw ≤ pw₁) (h₂ : angel_has_valid_move pw₁ b) :
+  angel_has_valid_move pw b :=
+begin
+  sorry
+end
