@@ -100,40 +100,7 @@ lemma angel_pw_ge_play_move_at_eq
   (h₂ : ∀ {s} h₁ h₂, (a₁ s h₁).m = (g.a s h₂).m) :
   play_move_at {g with a := a₁} = {play_move_at g with a := a₁} :=
 begin
-  generalize h₃ : {g with a := a₁} = g₁,
-  generalize h₄ : play_move_at g = g₂,
-  generalize h₅ : {g₂ with a := a₁} = g₃,
-  rw play_move_at at h₄ ⊢,
-  split_ifs at h₄ ⊢ with h₆ h₇ h₇,
-  {
-    substs h₃ h₄ h₅,
-  },
-  {
-    substs h₃ h₅,
-    contradiction,
-  },
-  {
-    substs h₃ h₅,
-    contradiction,
-  },
-
-  have hx : (play_devil_move_at g₁).s = (play_devil_move_at g).s,
-  sorry,
-
-  rw play_angel_move_at at h₄ ⊢,
-  clear h₆ h₇,
-
-  rw hx at *, clear hx,
-  split_ifs at h₄ ⊢ with h₆ h₇ h₇,
-  {
-    have h₈ := h₂ h₆ h₇,
-    sorry,
-  },
-  {
-    sorry
-  },
-  sorry,
-  sorry,
+  sorry
 end
 
 #exit
