@@ -11,17 +11,20 @@ open_locale classical
 -- Keep definitions intuitive!
 -- Do not generalize too much!
 
-def angel_wins {pw : ℕ} (a : Angel_st pw) (d : Devil_st) :=
+def play {pw : ℕ} (a : Angel pw) (d : Devil) (n : ℕ) :=
+play_at (init_game a d) n
+
+def angel_wins {pw : ℕ} (a : Angel pw) (d : Devil) :=
 angel_wins_at (init_game a d)
 
-def devil_wins {pw : ℕ} (a : Angel_st pw) (d : Devil_st) :=
+def devil_wins {pw : ℕ} (a : Angel pw) (d : Devil) :=
 devil_wins_at (init_game a d)
 
 def angel_hws (pw : ℕ) :=
-∃ (a : Angel_st pw), ∀ (d : Devil_st), angel_wins a d
+∃ (a : Angel pw), ∀ (d : Devil), angel_wins a d
 
 def devil_hws (pw : ℕ) :=
-∃ (d : Devil_st), ∀ (a : Angel_st pw), devil_wins a d
+∃ (d : Devil), ∀ (a : Angel pw), devil_wins a d
 
 -----
 
@@ -84,50 +87,78 @@ lemma play_move_at_devil_eq {pw : ℕ} {g : Game pw} :
   (play_move_at g).d = g.d :=
 play_move_at_players_eq.2
 
--- #exit
+-----
 
-def mk_angel_pw_ge {pw pw₁ : ℕ} (a : Angel_st pw)
-  (h₁ : pw ≤ pw₁) : Angel_st pw₁ :=
+lemma play_done_iff_of_play_state_eq {pw₁ pw₂ n : ℕ}
+  {a₁ : Angel pw₁} {a₂ : Angel pw₂} {d₁ d₂ : Devil}
+  (h : (play a₁ d₁ n).s = (play a₂ d₂ n).s) :
+  (play a₁ d₁ n).done ↔ (play a₂ d₂ n).done :=
 begin
-  rintro s h, by_cases h₃ : angel_has_valid_move pw s.board,
-  { obtain ⟨p, h₄, h₅, h₆⟩ := a s h₃, refine ⟨p, h₄, le_trans h₅ h₁, h₆⟩ },
+  sorry
+end
+
+lemma play_move_at_state_eq_of_angel_eq {pw pw₁ : ℕ}
+  {g : Game pw} {a₁ : Angel pw₁}
+  (h₁ : ∀ {s} h, ∃ h₁, (a₁ s h₁).m = (g.a s h).m)
+  (h₂ : angel_wins_at g) :
+  (play_move_at {g with a := a₁}).s = (play_move_at g).s :=
+begin
+  sorry
+end
+
+lemma play_at_state_eq_of_angel_eq {pw pw₁ n : ℕ}
+  {g : Game pw} {a₁ : Angel pw₁}
+  (h₁ : ∀ {s} h, ∃ h₁, (a₁ s h₁).m = (g.a s h).m)
+  (h₂ : angel_wins_at g) :
+  (play_at {g with a := a₁} n).s = (play_at g n).s :=
+begin
+  induction' n,
+  {
+    refl,
+  },
+  {
+    -- simp_rw play_at_succ',
+    specialize @ih pw pw₁ (play_move_at g) a₁ _ _,
+    sorry,
+    sorry,
+    simp_rw play_at_succ,
+    rw ←ih, clear ih,
+    sorry
+    -- apply @play_move_at_state_eq_of_angel_eq _ _ g a₁,
+  },
+end
+
+#exit
+
+lemma play_state_eq_of_angel_eq {pw pw₁ n : ℕ}
+  {a : Angel pw} {a₁ : Angel pw₁} {d : Devil}
+  (h₁ : ∀ {s} h, ∃ h₁, (a₁ s h₁).m = (a s h).m)
+  (h₂ : angel_wins a d) :
+  (play a₁ d n).s = (play a d n).s :=
+begin
+  apply @play_at_state_eq_of_angel_eq _ _ _ (init_game a d),
+  { exact λ s h, h₁ h },
+  { exact h₂ },
+end
+
+def mk_angel_pw_ge {pw pw₁ : ℕ} (a : Angel pw)
+  (h₁ : pw ≤ pw₁) : Angel pw₁ :=
+begin
+  rintro s h,
+  refine dite (angel_has_valid_move pw s.board) (λ h₂, _) (λ h₂, _),
+  { have v := a s h₂, refine ⟨v.1, v.2.1, v.2.2.1.trans h₁, v.2.2.2⟩ },
   { refine ⟨_, h.some_spec⟩ },
 end
-
-lemma angel_pw_ge_play_move_at_eq
-  {pw pw₁ : ℕ} {g : Game pw} {a₁ : Angel_st pw₁}
-  (h₁ : pw ≤ pw₁)
-  (h₂ : ∀ {s} h₁ h₂, (a₁ s h₁).m = (g.a s h₂).m) :
-  play_move_at {g with a := a₁} = {play_move_at g with a := a₁} :=
-begin
-  sorry
-end
-
-#exit
-
-lemma mk_angel_pw_ge_play_at_eq {pw pw₁ : ℕ} {g : Game pw} {n : ℕ}
-  (h : pw ≤ pw₁) :
-  play_at {g with a := mk_angel_pw_ge g.a h₁} n =
-  {play_at g n with a := mk_angel_pw_ge g.a h₁} :=
-begin
-  sorry
-end
-
-#exit
-
-lemma mk_angel_pw_ge_wins_at_of {pw pw₁ : ℕ}
-  (h₁ : pw ≤ pw₁) {g : Game pw} (h₂ : angel_wins_at g) :
-  angel_wins_at {g with a := mk_angel_pw_ge g.a h₁} :=
-begin
-  sorry
-end
-
-#exit
 
 lemma angel_pw_ge_hws_of {pw pw₁ : ℕ}
   (h₁ : pw ≤ pw₁) (h₂ : angel_hws pw) : angel_hws pw₁ :=
 begin
-  sorry
+  cases h₂ with a h₂, use mk_angel_pw_ge a h₁,
+  rintro d n, specialize h₂ d,
+  refine mt (play_done_iff_of_play_state_eq _).mp (h₂ n),
+  refine play_state_eq_of_angel_eq _ h₂, clear' d n h₂,
+  rintro s h, have h₂ := angel_has_valid_move_ge_of h₁ h, use h₂,
+  unfold mk_angel_pw_ge, simp, split_ifs, refl,
 end
 
 #exit

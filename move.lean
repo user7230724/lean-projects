@@ -48,9 +48,9 @@ begin
   sorry
 end
 
-lemma angel_has_valid_move_le_of {pw pw₁ : ℕ} {b : Board}
-  (h₁ : pw ≤ pw₁) (h₂ : angel_has_valid_move pw₁ b) :
-  angel_has_valid_move pw b :=
+lemma angel_has_valid_move_ge_of {pw pw₁ : ℕ} {b : Board}
+  (h₁ : pw ≤ pw₁) (h₂ : angel_has_valid_move pw b) :
+  angel_has_valid_move pw₁ b :=
 begin
   sorry
 end

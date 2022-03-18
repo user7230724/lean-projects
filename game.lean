@@ -9,12 +9,12 @@ noncomputable theory
 open_locale classical
 
 @[ext] structure Game (pw : ℕ) : Type :=
-(a : Angel_st pw)
-(d : Devil_st)
+(a : Angel pw)
+(d : Devil)
 (s : State)
 (done : Prop)
 
-def init_game {pw : ℕ} (a : Angel_st pw) (d : Devil_st) : Game pw :=
+def init_game {pw : ℕ} (a : Angel pw) (d : Devil) : Game pw :=
 { a := a,
   d := d,
   s := state₀,
@@ -42,6 +42,10 @@ def devil_wins_at {pw : ℕ} (g : Game pw) :=
 ∃ (n : ℕ), (play_at g n).done
 
 -----
+
+lemma play_at_succ {pw : ℕ} {g : Game pw} {n : ℕ} :
+  play_at g n.succ = play_at (play_move_at g) n :=
+function.iterate_succ_apply _ _ _
 
 lemma play_at_succ' {pw : ℕ} {g : Game pw} {n : ℕ} :
   play_at g n.succ = play_move_at (play_at g n) :=
