@@ -101,7 +101,7 @@ lemma play_move_at_state_eq_of_angel_eq {pw pw₁ : ℕ}
   {g : Game pw} {a₁ : Angel pw₁}
   (h₁ : ∀ {s} h, ∃ h₁, (a₁ s h₁).m = (g.a s h).m)
   (h₂ : angel_wins_at g) :
-  (play_move_at {g with a := a₁}).s = (play_move_at g).s :=
+  (play_move_at (g.set_angel a₁)).s = (play_move_at g).s :=
 begin
   sorry
 end
@@ -110,21 +110,28 @@ lemma play_at_state_eq_of_angel_eq {pw pw₁ n : ℕ}
   {g : Game pw} {a₁ : Angel pw₁}
   (h₁ : ∀ {s} h, ∃ h₁, (a₁ s h₁).m = (g.a s h).m)
   (h₂ : angel_wins_at g) :
-  (play_at {g with a := a₁} n).s = (play_at g n).s :=
+  (play_at (g.set_angel a₁) n).s = (play_at g n).s :=
 begin
-  induction' n,
+  induction n with n ih, refl,
+  simp_rw play_at_succ',
+  have h₃ : play_at (g.set_angel a₁) n = (play_at g n).set_angel a₁,
   {
-    refl,
+    clear ih,
+    sorry
+  },
+  rw h₃, clear h₃,
+  apply play_move_at_state_eq_of_angel_eq,
+  {
+    rintro s h,
+    have h₃ : angel_has_valid_move pw₁ s.board,
+    sorry,
+    use h₃,
+    rw play_at_angel_eq,
+    exact (@h₁ s h).some_spec,
   },
   {
-    -- simp_rw play_at_succ',
-    specialize @ih pw pw₁ (play_move_at g) a₁ _ _,
-    sorry,
-    sorry,
-    simp_rw play_at_succ,
-    rw ←ih, clear ih,
-    sorry
-    -- apply @play_move_at_state_eq_of_angel_eq _ _ g a₁,
+    rw angel_wins_at_play_at_iff,
+    exact h₂,
   },
 end
 

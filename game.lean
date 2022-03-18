@@ -20,6 +20,12 @@ def init_game {pw : ℕ} (a : Angel pw) (d : Devil) : Game pw :=
   s := state₀,
   done := false }
 
+def Game.set_angel {pw pw₁ : ℕ} (g : Game pw) (a₁ : Angel pw₁) : Game pw₁ :=
+{g with a := a₁}
+
+def Game.set_devil {pw : ℕ} (g : Game pw) (d₁ : Devil) : Game pw :=
+{g with d := d₁}
+
 def play_angel_move_at {pw : ℕ} (g : Game pw) :=
 if h : angel_has_valid_move pw g.s.board
 then {g with s := apply_angel_move g.s (g.a g.s h).m }
@@ -43,13 +49,25 @@ def devil_wins_at {pw : ℕ} (g : Game pw) :=
 
 -----
 
-lemma play_at_succ {pw : ℕ} {g : Game pw} {n : ℕ} :
+lemma play_at_succ {pw n : ℕ} {g : Game pw} :
   play_at g n.succ = play_at (play_move_at g) n :=
 function.iterate_succ_apply _ _ _
 
-lemma play_at_succ' {pw : ℕ} {g : Game pw} {n : ℕ} :
+lemma play_at_succ' {pw n : ℕ} {g : Game pw} :
   play_at g n.succ = play_move_at (play_at g n) :=
 function.iterate_succ_apply' _ _ _
+
+lemma play_at_angel_eq {pw n : ℕ} {g : Game pw} :
+  (play_at g n).a = g.a :=
+begin
+  sorry
+end
+
+lemma angel_wins_at_play_at_iff {pw n : ℕ} {g : Game pw} :
+  angel_wins_at (play_at g n) ↔ angel_wins_at g :=
+begin
+  sorry
+end
 
 -- #exit
 
