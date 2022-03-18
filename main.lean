@@ -94,9 +94,30 @@ begin
   { refine ⟨_, h.some_spec⟩ },
 end
 
-lemma angel_pw_ge_wins_at_of {pw pw₁ : ℕ}
+lemma angel_pw_ge_play_move_at_eq
+  {pw pw₁ : ℕ} {g : Game pw} {a₁ : Angel_st pw₁}
+  (h₁ : pw ≤ pw₁)
+  (h₂ : ∀ h₁ h₂, (a₁ g.s h₁).m = (g.a g.s h₂).m) :
+  play_move_at {g with a := a₁} = {play_move_at g with a := a₁} :=
+begin
+  sorry
+end
+
+#exit
+
+lemma mk_angel_pw_ge_play_at_eq {pw pw₁ : ℕ} {g : Game pw} {n : ℕ}
+  (h : pw ≤ pw₁) :
+  play_at {g with a := mk_angel_pw_ge g.a h₁} n =
+  {play_at g n with a := mk_angel_pw_ge g.a h₁} :=
+begin
+  sorry
+end
+
+#exit
+
+lemma mk_angel_pw_ge_wins_at_of {pw pw₁ : ℕ}
   (h₁ : pw ≤ pw₁) {g : Game pw} (h₂ : angel_wins_at g) :
-  ∃ (a₁ : Angel_st pw₁), angel_wins_at {g with a := a₁} :=
+  angel_wins_at {g with a := mk_angel_pw_ge g.a h₁} :=
 begin
   sorry
 end

@@ -1,6 +1,7 @@
 import tactic.induction
 import data.int.basic
 import data.set.basic
+import logic.function.iterate
 
 import .point .dist .board .state .move .strategy
 
@@ -41,6 +42,12 @@ def devil_wins_at {pw : ℕ} (g : Game pw) :=
 ∃ (n : ℕ), (play_at g n).done
 
 -----
+
+lemma play_at_succ' {pw : ℕ} {g : Game pw} {n : ℕ} :
+  play_at g n.succ = play_move_at (play_at g n) :=
+function.iterate_succ_apply' _ _ _
+
+-- #exit
 
 lemma done_play_at_succ_of {pw : ℕ} {g : Game pw} {n : ℕ}
   (h : (play_at g n).done) : (play_at g n.succ).done :=
