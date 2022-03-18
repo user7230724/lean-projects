@@ -30,12 +30,11 @@ def devil_hws (pw : ℕ) :=
 
 lemma angel_pw_0_has_not_win_st : ¬angel_hws 0 :=
 begin
-  sorry
-  -- rintro ⟨st, h⟩, apply h default, clear h, use 1,
-  -- change Game.done (ite _ _ _), split_ifs, { exact h }, clear h,
-  -- change Game.done (dite _ _ _), split_ifs, swap, { trivial },
-  -- rcases h with ⟨p, h₁, h₂, h₃⟩,
-  -- rw [nat.le_zero_iff, dist_eq_zero_iff] at h₂, contradiction,
+  rintro ⟨st, h⟩, fapply h default, use 1, clear h,
+  change Game.done (ite _ _ _), split_ifs, { exact h }, clear h,
+  change Game.done (dite _ _ _), split_ifs, swap, { trivial },
+  rcases h with ⟨p, h₁, h₂, h₃⟩,
+  rw [nat.le_zero_iff, dist_eq_zero_iff] at h₂, contradiction,
 end
 
 lemma angel_pw_1_has_not_win_st : ¬angel_hws 1 :=
