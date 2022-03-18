@@ -45,23 +45,44 @@ begin
   sorry
 end
 
+-----
+
+lemma angel_wins_at_play_of {pw : ℕ} {g : Game pw}
+  (h : angel_wins_at g) {n : ℕ} : angel_wins_at (play_at g n) :=
+begin
+  intro k, specialize h (k + n),
+  rw [play_at, function.iterate_add] at h, exact h,
+end
+
 lemma angel_wins_at_play_move_of {pw : ℕ} {g : Game pw}
   (h : angel_wins_at g) : angel_wins_at (play_move_at g) :=
+@angel_wins_at_play_of _ _ h 1
+
+lemma play_angel_move_at_players_eq {pw : ℕ} {g : Game pw} :
+  (play_angel_move_at g).a = g.a ∧ (play_angel_move_at g).d = g.d :=
+by { rw [play_angel_move_at], split_ifs; exact ⟨rfl, rfl⟩ }
+
+lemma play_devil_move_at_players_eq {pw : ℕ} {g : Game pw} :
+  (play_devil_move_at g).a = g.a ∧ (play_devil_move_at g).d = g.d :=
+by { rw [play_devil_move_at], exact ⟨rfl, rfl⟩ }
+
+lemma play_move_at_players_eq {pw : ℕ} {g : Game pw} :
+  (play_move_at g).a = g.a ∧ (play_move_at g).d = g.d :=
 begin
-  sorry
+  rw [play_move_at],
+  split_ifs, exact ⟨rfl, rfl⟩,
+  rw [play_angel_move_at_players_eq.1, play_angel_move_at_players_eq.2],
+  rw [play_devil_move_at_players_eq.1, play_devil_move_at_players_eq.2],
+  exact ⟨rfl, rfl⟩,
 end
 
 lemma play_move_at_angel_eq {pw : ℕ} {g : Game pw} :
   (play_move_at g).a = g.a :=
-begin
-  sorry
-end
+play_move_at_players_eq.1
 
 lemma play_move_at_devil_eq {pw : ℕ} {g : Game pw} :
   (play_move_at g).d = g.d :=
-begin
-  sorry
-end
+play_move_at_players_eq.2
 
 -- #exit
 
