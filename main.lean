@@ -135,7 +135,7 @@ begin
   },
 end
 
-#exit
+-- #exit
 
 lemma play_state_eq_of_angel_eq {pw pw₁ n : ℕ}
   {a : Angel pw} {a₁ : Angel pw₁} {d : Devil}
