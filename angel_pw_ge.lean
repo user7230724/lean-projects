@@ -20,7 +20,8 @@ lemma sup_mk_angel_pw_ge {pw pw₁ : ℕ} {a : Angel pw}
   {h : pw ≤ pw₁} :
   (mk_angel_pw_ge a h).sup a :=
 begin
-  sorry
+  rintro b h₁, have h₂ := angel_has_valid_move_ge_of h h₁, use h₂,
+  change Valid_angel_move.m (dite _ _ _) = _, rw dif_pos h₁,
 end
 
 lemma angel_has_valid_move_of_exi_sub {pw pw₁ : ℕ}

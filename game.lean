@@ -133,20 +133,20 @@ begin
   change ¬Game.act (dite _ _ _), split_ifs with h₁, exact not_false,
 end
 
-#exit
-
 -----
 
--- #exit
+lemma act_play_move_at_succ {pw : ℕ} {g : Game pw}
+  (h : g.play_move.act) : g.act :=
+by { contrapose h, change ¬Game.act (ite _ _ _), rwa if_neg h }
 
-lemma act_play_at_succ_of {pw : ℕ} {g : Game pw} {n : ℕ}
+lemma act_play_at_succ {pw n : ℕ} {g : Game pw}
   (h : (g.play n.succ).act) : (g.play n).act :=
-begin
-  sorry
-end
+by { rw play_at_succ' at h, exact act_play_move_at_succ h }
 
-lemma act_play_at_ge_of {pw : ℕ} {g : Game pw} {n m : ℕ}
+lemma act_play_at_ge {pw n m : ℕ} {g : Game pw}
   (h₁ : n ≤ m) (h₂ : (g.play m).act) : (g.play n).act :=
 begin
-  sorry
+  induction' h₁,
+  { exact h₂ },
+  { rw play_at_succ' at h₂, exact ih (act_play_move_at_succ h₂) },
 end
