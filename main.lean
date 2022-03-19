@@ -28,7 +28,7 @@ def devil_hws (pw : ℕ) :=
 
 -----
 
-lemma angel_pw_0_has_not_win_st : ¬angel_hws 0 :=
+lemma angel_pw_0_not_hws : ¬angel_hws 0 :=
 begin
   rintro ⟨st, h⟩, fapply h default, use 1, clear h,
   change Game.done (ite _ _ _), split_ifs, { exact h }, clear h,
@@ -37,7 +37,7 @@ begin
   rw [nat.le_zero_iff, dist_eq_zero_iff] at h₂, contradiction,
 end
 
-lemma angel_pw_1_has_not_win_st : ¬angel_hws 1 :=
+lemma angel_pw_1_not_hws : ¬angel_hws 1 :=
 begin
   sorry
 end
@@ -110,8 +110,8 @@ end
 theorem angel_hws_iff_pw_ge_2 {pw : ℕ} :
   angel_hws pw ↔ 2 ≤ pw :=
 begin
-  cases pw, simp [angel_pw_0_has_not_win_st],
-  cases pw, simp [angel_pw_1_has_not_win_st], simp [nat.succ_le_succ],
+  cases pw, simp [angel_pw_0_not_hws],
+  cases pw, simp [angel_pw_1_not_hws], simp [nat.succ_le_succ],
   refine angel_pw_ge_hws_of _ angel_pw_2_hws, simp [nat.succ_le_succ],
 end
 
