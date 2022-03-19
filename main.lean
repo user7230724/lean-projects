@@ -21,29 +21,17 @@ def angel_wins {pw : ℕ} (a : Angel pw) (d : Devil) :=
 def devil_wins {pw : ℕ} (a : Angel pw) (d : Devil) :=
 (init_game a d).devil_wins
 
-def angel_hws (pw : ℕ) :=
-∃ (a : Angel pw), ∀ (d : Devil), angel_wins a d
-
-def devil_hws (pw : ℕ) :=
-∃ (d : Devil), ∀ (a : Angel pw), devil_wins a d
-
------
-
-lemma not_angel_wins {pw : ℕ} {a : Angel pw} {d : Devil} :
-  ¬angel_wins a d ↔ devil_wins a d :=
-not_angel_wins_at
-
-lemma not_devil_wins {pw : ℕ} {a : Angel pw} {d : Devil} :
-  ¬devil_wins a d ↔ angel_wins a d :=
-not_devil_wins_at
+def angel_hws (pw : ℕ) := angel_hws_at pw state₀
+def devil_hws (pw : ℕ) := devil_hws_at pw state₀
 
 -----
 
 lemma angel_pw_0_not_hws : ¬angel_hws 0 :=
 begin
   rintro ⟨a, h⟩, contrapose! h, clear h, use default,
-  rw not_angel_wins, use 1,
-  change ¬Game.act (ite _ _ _), split_ifs, swap, { exact h }, clear h,
+  rw not_angel_wins_at, use 1,
+  change ¬Game.act (ite _ _ _), split_ifs,
+  swap, { exact (h trivial).elim }, clear h,
   change ¬Game.act (dite _ _ _), split_ifs, swap, { trivial },
   rcases h with ⟨p, h₁, h₂, h₃⟩,
   rw [nat.le_zero_iff, dist_eq_zero_iff] at h₂, contradiction,

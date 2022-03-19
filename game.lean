@@ -52,6 +52,14 @@ def Game.angel_wins {pw : ℕ} (g : Game pw) :=
 def Game.devil_wins {pw : ℕ} (g : Game pw) :=
 ∃ (n : ℕ), ¬(g.play n).act
 
+def angel_hws_at (pw : ℕ) (s : State) :=
+∃ (a : Angel pw), ∀ (d : Devil), Game.angel_wins ⟨a, d, s, true⟩
+
+def devil_hws_at (pw : ℕ) (s : State) :=
+∃ (d : Devil), ∀ (a : Angel pw), Game.devil_wins ⟨a, d, s, true⟩
+
+-- #exit
+
 -----
 
 lemma not_angel_wins_at {pw : ℕ} {g : Game pw} :
