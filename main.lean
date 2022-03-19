@@ -64,11 +64,8 @@ end
 lemma angel_pw_ge_hws {pw pw₁ : ℕ}
   (h₁ : pw ≤ pw₁) (h₂ : angel_hws pw) : angel_hws pw₁ :=
 begin
-  cases h₂ with a h₂,
-  use mk_angel_pw_ge a h₁,
-  intro d,
-  specialize h₂ d,
-  apply mk_angel_pw_ge_wins_at_of h₂,
+  cases h₂ with a h₂, use mk_angel_pw_ge a h₁,
+  intro d, specialize h₂ d, apply mk_angel_pw_ge_wins_at_of h₂,
 end
 
 -----
