@@ -66,6 +66,9 @@ begin
   refine angel_pw_ge_hws _ angel_pw_2_hws, simp [nat.succ_le_succ],
 end
 
+theorem exi_pw_angel_hws : ∃ (pw : ℕ), angel_hws pw :=
+⟨2, angel_pw_2_hws⟩
+
 -- example {a : ℤ}
 --   (h : 0 < a) :
 --   int.to_nat 0 < a.to_nat :=
