@@ -3,7 +3,7 @@ import data.int.basic
 import data.set.basic
 import logic.function.iterate
 
-import .point .dist .board .state .move .strategy
+import .point .dist .board .state .move .player
 
 noncomputable theory
 open_locale classical
@@ -28,11 +28,11 @@ def Game.set_devil {pw : ℕ} (g : Game pw) (d₁ : Devil) : Game pw :=
 
 def play_angel_move_at {pw : ℕ} (g : Game pw) :=
 if h : angel_has_valid_move pw g.s.board
-then {g with s := apply_angel_move g.s (g.a g.s h).m }
+then {g with s := apply_angel_move g.s (g.a.f g.s h).m }
 else {g with done := true}
 
 def play_devil_move_at {pw : ℕ} (g : Game pw) :=
-{g with s := apply_devil_move g.s (g.d g.s).m}
+{g with s := apply_devil_move g.s (g.d.f g.s).m}
 
 def play_move_at {pw : ℕ} (g : Game pw) :=
 if g.done then g else

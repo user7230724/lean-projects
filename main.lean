@@ -88,83 +88,19 @@ play_move_at_players_eq.2
 
 -----
 
-lemma play_done_iff_of_play_state_eq {pw₁ pw₂ n : ℕ}
-  {a₁ : Angel pw₁} {a₂ : Angel pw₂} {d₁ d₂ : Devil}
-  (h : (play a₁ d₁ n).s = (play a₂ d₂ n).s) :
-  (play a₁ d₁ n).done ↔ (play a₂ d₂ n).done :=
-begin
-  sorry
-end
-
-lemma play_move_at_state_eq_of_angel_eq {pw pw₁ : ℕ}
-  {g : Game pw} {a₁ : Angel pw₁}
-  (h₁ : ∀ {s} h, ∃ h₁, (a₁ s h₁).m = (g.a s h).m)
-  (h₂ : angel_wins_at g) :
-  (play_move_at (g.set_angel a₁)).s = (play_move_at g).s :=
-begin
-  sorry
-end
-
-lemma play_at_state_eq_of_angel_eq {pw pw₁ n : ℕ}
-  {g : Game pw} {a₁ : Angel pw₁}
-  (h₁ : ∀ {s} h, ∃ h₁, (a₁ s h₁).m = (g.a s h).m)
-  (h₂ : angel_wins_at g) :
-  (play_at (g.set_angel a₁) n).s = (play_at g n).s :=
-begin
-  induction n with n ih, refl,
-  simp_rw play_at_succ',
-  have h₃ : play_at (g.set_angel a₁) n = (play_at g n).set_angel a₁,
-  {
-    clear ih,
-    sorry
-  },
-  rw h₃, clear h₃,
-  apply play_move_at_state_eq_of_angel_eq,
-  {
-    rintro s h,
-    have h₃ : angel_has_valid_move pw₁ s.board,
-    sorry,
-    use h₃,
-    rw play_at_angel_eq,
-    exact (@h₁ s h).some_spec,
-  },
-  {
-    rw angel_wins_at_play_at_iff,
-    exact h₂,
-  },
-end
-
--- #exit
-
-lemma play_state_eq_of_angel_eq {pw pw₁ n : ℕ}
-  {a : Angel pw} {a₁ : Angel pw₁} {d : Devil}
-  (h₁ : ∀ {s} h, ∃ h₁, (a₁ s h₁).m = (a s h).m)
-  (h₂ : angel_wins a d) :
-  (play a₁ d n).s = (play a d n).s :=
-begin
-  apply @play_at_state_eq_of_angel_eq _ _ _ (init_game a d),
-  { exact λ s h, h₁ h },
-  { exact h₂ },
-end
-
 def mk_angel_pw_ge {pw pw₁ : ℕ} (a : Angel pw)
   (h₁ : pw ≤ pw₁) : Angel pw₁ :=
 begin
-  rintro s h,
+  refine ⟨λ s h, _⟩,
   refine dite (angel_has_valid_move pw s.board) (λ h₂, _) (λ h₂, _),
-  { have v := a s h₂, refine ⟨v.1, v.2.1, v.2.2.1.trans h₁, v.2.2.2⟩ },
+  { have v := a.f s h₂, refine ⟨v.1, v.2.1, v.2.2.1.trans h₁, v.2.2.2⟩ },
   { refine ⟨_, h.some_spec⟩ },
 end
 
 lemma angel_pw_ge_hws_of {pw pw₁ : ℕ}
   (h₁ : pw ≤ pw₁) (h₂ : angel_hws pw) : angel_hws pw₁ :=
 begin
-  cases h₂ with a h₂, use mk_angel_pw_ge a h₁,
-  rintro d n, specialize h₂ d,
-  refine mt (play_done_iff_of_play_state_eq _).mp (h₂ n),
-  refine play_state_eq_of_angel_eq _ h₂, clear' d n h₂,
-  rintro s h, have h₂ := angel_has_valid_move_ge_of h₁ h, use h₂,
-  unfold mk_angel_pw_ge, simp, split_ifs, refl,
+  sorry
 end
 
 #exit
