@@ -12,13 +12,13 @@ open_locale classical
 (a : Angel pw)
 (d : Devil)
 (s : State)
-(done : Prop)
+(act : Prop)
 
 def init_game {pw : ℕ} (a : Angel pw) (d : Devil) : Game pw :=
 { a := a,
   d := d,
   s := state₀,
-  done := false }
+  act := true }
 
 def Game.set_angel {pw pw₁ : ℕ} (g : Game pw) (a₁ : Angel pw₁) : Game pw₁ :=
 {g with a := a₁}
@@ -26,59 +26,127 @@ def Game.set_angel {pw pw₁ : ℕ} (g : Game pw) (a₁ : Angel pw₁) : Game pw
 def Game.set_devil {pw : ℕ} (g : Game pw) (d₁ : Devil) : Game pw :=
 {g with d := d₁}
 
+def Game.set_state {pw : ℕ} (g : Game pw) (s₁ : State) : Game pw :=
+{g with s := s₁}
+
+def play_angel_move_at' {pw pw₁ : ℕ} (a₁ : Angel pw₁) (g : Game pw) (h) :=
+{g with s := apply_angel_move g.s (a₁.f g.s h).m}
+
 def play_angel_move_at {pw : ℕ} (g : Game pw) :=
 if h : angel_has_valid_move pw g.s.board
-then {g with s := apply_angel_move g.s (g.a.f g.s h).m }
-else {g with done := true}
+then play_angel_move_at' g.a g h
+else {g with act := false}
 
 def play_devil_move_at {pw : ℕ} (g : Game pw) :=
 {g with s := apply_devil_move g.s (g.d.f g.s).m}
 
-def play_move_at {pw : ℕ} (g : Game pw) :=
-if g.done then g else
-play_angel_move_at (play_devil_move_at g)
+def Game.play_move {pw : ℕ} (g : Game pw) :=
+if g.act then play_angel_move_at (play_devil_move_at g) else g
 
-def play_at {pw : ℕ} (g : Game pw) (n : ℕ) :=
-(play_move_at^[n]) g
+def Game.play {pw : ℕ} (g : Game pw) (n : ℕ) :=
+(Game.play_move^[n]) g
 
-def angel_wins_at {pw : ℕ} (g : Game pw) :=
-∀ (n : ℕ), ¬(play_at g n).done
+def Game.angel_wins {pw : ℕ} (g : Game pw) :=
+∀ (n : ℕ), (g.play n).act
 
-def devil_wins_at {pw : ℕ} (g : Game pw) :=
-∃ (n : ℕ), (play_at g n).done
+def Game.devil_wins {pw : ℕ} (g : Game pw) :=
+∃ (n : ℕ), ¬(g.play n).act
 
 -----
 
+lemma not_angel_wins_at {pw : ℕ} {g : Game pw} :
+  ¬g.angel_wins ↔ g.devil_wins :=
+by simp [Game.angel_wins, Game.devil_wins]
+
+lemma not_devil_wins_at {pw : ℕ} {g : Game pw} :
+  ¬g.devil_wins ↔ g.angel_wins :=
+by simp [Game.angel_wins, Game.devil_wins]
+
 lemma play_at_succ {pw n : ℕ} {g : Game pw} :
-  play_at g n.succ = play_at (play_move_at g) n :=
+  g.play n.succ = g.play_move.play n :=
 function.iterate_succ_apply _ _ _
 
 lemma play_at_succ' {pw n : ℕ} {g : Game pw} :
-  play_at g n.succ = play_move_at (play_at g n) :=
+  g.play n.succ = (g.play n).play_move :=
 function.iterate_succ_apply' _ _ _
 
-lemma play_at_angel_eq {pw n : ℕ} {g : Game pw} :
-  (play_at g n).a = g.a :=
+-----
+
+lemma angel_wins_at_play_of {pw : ℕ} {g : Game pw}
+  (h : g.angel_wins) {n : ℕ} : (g.play n).angel_wins :=
 begin
-  sorry
+  intro k, specialize h (k + n),
+  rw [Game.play, function.iterate_add] at h, exact h,
 end
 
-lemma angel_wins_at_play_at_iff {pw n : ℕ} {g : Game pw} :
-  angel_wins_at (play_at g n) ↔ angel_wins_at g :=
+lemma angel_wins_at_play_move_of {pw : ℕ} {g : Game pw}
+  (h : g.angel_wins) : g.play_move.angel_wins :=
+@angel_wins_at_play_of _ _ h 1
+
+lemma play_angel_move_at_players_eq {pw : ℕ} {g : Game pw} :
+  (play_angel_move_at g).a = g.a ∧ (play_angel_move_at g).d = g.d :=
+by { rw [play_angel_move_at], split_ifs; exact ⟨rfl, rfl⟩ }
+
+lemma play_devil_move_at_players_eq {pw : ℕ} {g : Game pw} :
+  (play_devil_move_at g).a = g.a ∧ (play_devil_move_at g).d = g.d :=
+by { rw [play_devil_move_at], exact ⟨rfl, rfl⟩ }
+
+lemma play_move_at_players_eq {pw : ℕ} {g : Game pw} :
+  g.play_move.a = g.a ∧ g.play_move.d = g.d :=
 begin
-  sorry
+  rw [Game.play_move], split_ifs, swap, exact ⟨rfl, rfl⟩,
+  rw [play_angel_move_at_players_eq.1, play_angel_move_at_players_eq.2],
+  rw [play_devil_move_at_players_eq.1, play_devil_move_at_players_eq.2],
+  exact ⟨rfl, rfl⟩,
 end
+
+lemma play_at_players_eq {pw n : ℕ} {g : Game pw} :
+  (g.play n).a = g.a ∧ (g.play n).d = g.d :=
+begin
+  induction n with n ih,
+  { exact ⟨rfl, rfl⟩ },
+  { simp_rw play_at_succ',
+    rwa [play_move_at_players_eq.1, play_move_at_players_eq.2] },
+end
+
+lemma play_move_at_act {pw : ℕ} {g : Game pw}
+  (h : g.act) :
+  g.play_move = play_angel_move_at (play_devil_move_at g) :=
+if_pos h
+
+lemma play_angel_move_hvm {pw : ℕ} {g : Game pw}
+  (h : angel_has_valid_move pw g.s.board) :
+  ∃ h, play_angel_move_at g = play_angel_move_at' g.a g h :=
+by { rw [play_angel_move_at, dif_pos h], use h }
+
+lemma play_devil_move_at_set_angel {pw pw₁ : ℕ}
+  {g : Game pw} {a₁ : Angel pw₁} :
+  play_devil_move_at (g.set_angel a₁) = (play_devil_move_at g).set_angel a₁ :=
+rfl
+
+lemma angel_has_valid_move_at_play_devil_move {pw : ℕ} {g : Game pw}
+  (h : g.angel_wins) :
+  angel_has_valid_move pw (play_devil_move_at g).s.board :=
+begin
+  specialize h 1, contrapose h,
+  change ¬Game.act (ite _ _ _), split_ifs with h₁, swap, exact h₁,
+  change ¬Game.act (dite _ _ _), split_ifs with h₁, exact not_false,
+end
+
+#exit
+
+-----
 
 -- #exit
 
-lemma done_play_at_succ_of {pw : ℕ} {g : Game pw} {n : ℕ}
-  (h : (play_at g n).done) : (play_at g n.succ).done :=
+lemma act_play_at_succ_of {pw : ℕ} {g : Game pw} {n : ℕ}
+  (h : (g.play n.succ).act) : (g.play n).act :=
 begin
   sorry
 end
 
-lemma done_play_at_ge_of {pw : ℕ} {g : Game pw} {n m : ℕ}
-  (h₁ : n ≤ m) (h₂ : (play_at g n).done) : (play_at g m).done :=
+lemma act_play_at_ge_of {pw : ℕ} {g : Game pw} {n m : ℕ}
+  (h₁ : n ≤ m) (h₂ : (g.play m).act) : (g.play n).act :=
 begin
   sorry
 end

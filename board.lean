@@ -4,6 +4,9 @@ import data.set.basic
 
 import .point
 
+noncomputable theory
+open_locale classical
+
 structure Board : Type :=
 (squares : set Point)
 (angel : Point)
