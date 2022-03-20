@@ -3,7 +3,7 @@ import data.int.basic
 import data.set.basic
 import logic.function.iterate
 
-import .point .dist .board .state .move .game
+import .point .dist .board .state .game
 import .determinacy .angel_pw_ge
 
 noncomputable theory

@@ -30,7 +30,7 @@ begin
   sorry
 end
 
--- #exit
+#exit
 
 -----
 
