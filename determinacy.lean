@@ -95,6 +95,8 @@ begin
       rw not_devil_wins_at at hx ⊢,
       let g₂ : Game pw := _, change g₂.angel_wins at hx,
       let g₂' : Game pw := _, change g₂'.angel_wins,
+
+      sorry
     },
   },
 end
