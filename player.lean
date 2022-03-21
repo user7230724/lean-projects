@@ -85,6 +85,22 @@ begin
   { exact d.f s₁ },
 end
 
+def Angel.modify_move {pw : ℕ} (a : Angel pw) (s : State)
+  (ma : Valid_angel_move pw s.board) : Angel pw :=
+begin
+  refine ⟨λ s₁ h, _⟩, apply dite (s₁ = s); intro h₁,
+  { cases h₁, exact ma },
+  { exact a.f s₁ h },
+end
+
+def Devil.modify_move {pw : ℕ} (d : Devil) (s : State)
+  (md : Valid_devil_move s.board) : Devil :=
+begin
+  refine ⟨λ s₁, _⟩, apply dite (s₁ = s); intro h₁,
+  { cases h₁, exact md },
+  { exact d.f s₁ },
+end
+
 -----
 
 lemma angel_move_valid_ge_of {pw pw₁ : ℕ} {b : Board} {p : Angel_move}
