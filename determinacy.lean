@@ -70,23 +70,31 @@ begin
       change apply_devil_move g₁.s (d.f g₁.s).m with s' at ma h₁,
       use a.modify_move s' ma,
 
-      -- convert h₁, clear h₁,
-      -- rw play_move_at_act ih₁,
-
-      -- let g₂ : Game pw := _, change play_devil_move_at g₁ with g₂,
-      -- have h₁ : apply_devil_move g₁.s (d.f g₁.s).m = g₂.s,
-      -- sorry,
-      -- simp_rw h₁,
-
-      -- have hvm : angel_has_valid_move pw g₂.s.board,
+      rename h₁ hx,
+      -- have h₁ : g₁.play_move.s = apply_angel_move s' ma.m,
       -- {
-      --   have ma' := ma,
-      --   rw h₁ at ma',
-      --   sorry
-      -- },
+      --   rw play_move_at_act ih₁,
 
-      -- rw [play_angel_move_at, dif_pos hvm, play_angel_move_at'], dsimp,
-      -- congr' 1,
+      --   let g₂ : Game pw := _, change play_devil_move_at g₁ with g₂,
+      --   have h₁ : s' = g₂.s,
+      --   sorry,
+      --   simp_rw h₁,
+
+      --   have hvm : angel_has_valid_move pw g₂.s.board,
+      --   {
+      --     have ma' := ma,
+      --     rw h₁ at ma',
+      --     sorry
+      --   },
+
+      --   rw [play_angel_move_at, dif_pos hvm, play_angel_move_at'], dsimp,
+      --   congr' 1,
+      -- },
+      -- rw h₁, clear h₁,
+
+      rw not_devil_wins_at at hx ⊢,
+      let g₂ : Game pw := _, change g₂.angel_wins at hx,
+      let g₂' : Game pw := _, change g₂'.angel_wins,
     },
   },
 end
