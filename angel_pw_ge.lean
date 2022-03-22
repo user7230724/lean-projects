@@ -41,7 +41,7 @@ begin
   simp_rw play_angel_move_at', refine ⟨rfl, rfl, by rw h₅, rfl⟩,
 end
 
-lemma sup_angel_same_gameplay {pw pw₁ n : ℕ}
+lemma sup_angel_play_eq {pw pw₁ n : ℕ}
   {g : Game pw} {a₁ : Angel pw₁}
   (h₁ : g.angel_wins)
   (h₂ : a₁.sup g.a) :
@@ -88,4 +88,4 @@ lemma mk_angel_pw_ge_wins_at_of {pw pw₁ : ℕ}
   {g : Game pw} {h₁ : pw ≤ pw₁}
   (h₂ : g.angel_wins) :
   (g.set_angel (mk_angel_pw_ge g.a h₁)).angel_wins :=
-by { intro n, rw (sup_angel_same_gameplay h₂) sup_mk_angel_pw_ge, exact h₂ n }
+by { intro n, rw (sup_angel_play_eq h₂) sup_mk_angel_pw_ge, exact h₂ n }
