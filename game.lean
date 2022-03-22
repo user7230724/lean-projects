@@ -308,6 +308,50 @@ begin
   sorry
 end
 
+lemma angel_set_move_eq {pw : ℕ} {a : Angel pw}
+  {s : State} {m : Valid_angel_move pw s.board} {h} :
+  (a.set_move s m).f s h = m :=
+by { change dite _ _ _ = _, split_ifs with h₁; refl }
+
+lemma devil_set_move_eq {d : Devil}
+  {s : State} {m : Valid_devil_move s.board} :
+  (d.set_move s m).f s = m :=
+by { change dite _ _ _ = _, split_ifs with h₁; refl }
+
+lemma angel_set_move_self {pw : ℕ} {a : Angel pw}
+  {s : State} {h} : a.set_move s (a.f s h) = a :=
+begin
+  rw angels_eq_iff; intros, change dite _ _ _ = _, split_ifs with h₂,
+  { subst h₂ }, { refl },
+end
+
+lemma devil_set_move_self {d : Devil}
+  {s : State} : d.set_move s (d.f s) = d :=
+begin
+  rw devils_eq_iff; intros, change dite _ _ _ = _, split_ifs with h₂,
+  { subst h₂ }, { refl },
+end
+
+lemma angel_set_move_set_move {pw : ℕ} {a : Angel pw} {s : State}
+  {m₁ m₂ : Valid_angel_move pw s.board} :
+  (a.set_move s m₁).set_move s m₂ = a.set_move s m₂ :=
+begin
+  rw angels_eq_iff, rintro s₁ h₁,
+  change dite _ _ _ = _, split_ifs with h₂,
+  { subst h₂, rw angel_set_move_eq },
+  { change dite _ _ _ = dite _ _ _, simp_rw dif_neg h₂ },
+end
+
+lemma devil_set_move_set_move {d : Devil} {s : State}
+  {m₁ m₂ : Valid_devil_move s.board} :
+  (d.set_move s m₁).set_move s m₂ = d.set_move s m₂ :=
+begin
+  rw devils_eq_iff, rintro s₁,
+  change dite _ _ _ = _, split_ifs with h₂,
+  { subst h₂, rw devil_set_move_eq },
+  { change dite _ _ _ = dite _ _ _, simp_rw dif_neg h₂ },
+end
+
 -----
 
 lemma init_game_act {pw : ℕ}

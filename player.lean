@@ -112,3 +112,19 @@ lemma angel_has_valid_move_ge_of {pw pw₁ : ℕ} {b : Board}
   (h₁ : pw ≤ pw₁) (h₂ : angel_has_valid_move pw b) :
   angel_has_valid_move pw₁ b :=
 by { cases h₂ with m h₂, use m, exact angel_move_valid_ge_of h₁ h₂ }
+
+lemma angels_eq_iff {pw : ℕ} {a₁ a₂ : Angel pw} :
+  a₁ = a₂ ↔ ∀ s h, a₁.f s h = a₂.f s h :=
+begin
+  split; intro h,
+  { subst h, simp },
+  { cases a₁ with f₁, cases a₂ with f₂, congr, ext, apply h },
+end
+
+lemma devils_eq_iff {d₁ d₂ : Devil} :
+  d₁ = d₂ ↔ ∀ s, d₁.f s = d₂.f s :=
+begin
+  split; intro h,
+  { subst h, simp },
+  { cases d₁ with f₁, cases d₂ with f₂, congr, ext, apply h },
+end
