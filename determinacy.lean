@@ -37,8 +37,7 @@ def mk_angel_st_for_not_devil_hws (pw : ℕ) : Angel pw :=
 begin
   refine ⟨λ s' h, _⟩,
   apply dite (∃ (s : State) (md : Valid_devil_move s.board),
-    ¬devil_hws_at pw s ∧ s' = apply_devil_move s md.m);
-  intro h₁,
+    ¬devil_hws_at pw s ∧ s' = apply_devil_move s md.m); intro h₁,
   { refine (_ : ∃ (ma : Valid_angel_move pw s'.board),
       ¬devil_hws_at pw (apply_angel_move s' ma.m)).some,
     rcases h₁ with ⟨s, md, h₁, rfl⟩,
