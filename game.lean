@@ -14,10 +14,8 @@ open_locale classical
 (s : State)
 (act : Prop)
 
-def init_game {pw : ℕ} (a : Angel pw) (d : Devil) : Game pw :=
-{ a := a,
-  d := d,
-  s := state₀,
+def init_game {pw : ℕ} (a : Angel pw) (d : Devil) (s : State) : Game pw :=
+{ a := a, d := d, s := s,
   act := true }
 
 def Game.set_angel {pw pw₁ : ℕ} (g : Game pw) (a₁ : Angel pw₁) : Game pw₁ :=
@@ -25,6 +23,9 @@ def Game.set_angel {pw pw₁ : ℕ} (g : Game pw) (a₁ : Angel pw₁) : Game pw
 
 def Game.set_devil {pw : ℕ} (g : Game pw) (d₁ : Devil) : Game pw :=
 {g with d := d₁}
+
+def Game.set_state {pw : ℕ} (g : Game pw) (s₁ : State) : Game pw :=
+{g with s := s₁}
 
 def Game.set_players {pw pw₁ : ℕ} (g : Game pw)
   (a₁ : Angel pw₁) (d₁ : Devil) : Game pw₁ :=
@@ -34,9 +35,6 @@ def Game.set_prev_moves {pw : ℕ} (g : Game pw)
   (fa : Prev_moves (Valid_angel_move pw) g.s)
   (fd : Prev_moves Valid_devil_move g.s) : Game pw :=
 g.set_players (g.a.set_prev_moves fa) (g.d.set_prev_moves fd)
-
-def Game.set_state {pw : ℕ} (g : Game pw) (s₁ : State) : Game pw :=
-{g with s := s₁}
 
 def play_angel_move_at' {pw pw₁ : ℕ} (a₁ : Angel pw₁) (g : Game pw) (h) :=
 {g with s := apply_angel_move g.s (a₁.f g.s h).m}
@@ -62,10 +60,10 @@ def Game.devil_wins {pw : ℕ} (g : Game pw) :=
 ∃ (n : ℕ), ¬(g.play n).act
 
 def angel_hws_at (pw : ℕ) (s : State) :=
-∃ (a : Angel pw), ∀ (d : Devil), Game.angel_wins ⟨a, d, s, true⟩
+∃ (a : Angel pw), ∀ (d : Devil), (init_game a d s).angel_wins
 
 def devil_hws_at (pw : ℕ) (s : State) :=
-∃ (d : Devil), ∀ (a : Angel pw), Game.devil_wins ⟨a, d, s, true⟩
+∃ (d : Devil), ∀ (a : Angel pw), (init_game a d s).devil_wins
 
 -- #exit
 
@@ -225,6 +223,15 @@ begin
   { change g.set_state g.play_move.s with g,
     simp [h], exact act_play_move_at_succ h },
 end
+
+lemma play_devil_move_eq {pw : ℕ} {g : Game pw} :
+  play_devil_move_at g =
+  g.set_state (apply_devil_move g.s (g.d.f g.s).m) :=
+begin
+  refl,
+end
+
+#exit
 
 -----
 

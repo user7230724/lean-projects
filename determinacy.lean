@@ -44,10 +44,55 @@ begin
   { exact ⟨_, h.some_spec⟩ },
 end
 
+lemma not_devil_hws_at_play_of_not_devil_hws {pw n : ℕ} {g : Game pw}
+  (h : ¬devil_hws_at pw g.s) :
+  ¬devil_hws_at pw (g.play n).s :=
+begin
+  sorry
+end
+
+-- #exit
+
 lemma angel_hws_at_of {pw : ℕ} {s : State}
   (h : ¬devil_hws_at pw s) : angel_hws_at pw s :=
 begin
-  sorry
+  let A := mk_angel_st_for_not_devil_hws pw,
+  use A,
+  rintro d n,
+  induction n with n ih, { triv },
+  rw play_at_succ',
+  let g : Game pw := _,
+  change g.act at ih,
+  change g.play_move.act,
+  let s := g.s,
+  let md := d.f s,
+  let s' := apply_devil_move s md.m,
+  rw play_move_at_act ih,
+
+  have h₁ : play_devil_move_at g = g.set_state s',
+  {
+    convert play_devil_move_eq,
+    change apply_devil_move _ (d.f s).m = _,
+    congr,
+    symmetry,
+    exact play_at_players_eq.2,
+  },
+  rw h₁, clear h₁,
+
+  have h₁ : angel_has_valid_move pw s'.board,
+  {
+    have h₁ : ¬devil_hws_at pw s,
+    {
+      exact not_devil_hws_at_play_of_not_devil_hws h,
+    },
+    obtain ⟨ma, -⟩ := exi_angel_move_of_not_devil_hws h₁ md,
+    exact ⟨_, ma.h⟩,
+  },
+
+  change Game.act (dite _ _ _),
+  change (g.set_state s').s with s',
+  rw dif_pos h₁,
+  exact ih,
 end
 
 #exit

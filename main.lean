@@ -13,13 +13,13 @@ open_locale classical
 -- Do not generalize too much!
 
 def play {pw : ℕ} (a : Angel pw) (d : Devil) (n : ℕ) :=
-(init_game a d).play n
+(init_game a d state₀).play n
 
 def angel_wins {pw : ℕ} (a : Angel pw) (d : Devil) :=
-(init_game a d).angel_wins
+(init_game a d state₀).angel_wins
 
 def devil_wins {pw : ℕ} (a : Angel pw) (d : Devil) :=
-(init_game a d).devil_wins
+(init_game a d state₀).devil_wins
 
 def angel_hws (pw : ℕ) := angel_hws_at pw state₀
 def devil_hws (pw : ℕ) := devil_hws_at pw state₀
