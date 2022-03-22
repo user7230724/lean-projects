@@ -43,7 +43,7 @@ begin
     have s := h₁.some,
     have h₂ := h₁.some_spec.some_spec.1,
     have h₃ := h₁.some_spec.some_spec.2,
-    convert (exi_angel_move_of_not_devil_hws h₂ h₁.some_spec.some).some
+    convert (exi_angel_move_of_not_devil_hws h₂ h₁.some_spec.some).some,
   },
   { exact ⟨_, h.some_spec⟩ },
 end
