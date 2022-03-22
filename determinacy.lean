@@ -85,7 +85,7 @@ begin
     congr, symmetry, exact play_at_players_eq.2 },
   rw h₁, clear h₁, have h₁ : angel_has_valid_move pw s'.board,
   { have h₁ : ¬devil_hws_at pw s := not_devil_hws_at_play_of_not_devil_hws rfl h,
-    obtain ⟨ma, -⟩ := exi_angel_move_of_not_devil_hws h₁ md, exact ⟨_, ma.h⟩ },
+    exact ⟨_, (exi_angel_move_of_not_devil_hws h₁ md).some.h⟩ },
   change Game.act (dite _ _ _), change (g.set_state s').s with s',
   rw dif_pos h₁, exact ih,
 end
