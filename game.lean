@@ -214,6 +214,18 @@ lemma set_players_flip {pw pw₁ : ℕ} {g : Game pw}
   (g.set_angel a₁).set_devil d₁ = (g.set_devil d₁).set_angel a₁ :=
 rfl
 
+lemma play_move_eq_set_state_of_act_next {pw : ℕ} {g : Game pw}
+  (h : g.play_move.act) :
+  g.play_move = g.set_state g.play_move.s :=
+begin
+  ext,
+  { exact play_move_at_players_eq.1 },
+  { exact play_move_at_players_eq.2 },
+  { refl },
+  { change g.set_state g.play_move.s with g,
+    simp [h], exact act_play_move_at_succ h },
+end
+
 -----
 
 lemma prev_moves_do_not_affect_result {pw : ℕ} {g : Game pw}
