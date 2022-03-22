@@ -115,6 +115,11 @@ begin
   exact ⟨rfl, rfl⟩,
 end
 
+lemma play_move_at_players_eq' {pw : ℕ} {g : Game pw} :
+  (play_angel_move_at (play_devil_move_at g)).a = g.a ∧
+  (play_angel_move_at (play_devil_move_at g)).d = g.d :=
+by { rw play_angel_move_at, split_ifs; exact ⟨rfl, rfl⟩ }
+
 lemma play_at_players_eq {pw n : ℕ} {g : Game pw} :
   (g.play n).a = g.a ∧ (g.play n).d = g.d :=
 begin
@@ -231,8 +236,6 @@ begin
   refl,
 end
 
-#exit
-
 -----
 
 lemma prev_moves_do_not_affect_result {pw : ℕ} {g : Game pw}
@@ -288,3 +291,16 @@ begin
     { congr, exact play_at_players_eq.1.symm }},
   simp_rw [Game.set_players, play_angel_move_at_set_devil, h₁],
 end
+
+-----
+
+lemma init_game_act {pw : ℕ}
+  {a : Angel pw} {d : Devil} {s : State} :
+  (init_game a d s).act :=
+trivial
+
+lemma init_game_play_move {pw : ℕ}
+  {a : Angel pw} {d : Devil} {s : State} :
+  (init_game a d s).play_move =
+  play_angel_move_at (play_devil_move_at (init_game a d s)) :=
+if_pos init_game_act
