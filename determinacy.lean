@@ -39,19 +39,61 @@ begin
   apply dite (∃ (s : State) (md : Valid_devil_move s.board),
     ¬devil_hws_at pw s ∧ s' = apply_devil_move s md.m);
   intro h₁,
-  { refine (_ : nonempty _).some, rcases h₁ with ⟨s, md, h₁, rfl⟩,
-    use (exi_angel_move_of_not_devil_hws h₁ md).some },
+  {
+    have s := h₁.some,
+    have h₂ := h₁.some_spec.some_spec.1,
+    have h₃ := h₁.some_spec.some_spec.2,
+    convert (exi_angel_move_of_not_devil_hws h₂ h₁.some_spec.some).some
+  },
   { exact ⟨_, h.some_spec⟩ },
 end
 
+-- #exit
+
 lemma not_devil_hws_at_play_of_not_devil_hws {pw n : ℕ} {g : Game pw}
-  (h : ¬devil_hws_at pw g.s) :
+  (h₁ : g.a = mk_angel_st_for_not_devil_hws pw)
+  (h₂ : ¬devil_hws_at pw g.s) :
   ¬devil_hws_at pw (g.play n).s :=
 begin
-  sorry
+  rename g g₀,
+  induction n with n ih, { exact h₂ },
+  clear h₂,
+  rw play_at_succ',
+  let g : Game pw := _,
+  change ¬devil_hws_at pw g.s at ih,
+  change ¬devil_hws_at pw g.play_move.s,
+  change g.play_move with ite _ _ _,
+  split_ifs, swap, { exact ih },
+  let d := g.d,
+  let s := g.s,
+  let md := d.f s,
+  let s' := apply_devil_move s md.m,
+  have h₃ : ∃ (ma : Valid_angel_move pw s'.board),
+    ¬devil_hws_at pw (apply_angel_move s' ma.m),
+  { exact exi_angel_move_of_not_devil_hws ih md },
+  have ma := h₃.some,
+  have h₄ := h₃.some_spec,
+  convert h₄,
+  change Game.s (dite _ _ _) = _,
+  have h₅ : angel_has_valid_move pw s'.board,
+  sorry,
+  change (play_devil_move_at g).s with s',
+  rw dif_pos h₅,
+  change apply_angel_move _ _ = _,
+  congr,
+  change g.a.f s' h₅ = _,
+  let A : Angel pw := _, change g₀.a = A at h₁,
+  have h₆ : g.a = A,
+  sorry,
+  rw h₆,
+  let p := _,
+  change dite p _ _ = _,
+  have h₇ : p,
+  sorry,
+  rw dif_pos h₇,
 end
 
--- #exit
+#exit
 
 lemma angel_hws_at_of {pw : ℕ} {s : State}
   (h : ¬devil_hws_at pw s) : angel_hws_at pw s :=
