@@ -40,48 +40,82 @@ lemma exi_moves_hws_of_not_devil_hws {pw : ℕ} {s : State}
   ∃ (ma : Valid_angel_move pw (apply_devil_move s md.m).board) (a : Angel pw),
   (init_game a d (apply_angel_move (apply_devil_move s md.m) ma.m)).angel_wins :=
 begin
-  rintro md d,
-  have h₁ := h,
-  change ¬∃ _, _ at h₁, push_neg at h₁,
-  let d₁ := d.set_move s md,
-  specialize h₁ d₁,
-  cases h₁ with a h₁,
-  let s' : State := apply_devil_move s md.m,
+  have h₁ : ¬∃ _, _ := h,
+  push_neg at h₁,
+  simp_rw not_devil_wins_at at h₁,
+  rintro md d₁,
+  let md₁ := d₁.f s,
+  let d := d₁.set_move s md,
+  let s' := apply_devil_move s md.m,
   change apply_devil_move s md.m with s',
-  use [a.f s' (angel_hvm_of_not_devil_hws h md), a],
-  generalize_proofs h₂,
-  change apply_devil_move s md.m with s' at h₂,
-  rw not_devil_wins_at at h₁,
-  convert angel_wins_at_play_move_of h₁,
-  rw init_game_play_move,
-  ext,
+  have h₂ : angel_has_valid_move pw s'.board,
+  sorry,
+  specialize h₁ d,
+  cases h₁ with a h₁,
+  let ma := a.f s' h₂,
+  use [ma, a],
+  have hh : d₁ = d.set_move s md₁,
+  sorry,
+  rw hh,
+  have h₃ : (init_game a d (apply_angel_move s' ma.m)).angel_wins,
   {
-    symmetry,
-    exact play_move_at_players_eq'.1,
-  },
-  {
-    symmetry,
-    -- exact play_move_at_players_eq'.2,
-    sorry
-  },
-  {
-    sorry,
-  },
-  {
-    apply (true_iff _).mpr,
-    rw play_angel_move_at,
+    convert angel_wins_at_play_move_of h₁,
+    rw init_game_play_move,
+    change _ = dite _ _ _,
     have h₃ : (play_devil_move_at (init_game a d s)).s = s',
     {
-      rw play_devil_move_at,
-      change apply_devil_move s (d.f s).m = s',
-      rw apply_devil_move,
+      change apply_devil_move s _ = apply_devil_move s _,
+      congr,
+      change d.f s = md,
       sorry
     },
-    simp_rw h₃,
     sorry
+    -- simp_rw h₃,
     -- rw dif_pos h₂,
-    -- triv,
+    -- ext; try {refl},
+    -- rw play_angel_move_at', dsimp,
+    -- simp_rw h₃,
+    -- change (play_devil_move_at (init_game a d s)).a with a,
+    -- generalize_proofs h₄,
+    -- convert_to _ = apply_angel_move s' (a.f s' h₂).m,
+    -- {
+    --   congr,
+    --   {
+    --     exact h₃,
+    --   },
+    --   {
+    --     exact h₃,
+    --   },
+    --   {
+    --     convert_to trivial == trivial,
+    --     {
+    --       exact eq_true_intro h₄,
+    --     },
+    --     {
+    --       exact eq_true_intro h₂,
+    --     },
+    --     {
+    --       refl,
+    --     },
+    --   },
+    -- },
+    -- refl,
   },
+  sorry,
+  -- let g : Game pw := _, change g.angel_wins at h₃,
+  -- let g₁ : Game pw := _, change g₁.angel_wins,
+  -- have h₄ : g₁ = g.set_devil (d.set_move s md₁),
+  -- {
+  --   sorry
+  -- },
+  -- rw h₄, clear h₄,
+  -- have h₄ : s.history.length < (g.set_devil d).s.history.length,
+  -- {
+  --   change _ < (apply_angel_move _ _).history.length,
+  --   exact nat.lt_succ_of_lt (nat.lt_succ_self _),
+  -- },
+  -- apply (devil_set_move_angel_wins_iff h₄).mpr, clear h₄,
+  -- exact h₃,
 end
 
 #exit

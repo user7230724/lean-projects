@@ -238,7 +238,7 @@ end
 
 -----
 
-lemma prev_moves_do_not_affect_result {pw : ℕ} {g : Game pw}
+lemma set_prev_moves_angel_wins_iff {pw : ℕ} {g : Game pw}
   {fa : Prev_moves (Valid_angel_move pw) g.s}
   {fd : Prev_moves Valid_devil_move g.s} :
   (g.set_prev_moves fa fd).angel_wins ↔ g.angel_wins :=
@@ -290,6 +290,22 @@ begin
       { exact play_devil_move_at_hist_len_ge }},
     { congr, exact play_at_players_eq.1.symm }},
   simp_rw [Game.set_players, play_angel_move_at_set_devil, h₁],
+end
+
+lemma angel_set_move_angel_wins_iff {pw : ℕ} {g : Game pw}
+  {s : State} {m : Valid_angel_move pw s.board}
+  (h : s.history.length < g.s.history.length) :
+  (g.set_angel (g.a.set_move s m)).angel_wins ↔ g.angel_wins :=
+begin
+  sorry
+end
+
+lemma devil_set_move_angel_wins_iff {pw : ℕ} {g : Game pw}
+  {s : State} {m : Valid_devil_move s.board}
+  (h : s.history.length < g.s.history.length) :
+  (g.set_devil (g.d.set_move s m)).angel_wins ↔ g.angel_wins :=
+begin
+  sorry
 end
 
 -----
