@@ -29,10 +29,16 @@ lemma angel_hvm_of_not_devil_hws {pw : ℕ} {s : State}
   ∀ (md : Valid_devil_move s.board),
   angel_has_valid_move pw (apply_devil_move s md.m).board :=
 begin
-  sorry
+  rintro md, change ¬∃ _, _ at h, push_neg at h,
+  let d := (default : Devil).set_move s md,
+  specialize h d, cases h with a h, rw not_devil_wins_at at h,
+  specialize h 1, change Game.act (Game.play_move _) at h,
+  rw init_game_play_move at h, rw play_angel_move_at at h,
+  split_ifs at h with h₁,
+  { convert h₁, symmetry, change ((default : Devil).set_move s md).f s = md,
+    exact devil_set_move_eq },
+  { cases h },
 end
-
--- #exit
 
 lemma exi_moves_hws_of_not_devil_hws {pw : ℕ} {s : State}
   (h : ¬devil_hws_at pw s) :
@@ -49,7 +55,7 @@ begin
   specialize h₁ d, cases h₁ with a h₁, let ma := a.f s' h₂, use [ma, a],
   have hh : d₀ = d.set_move s md₀,
   { change d₀ = (d₀.set_move s md).set_move s md₀,
-    rw [devil_set_move_set_move, devil_set_move_self] },
+    rw [devil_set_move_set_move_eq, devil_set_move_self] },
   rw hh, have h₃ : (init_game a d (apply_angel_move s' ma.m)).angel_wins,
   { convert angel_wins_at_play_move_of h₁,
     rw init_game_play_move, change _ = dite _ _ _,
@@ -70,8 +76,6 @@ begin
     exact nat.lt_succ_of_lt (nat.lt_succ_self _) },
   apply (devil_set_move_angel_wins_iff h₄).mpr, exact h₃,
 end
-
-#exit
 
 lemma exi_angel_move_hws_of_not_devil_hws {pw : ℕ} {s : State}
   (h : ¬devil_hws_at pw s) :

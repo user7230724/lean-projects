@@ -32,9 +32,9 @@ def Game.set_players {pw pw₁ : ℕ} (g : Game pw)
 (g.set_angel a₁).set_devil d₁
 
 def Game.set_prev_moves {pw : ℕ} (g : Game pw)
-  (fa : Prev_moves (Valid_angel_move pw) g.s)
-  (fd : Prev_moves Valid_devil_move g.s) : Game pw :=
-g.set_players (g.a.set_prev_moves fa) (g.d.set_prev_moves fd)
+  (fa : Angel_prev_moves pw g.s)
+  (fd : Devil_prev_moves g.s) : Game pw :=
+g.set_players (g.a.set_prev_moves g.s fa) (g.d.set_prev_moves g.s fd)
 
 def play_angel_move_at' {pw pw₁ : ℕ} (a₁ : Angel pw₁) (g : Game pw) (h) :=
 {g with s := apply_angel_move g.s (a₁.f g.s h).m}
@@ -239,13 +239,13 @@ end
 -----
 
 lemma set_prev_moves_angel_wins_iff {pw : ℕ} {g : Game pw}
-  {fa : Prev_moves (Valid_angel_move pw) g.s}
-  {fd : Prev_moves Valid_devil_move g.s} :
+  {fa : Angel_prev_moves pw g.s}
+  {fd : Devil_prev_moves g.s} :
   (g.set_prev_moves fa fd).angel_wins ↔ g.angel_wins :=
 begin
   let a := g.a, let d := g.d,
-  let a' := a.set_prev_moves fa,
-  let d' := d.set_prev_moves fd,
+  let a' := a.set_prev_moves g.s fa,
+  let d' := d.set_prev_moves g.s fd,
   let g' : Game pw := _,
   change (∀ n, (g'.play n).act) ↔ (∀ n, ((g.play n).set_players a' d').act),
   suffices h : ∀ {n}, g'.play n = (g.play n).set_players a' d', simp_rw h,
@@ -297,7 +297,10 @@ lemma angel_set_move_angel_wins_iff {pw : ℕ} {g : Game pw}
   (h : s.history.length < g.s.history.length) :
   (g.set_angel (g.a.set_move s m)).angel_wins ↔ g.angel_wins :=
 begin
-  sorry
+  convert set_prev_moves_angel_wins_iff, ext,
+  { change _ = g.a.prev_moves_set g.s s m h, rw angel_prev_moves_set_eq, refl },
+  repeat { refl }, change _ = g.d.prev_moves_id g.s,
+  rw devil_prev_moves_id_eq, refl,
 end
 
 lemma devil_set_move_angel_wins_iff {pw : ℕ} {g : Game pw}
@@ -305,51 +308,10 @@ lemma devil_set_move_angel_wins_iff {pw : ℕ} {g : Game pw}
   (h : s.history.length < g.s.history.length) :
   (g.set_devil (g.d.set_move s m)).angel_wins ↔ g.angel_wins :=
 begin
-  sorry
-end
-
-lemma angel_set_move_eq {pw : ℕ} {a : Angel pw}
-  {s : State} {m : Valid_angel_move pw s.board} {h} :
-  (a.set_move s m).f s h = m :=
-by { change dite _ _ _ = _, split_ifs with h₁; refl }
-
-lemma devil_set_move_eq {d : Devil}
-  {s : State} {m : Valid_devil_move s.board} :
-  (d.set_move s m).f s = m :=
-by { change dite _ _ _ = _, split_ifs with h₁; refl }
-
-lemma angel_set_move_self {pw : ℕ} {a : Angel pw}
-  {s : State} {h} : a.set_move s (a.f s h) = a :=
-begin
-  rw angels_eq_iff; intros, change dite _ _ _ = _, split_ifs with h₂,
-  { subst h₂ }, { refl },
-end
-
-lemma devil_set_move_self {d : Devil}
-  {s : State} : d.set_move s (d.f s) = d :=
-begin
-  rw devils_eq_iff; intros, change dite _ _ _ = _, split_ifs with h₂,
-  { subst h₂ }, { refl },
-end
-
-lemma angel_set_move_set_move {pw : ℕ} {a : Angel pw} {s : State}
-  {m₁ m₂ : Valid_angel_move pw s.board} :
-  (a.set_move s m₁).set_move s m₂ = a.set_move s m₂ :=
-begin
-  rw angels_eq_iff, rintro s₁ h₁,
-  change dite _ _ _ = _, split_ifs with h₂,
-  { subst h₂, rw angel_set_move_eq },
-  { change dite _ _ _ = dite _ _ _, simp_rw dif_neg h₂ },
-end
-
-lemma devil_set_move_set_move {d : Devil} {s : State}
-  {m₁ m₂ : Valid_devil_move s.board} :
-  (d.set_move s m₁).set_move s m₂ = d.set_move s m₂ :=
-begin
-  rw devils_eq_iff, rintro s₁,
-  change dite _ _ _ = _, split_ifs with h₂,
-  { subst h₂, rw devil_set_move_eq },
-  { change dite _ _ _ = dite _ _ _, simp_rw dif_neg h₂ },
+  convert set_prev_moves_angel_wins_iff, ext,
+  { change _ = g.a.prev_moves_id g.s, rw angel_prev_moves_id_eq, },
+  repeat { refl }, change _ = g.d.prev_moves_set g.s s m h,
+  rw devil_prev_moves_set_eq,
 end
 
 -----
