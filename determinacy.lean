@@ -83,8 +83,13 @@ lemma exi_angel_move_hws_of_not_devil_hws {pw : ℕ} {s : State}
   ∃ (ma : Valid_angel_move pw (apply_devil_move s md.m).board),
   ¬devil_hws_at pw (apply_angel_move (apply_devil_move s md.m) ma.m) :=
 begin
+  have h₁ := exi_moves_hws_of_not_devil_hws h,
+  rintro md,
+  specialize h₁ md,
   sorry
 end
+
+#exit
 
 def mk_angel_st_for_not_devil_hws (pw : ℕ) : Angel pw :=
 begin
