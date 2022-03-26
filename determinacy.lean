@@ -139,7 +139,6 @@ begin
   change (g.set_devil D).act with g.act,
   split_ifs with h₃, swap, { refl },
 
-  have h₄ : g.a = a := play_at_players_eq.1,
   have h₅ : g.d = d := play_at_players_eq.2,
 
   simp_rw play_devil_move_at,
@@ -157,14 +156,39 @@ begin
 
   simp_rw apply_devil_move,
   congr' 3,
+  have h₆ : ∃ (ma : Valid_angel_move pw s'.board),
+    angel_played_move_at g.s s' ma,
+  sorry,
   change dite _ _ _ = _,
-  split_ifs with h₆,
+  split_ifs with hx, swap, { contradiction }, clear hx,
+
+  generalize_proofs h₇,
+  change apply_devil_move s md.m with s' at h₇,
+  have h₈ := h₇.some_spec,
+
+  change d with h₂.some,
+  congr,
+  suffices h₉ : apply_angel_move (apply_devil_move s md.m) h₆.some.m = s₁,
+  { rw h₉ },
+
+  change apply_angel_move s' _ = apply_angel_move _ _,
+  congr,
+
+  let ma₁ := h₆.some, change ma₁ = ma,
+  have h₉ : angel_played_move_at g.s s' ma₁ := h₆.some_spec,
+
+  have h₁₀ : angel_played_move_at g.s s' ma,
   {
-    generalize_proofs h₇,
-    have h₈ := h₇.some_spec,
+    apply angel_played_move_at_play,
+    use [s, md, a.set_move s' ma, d.set_move s md, 1, rfl],
+    symmetry,
+    change (init_game _ _ _).play_move.s = s₁,
+    rw init_game_play_move,
+    rw play_angel_move_at,
     sorry
   },
-  sorry
+
+  exact angel_played_move_at_eq h₉ h₁₀,
 end
 
 #exit

@@ -68,7 +68,7 @@ def devil_hws_at (pw : ℕ) (s : State) :=
 def angel_played_move_at {pw : ℕ} (sx : State) (s' : State)
   (ma : Valid_angel_move pw s'.board) : Prop :=
 ∃ (s : State) (md : Valid_devil_move s.board) (a : Angel pw) (d : Devil) (n : ℕ),
-s' = apply_devil_move s' md.m ∧
+s' = apply_devil_move s md.m ∧
 sx = ((init_game a d s).play n).s
 
 -- #exit
@@ -333,3 +333,38 @@ lemma init_game_play_move {pw : ℕ}
   (init_game a d s).play_move =
   play_angel_move_at (play_devil_move_at (init_game a d s)) :=
 if_pos init_game_act
+
+lemma angel_played_move_at_play_move {pw : ℕ}
+  {g : Game pw} {s' : State} {ma : Valid_angel_move pw s'.board}
+  (h : angel_played_move_at g.s s' ma) :
+  angel_played_move_at g.play_move.s s' ma :=
+begin
+  rcases h with ⟨s, md, a, d, n, h₁, h₂⟩,
+  refine ⟨s, md, a, d, n.succ, h₁, _⟩, clear h₁,
+  rw play_at_succ',
+  let g₁ : Game pw := _,
+  change _ = g₁.s at h₂,
+  change _ = g₁.play_move.s,
+  sorry
+end
+
+-- #exit
+
+lemma angel_played_move_at_play {pw n : ℕ}
+  {g : Game pw} {s' : State} {ma : Valid_angel_move pw s'.board}
+  (h : angel_played_move_at g.s s' ma) :
+  angel_played_move_at (g.play n).s s' ma :=
+begin
+  induction n with n ih, { exact h },
+  rw play_at_succ',
+  exact angel_played_move_at_play_move ih,
+end
+
+lemma angel_played_move_at_eq {pw : ℕ}
+  {sx s' : State} {ma₁ ma₂ : Valid_angel_move pw s'.board}
+  (h₁ : angel_played_move_at sx s' ma₁)
+  (h₂ : angel_played_move_at sx s' ma₂) :
+  ma₁ = ma₂ :=
+begin
+  sorry
+end
