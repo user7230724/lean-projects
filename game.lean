@@ -37,7 +37,7 @@ def Game.set_prev_moves {pw : ℕ} (g : Game pw)
 g.set_players (g.a.set_prev_moves g.s fa) (g.d.set_prev_moves g.s fd)
 
 def play_angel_move_at' {pw pw₁ : ℕ} (a₁ : Angel pw₁) (g : Game pw) (h) :=
-{g with s := apply_angel_move g.s (a₁.f g.s h).m}
+g.set_state (apply_angel_move g.s (a₁.f g.s h).m)
 
 def play_angel_move_at {pw : ℕ} (g : Game pw) :=
 if h : angel_has_valid_move pw g.s.board
@@ -45,7 +45,7 @@ then play_angel_move_at' g.a g h
 else {g with act := false}
 
 def play_devil_move_at {pw : ℕ} (g : Game pw) :=
-{g with s := apply_devil_move g.s (g.d.f g.s).m}
+g.set_state (apply_devil_move g.s (g.d.f g.s).m)
 
 def Game.play_move {pw : ℕ} (g : Game pw) :=
 if g.act then play_angel_move_at (play_devil_move_at g) else g
@@ -268,7 +268,7 @@ begin
     congr, simp_rw play_devil_move_at,
     change (g₁.set_devil d').d with d',
     ext; try { refl }, change _ = apply_devil_move _ _,
-    simp [apply_devil_move, apply_move],
+    simp [apply_devil_move, apply_move], simp_rw Game.set_state,
     refine ⟨_, rfl, rfl⟩, change (g₁.set_devil d').s with g₁.s,
     congr' 1, change d'.f g₁.s with dite _ _ _,
     split_ifs with h₂,
@@ -284,7 +284,8 @@ begin
   { simp_rw play_angel_move_at,
     split_ifs with h₁, swap, { refl },
     change (g₂.set_angel a').a with a',
-    simp_rw play_angel_move_at', ext; try {refl}, dsimp,
+    simp_rw play_angel_move_at', ext; try {refl},
+    simp_rw Game.set_state,
     change (g₂.set_angel a').s with g₂.s at h₁ ⊢,
     change _ = apply_angel_move _ _,
     simp [apply_angel_move, apply_move],

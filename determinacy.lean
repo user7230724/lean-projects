@@ -66,7 +66,7 @@ begin
     simp_rw h₃, rw dif_pos h₂, ext; try {refl}, rw play_angel_move_at', dsimp,
     simp_rw h₃, change (play_devil_move_at (init_game a d s)).a with a,
     generalize_proofs h₄, convert_to _ = apply_angel_move s' (a.f s' h₂).m,
-    { congr; try {exact h₃}, convert_to trivial == trivial,
+    { simp_rw Game.set_state, congr; try {exact h₃}, convert_to trivial == trivial,
       { exact eq_true_intro h₄ }, { exact eq_true_intro h₂ }, refl }, refl },
   let g : Game pw := _, change g.angel_wins at h₃,
   let g₁ : Game pw := _, change g₁.angel_wins,
@@ -122,27 +122,46 @@ begin
   rw not_devil_wins_at at h₃ ⊢,
   intro n,
   specialize h₃ n,
+  suffices h₄ : (init_game a D s₁).play n =
+    ((init_game a d s₁).play n).set_devil D,
+  { rwa h₄ at h₃ },
 
-  induction n with n ih, { triv },
-  rw play_at_succ' at h₃ ⊢,
-  let g : Game pw := _, change (init_game a d s₁).play n with g at h₃ ih ⊢,
-  let G : Game pw := _, change (init_game a D s₁).play n with G at h₃ ih ⊢,
+  clear h₃,
+  induction n with n ih, { refl },
+  simp_rw play_at_succ',
+  rw ih, clear ih,
+  let g : Game pw := _, change (init_game a d s₁).play n with g,
 
-  rw Game.play_move at h₃ ⊢,
-  split_ifs at h₃ ⊢ with h₄ h₅ h₅; try {contradiction},
+  simp_rw Game.play_move,
+  change (g.set_devil D).act with g.act,
+  split_ifs with h₃, swap, { refl },
+
+  have h₄ : g.a = a := play_at_players_eq.1,
+  have h₅ : g.d = d := play_at_players_eq.2,
+
+  simp_rw play_devil_move_at,
+  change (g.set_devil D).s with g.s,
+  change (g.set_devil D).d with D,
+  rw h₅,
+
+  suffices h₆ : apply_devil_move g.s (D.f g.s).m =
+    apply_devil_move g.s (d.f g.s).m,
   {
-    have h₆ : apply_devil_move G.s (D.f G.s).m = apply_devil_move g.s (d.f g.s).m,
-    {
-      have h₆ : angel_played_move_at g.s s' ma,
-      sorry,
-      have h₇ : angel_played_move_at G.s s' ma,
-      sorry,
-      simp_rw apply_devil_move,
-      sorry
-    },
+    rw h₆,
+    rw ←play_angel_move_at_set_devil,
+    refl,
+  },
+
+  simp_rw apply_devil_move,
+  congr' 3,
+  change dite _ _ _ = _,
+  split_ifs with h₆,
+  {
+    generalize_proofs h₇,
+    have h₈ := h₇.some_spec,
     sorry
   },
-  { exact (mt ih h₄ h₅).elim },
+  sorry
 end
 
 #exit
