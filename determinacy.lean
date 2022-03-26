@@ -90,6 +90,9 @@ begin
   { exact default },
 end
 
+-- Lemma 3.1.1
+-- Ross Bryant - Borel determinacy and metamathematics
+-- Master's thesis, University of North Texas, 2001
 lemma exi_angel_move_hws_of_not_devil_hws {pw : ℕ} {s : State}
   (h : ¬devil_hws_at pw s) :
   ∀ (md : Valid_devil_move s.board),
