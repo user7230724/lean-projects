@@ -77,6 +77,19 @@ begin
   apply (devil_set_move_angel_wins_iff h₄).mpr, exact h₃,
 end
 
+def mk_devil_st_for_ma_exi_devil_st {pw : ℕ} {s' : State}
+  (h : ∀ (ma : Valid_angel_move pw s'.board),
+    ∃ (d : Devil), ∀ (a : Angel pw),
+    (init_game a d (apply_angel_move s' ma.m)).devil_wins) :
+  Devil :=
+begin
+  refine ⟨λ sx, _⟩,
+  apply dite (∃ (ma : Valid_angel_move pw s'.board),
+    angel_played_move_at sx s' ma); rintro h₁,
+  { exact (h h₁.some).some.f sx },
+  { exact default },
+end
+
 lemma exi_angel_move_hws_of_not_devil_hws {pw : ℕ} {s : State}
   (h : ¬devil_hws_at pw s) :
   ∀ (md : Valid_devil_move s.board),
@@ -84,9 +97,52 @@ lemma exi_angel_move_hws_of_not_devil_hws {pw : ℕ} {s : State}
   ¬devil_hws_at pw (apply_angel_move (apply_devil_move s md.m) ma.m) :=
 begin
   have h₁ := exi_moves_hws_of_not_devil_hws h,
-  rintro md,
+  intro md,
   specialize h₁ md,
-  sorry
+  simp_rw devil_hws_at,
+  contrapose! h₁,
+  simp_rw not_angel_wins_at at h₁ ⊢,
+  let D := mk_devil_st_for_ma_exi_devil_st h₁,
+  use D,
+  rintro ma a,
+  have h₂ := h₁ ma,
+
+  let s' := apply_devil_move s md.m,
+  change apply_devil_move s md.m with s' at ma h₁ h₂ ⊢,
+
+  let s₁ := apply_angel_move s' ma.m,
+  change apply_angel_move s' ma.m with s₁ at h₁ h₂ ⊢,
+
+  let d := h₂.some,
+  have h₃ := h₂.some_spec,
+  change ∀ (a : Angel pw), (init_game a d s₁).devil_wins at h₃,
+
+  specialize h₃ a,
+  contrapose! h₃,
+  rw not_devil_wins_at at h₃ ⊢,
+  intro n,
+  specialize h₃ n,
+
+  induction n with n ih, { triv },
+  rw play_at_succ' at h₃ ⊢,
+  let g : Game pw := _, change (init_game a d s₁).play n with g at h₃ ih ⊢,
+  let G : Game pw := _, change (init_game a D s₁).play n with G at h₃ ih ⊢,
+
+  rw Game.play_move at h₃ ⊢,
+  split_ifs at h₃ ⊢ with h₄ h₅ h₅; try {contradiction},
+  {
+    have h₆ : apply_devil_move G.s (D.f G.s).m = apply_devil_move g.s (d.f g.s).m,
+    {
+      have h₆ : angel_played_move_at g.s s' ma,
+      sorry,
+      have h₇ : angel_played_move_at G.s s' ma,
+      sorry,
+      simp_rw apply_devil_move,
+      sorry
+    },
+    sorry
+  },
+  { exact (mt ih h₄ h₅).elim },
 end
 
 #exit

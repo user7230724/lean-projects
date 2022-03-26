@@ -28,6 +28,9 @@ structure Valid_devil_move (b : Board) :=
 (m : Devil_move)
 (h : devil_move_valid b m)
 
+instance {b : Board} : inhabited (Valid_devil_move b) :=
+⟨⟨none, trivial⟩⟩
+
 def apply_move (s : State) (b : Board) : State :=
 { board := b, history := s.board :: s.history }
 
@@ -129,6 +132,9 @@ begin
   { cases h₂, exact m },
   { exact d.f s₂ },
 end
+
+def angel_state (s : State) : Prop := odd s.history.length
+def devil_state (s : State) : Prop := even s.history.length
 
 -----
 

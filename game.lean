@@ -65,6 +65,12 @@ def angel_hws_at (pw : ℕ) (s : State) :=
 def devil_hws_at (pw : ℕ) (s : State) :=
 ∃ (d : Devil), ∀ (a : Angel pw), (init_game a d s).devil_wins
 
+def angel_played_move_at {pw : ℕ} (sx : State) (s' : State)
+  (ma : Valid_angel_move pw s'.board) : Prop :=
+∃ (s : State) (md : Valid_devil_move s.board) (a : Angel pw) (d : Devil) (n : ℕ),
+s' = apply_devil_move s' md.m ∧
+sx = ((init_game a d s).play n).s
+
 -- #exit
 
 -----
