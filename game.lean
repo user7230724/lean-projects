@@ -140,6 +140,11 @@ lemma play_move_at_act {pw : ℕ} {g : Game pw}
   g.play_move = play_angel_move_at (play_devil_move_at g) :=
 if_pos h
 
+lemma play_move_at_not_act {pw : ℕ} {g : Game pw}
+  (h : ¬g.act) :
+  g.play_move = g :=
+if_neg h
+
 lemma play_angel_move_hvm {pw : ℕ} {g : Game pw}
   (h : angel_has_valid_move pw g.s.board) :
   ∃ h, play_angel_move_at g = play_angel_move_at' g.a g h :=
@@ -334,21 +339,44 @@ lemma init_game_play_move {pw : ℕ}
   play_angel_move_at (play_devil_move_at (init_game a d s)) :=
 if_pos init_game_act
 
+lemma angel_played_move_at_apply_move {pw : ℕ} {s s' : State}
+  {md : Valid_devil_move s.board}
+  {ma : Valid_angel_move pw s'.board}
+  (h : s' = apply_devil_move s md.m) :
+  angel_played_move_at (apply_angel_move s' ma.m) s' ma :=
+begin
+  let a := (default : Angel pw).set_move s' ma,
+  let d := (default : Devil).set_move s md,
+  use [s, md, a, d, 1, h],
+  change _ = (init_game a d s).play_move.s, rw init_game_play_move,
+  have h₁ : play_devil_move_at (init_game a d s) = init_game a d s',
+  { ext; try { refl }, change apply_devil_move s (d.f s).m = s',
+    rw h, congr, change dite _ _ _ = _, split_ifs; refl },
+  rw h₁, clear h₁, rw play_angel_move_at, split_ifs with h₁,
+  { change _ = apply_angel_move s' (a.f s' h₁).m,
+    congr, symmetry, change dite _ _ _ = _, split_ifs; refl },
+  { change (init_game a d s').s with s' at h₁,
+    cases ma with m h₂, apply h₁.elim, exact ⟨m, h₂⟩ },
+end
+
 lemma angel_played_move_at_play_move {pw : ℕ}
   {g : Game pw} {s' : State} {ma : Valid_angel_move pw s'.board}
   (h : angel_played_move_at g.s s' ma) :
   angel_played_move_at g.play_move.s s' ma :=
 begin
   rcases h with ⟨s, md, a, d, n, h₁, h₂⟩,
-  refine ⟨s, md, a, d, n.succ, h₁, _⟩, clear h₁,
-  rw play_at_succ',
-  let g₁ : Game pw := _,
-  change _ = g₁.s at h₂,
-  change _ = g₁.play_move.s,
-  sorry
+  by_cases h₃ : g.act,
+  {
+    sorry
+  },
+  {
+    use [s, md, a, d, n, h₁],
+    rw play_move_at_not_act h₃,
+    exact h₂,
+  },
 end
 
--- #exit
+#exit
 
 lemma angel_played_move_at_play {pw n : ℕ}
   {g : Game pw} {s' : State} {ma : Valid_angel_move pw s'.board}

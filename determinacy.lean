@@ -158,7 +158,11 @@ begin
   congr' 3,
   have h₆ : ∃ (ma : Valid_angel_move pw s'.board),
     angel_played_move_at g.s s' ma,
-  sorry,
+  {
+    use ma,
+    apply angel_played_move_at_play,
+    exact angel_played_move_at_apply_move rfl,
+  },
   change dite _ _ _ = _,
   split_ifs with hx, swap, { contradiction }, clear hx,
 
@@ -180,12 +184,7 @@ begin
   have h₁₀ : angel_played_move_at g.s s' ma,
   {
     apply angel_played_move_at_play,
-    use [s, md, a.set_move s' ma, d.set_move s md, 1, rfl],
-    symmetry,
-    change (init_game _ _ _).play_move.s = s₁,
-    rw init_game_play_move,
-    rw play_angel_move_at,
-    sorry
+    exact angel_played_move_at_apply_move rfl,
   },
 
   exact angel_played_move_at_eq h₉ h₁₀,
