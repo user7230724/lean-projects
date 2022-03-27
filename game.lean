@@ -376,7 +376,7 @@ begin
   },
 end
 
-#exit
+-- #exit
 
 lemma angel_played_move_at_play {pw n : ℕ}
   {g : Game pw} {s' : State} {ma : Valid_angel_move pw s'.board}
