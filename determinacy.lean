@@ -130,7 +130,7 @@ begin
   have h₈ := h₇.some_spec, change d with h₂.some, congr,
   suffices h₉ : apply_angel_move (apply_devil_move s md.m) h₆.some.m = s₁,
   { rw h₉ }, change apply_angel_move s' _ = apply_angel_move _ _, congr,
-  apply angel_played_move_at_eq (h₆.some_spec),
+  apply angel_played_move_at_eq h₆.some_spec,
   exact angel_played_move_at_play (angel_played_move_at_apply_move rfl),
 end
 
