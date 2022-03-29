@@ -6,48 +6,22 @@ import logic.function.iterate
 noncomputable theory
 open_locale classical
 
-def digits (n : ℕ) : list ℕ :=
-if h : ∃ (ds : list ℕ), n = ds.foldl (λ a d, a * 10 + d) 0
-then h.some else []
+def get_some {α : Type} [inhabited α] (P : α → Prop) : α :=
+if h : ∃ (x : α), P x then h.some else default
 
-def digits_sum (n : ℕ) : ℕ :=
-(digits n).sum
+def reduce {α : Type} [inhabited α] (f : α → α) (x : α) : α := get_some
+(λ (r : α), ∃ (n : ℕ), (f^[n]) x = r ∧ (f^[n + 1]) x = r)
 
-def digital_root (n : ℕ) : ℕ :=
-if h : ∃ (r k : ℕ), r = (digits_sum^[k]) n ∧ r = (digits_sum^[k + 1]) n
-then h.some else 0
+def digits (n : ℕ) : list ℕ := get_some
+(λ (ds : list ℕ), (∀ (d ∈ ds), d ≤ 9) ∧ ds.foldl (λ a d, a * 10 + d) 0 = n)
+
+def digits_sum (n : ℕ) : ℕ := (digits n).sum
+def digital_root (n : ℕ) : ℕ := reduce digits_sum n
 
 lemma digits_sum_eq_0_iff {n : ℕ} : digits_sum n = 0 ↔ n = 0 :=
 begin
-  split; intro h,
-  {
-    sorry
-  },
-  {
-    subst h,
-    rw [digits_sum, digits],
-    have h : ∃ (ds : list ℕ), 0 = ds.foldl (λ (a d : ℕ), a * 10 + d) 0,
-    sorry,
-    rw dif_pos h,
-    have h₁ := h.some_spec,
-    symmetry' at h₁,
-    generalize h₂ : h.some = xs,
-    rw h₂ at h₁,
-    induction' xs, { refl },
-    rw list.sum_cons,
-    have h₃ : xs.sum = 0,
-    {
-      sorry
-    },
-    have h₄ : hd = 0,
-    {
-      sorry
-    },
-    rw [h₃, h₄],
-  },
+  sorry
 end
-
-#exit
 
 lemma digits_sum_mod_9 {n : ℕ} : digits_sum n % 9 = n % 9 :=
 begin
