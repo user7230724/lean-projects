@@ -1,5 +1,6 @@
 import tactic.induction
 import logic.function.iterate
+import data.list.basic
 
 noncomputable theory
 open_locale classical
@@ -23,6 +24,7 @@ begin
   fsplit,
   {
     rintro d h,
+    rw list.mem_reverse at h,
     induction n with n ih generalizing d,
     {
       change d = 0 ∨ false at h,
@@ -31,7 +33,25 @@ begin
       dec_trivial,
     },
     {
-      sorry
+      change d ∈ nat.digit_succ _ _ at h,
+      generalize h₁ : nat.to_digits 10 n = xs,
+      rw h₁ at h ih,
+      induction' xs,
+      {
+        change d = 1 ∨ false at h,
+        simp at h,
+        rw h,
+        dec_trivial,
+      },
+      {
+        change d ∈ ite _ _ _ at h,
+        split_ifs at h with h₂,
+        {
+          apply ih,
+          sorry
+        },
+        sorry,
+      },
     },
   },
   sorry
