@@ -18,6 +18,29 @@ def digits (n : ℕ) : list ℕ := get_some
 def digits_sum (n : ℕ) : ℕ := (digits n).sum
 def digital_root (n : ℕ) : ℕ := reduce digits_sum n
 
+lemma exi_digits {n : ℕ} : ∃ (ds : list ℕ),
+  (∀ (d ∈ ds), d ≤ 9) ∧ ds.foldl (λ a d, a * 10 + d) 0 = n :=
+begin
+  use (nat.to_digits 10 n).reverse,
+  fsplit,
+  {
+    rintro d h,
+    induction n with n ih generalizing d,
+    {
+      change d = 0 ∨ false at h,
+      simp at h,
+      cases h,
+      dec_trivial,
+    },
+    {
+      sorry
+    },
+  },
+  sorry
+end
+
+#exit
+
 lemma digital_root_eq {n : ℕ} :
   digital_root n = ite (n % 9 = 0) 9 (n % 9) :=
 begin
