@@ -19,8 +19,35 @@ then h.some else 0
 
 lemma digits_sum_eq_0_iff {n : ℕ} : digits_sum n = 0 ↔ n = 0 :=
 begin
-  sorry
+  split; intro h,
+  {
+    sorry
+  },
+  {
+    subst h,
+    rw [digits_sum, digits],
+    have h : ∃ (ds : list ℕ), 0 = ds.foldl (λ (a d : ℕ), a * 10 + d) 0,
+    sorry,
+    rw dif_pos h,
+    have h₁ := h.some_spec,
+    symmetry' at h₁,
+    generalize h₂ : h.some = xs,
+    rw h₂ at h₁,
+    induction' xs, { refl },
+    rw list.sum_cons,
+    have h₃ : xs.sum = 0,
+    {
+      sorry
+    },
+    have h₄ : hd = 0,
+    {
+      sorry
+    },
+    rw [h₃, h₄],
+  },
 end
+
+#exit
 
 lemma digits_sum_mod_9 {n : ℕ} : digits_sum n % 9 = n % 9 :=
 begin
