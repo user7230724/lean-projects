@@ -36,12 +36,9 @@ end
 lemma num_3_dvd_of_mod_9_eq_3_or_6 {n : ℕ}
   (h : n % 9 = 3 ∨ n % 9 = 6) : 3 ∣ n :=
 begin
-  cases h;
-  { induction n using nat.strong_induction_on with n ih, dsimp at ih,
-    repeat { cases n, dec_trivial <|> cases h, try {
-      change 3 ∣ n + 3 + 3 + 3, simp, apply ih,
-      { change n < n + 9, exact lt_add_of_pos_right n dec_trivial },
-      change (n + 9) % 9 = _ at h, simp at h, exact h }}},
+  have h₁ : n % 9 % 3 = 0, { cases h; rw h; dec_trivial },
+  rw nat.mod_mod_of_dvd at h₁, swap, { dec_trivial },
+  exact nat.dvd_of_mod_eq_zero h₁,
 end
 
 lemma num_3_dvd_of_mod_9_eq_3 {n : ℕ} (h : n % 9 = 3) : 3 ∣ n :=
