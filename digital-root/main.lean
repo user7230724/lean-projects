@@ -39,7 +39,7 @@ begin
   sorry
 end
 
-#exit
+-- #exit
 
 lemma digital_root_eq {n : ℕ} :
   digital_root n = ite (n % 9 = 0) 9 (n % 9) :=
