@@ -1,6 +1,4 @@
 import tactic.induction
-import data.nat.prime
-import data.nat.modeq
 import logic.function.iterate
 
 noncomputable theory
