@@ -18,18 +18,8 @@ def digits (n : ℕ) : list ℕ := get_some
 def digits_sum (n : ℕ) : ℕ := (digits n).sum
 def digital_root (n : ℕ) : ℕ := reduce digits_sum n
 
-lemma digits_sum_eq_0_iff {n : ℕ} : digits_sum n = 0 ↔ n = 0 :=
-begin
-  sorry
-end
-
-lemma digits_sum_mod_9 {n : ℕ} : digits_sum n % 9 = n % 9 :=
-begin
-  sorry
-end
-
-lemma digital_root_eq_mod_9 {n : ℕ} :
-  digital_root n = n % 9 :=
+lemma digital_root_eq {n : ℕ} :
+  digital_root n = ite (n % 9 = 0) 9 (n % 9) :=
 begin
   sorry
 end
@@ -80,10 +70,18 @@ example {n : ℕ}
   (h₃ : prime (n + 2)) :
   digital_root (n * (n + 2)) = 8 :=
 begin
-  rw [digital_root_eq_mod_9, nat.mul_mod, nat.add_mod],
-  have hn : 3 < n + 2 := lt_trans h₁ (lt_add_of_pos_right n dec_trivial),
-  replace h₂ := prime_mod_9 h₁ h₂, replace h₃ := prime_mod_9 hn h₃,
-  rw nat.add_mod at h₃, rcases h₂ with h | h | h | h | h | h; change _ = _ at h;
-  { rw h at h₃, contrapose h₃, simp, try { dec_trivial }} <|>
-  { rw h, dec_trivial },
+  rw digital_root_eq,
+  split_ifs with hx,
+  {
+    exfalso,
+    rw [nat.mul_mod, ←nat.dvd_iff_mod_eq_zero] at hx,
+    cases hx with x hx,
+    sorry
+  },
+  sorry;{ rw [nat.mul_mod, nat.add_mod],
+    have hn : 3 < n + 2 := lt_trans h₁ (lt_add_of_pos_right n dec_trivial),
+    replace h₂ := prime_mod_9 h₁ h₂, replace h₃ := prime_mod_9 hn h₃,
+    rw nat.add_mod at h₃, rcases h₂ with h | h | h | h | h | h; change _ = _ at h;
+    { rw h at h₃, contrapose h₃, simp, try { dec_trivial }} <|>
+    { rw h, dec_trivial }},
 end
