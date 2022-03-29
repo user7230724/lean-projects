@@ -41,8 +41,7 @@ begin
     repeat { cases n, dec_trivial <|> cases h, try {
       change 3 ∣ n + 3 + 3 + 3, simp, apply ih,
       { change n < n + 9, exact lt_add_of_pos_right n dec_trivial },
-      change (n + 9) % 9 = _ at h, simp at h, exact h,
-    }}}
+      change (n + 9) % 9 = _ at h, simp at h, exact h }}},
 end
 
 lemma num_3_dvd_of_mod_9_eq_3 {n : ℕ} (h : n % 9 = 3) : 3 ∣ n :=
