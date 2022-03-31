@@ -188,7 +188,7 @@ lemma act_play_at_succ {pw n : ℕ} {g : Game pw}
   (h : (g.play n.succ).act) : (g.play n).act :=
 by { rw play_at_succ' at h, exact act_play_move_at_succ h }
 
-lemma act_play_at_ge {pw n m : ℕ} {g : Game pw}
+lemma act_play_at_le {pw n m : ℕ} {g : Game pw}
   (h₁ : n ≤ m) (h₂ : (g.play m).act) : (g.play n).act :=
 begin
   induction' h₁,
@@ -373,6 +373,75 @@ begin
     exact ⟨_, ma.h⟩ },
 end
 
+lemma angel_hvm_of_next_act {pw : ℕ} {g : Game pw}
+  (h : g.play_move.act) :
+  ∃ hs, angel_has_valid_move pw (play_devil_move_at g hs).s.board :=
+begin
+  have hs : g.act := act_play_move_at_succ h, use hs,
+  rw Game.play_move at h, rw dif_pos hs at h,
+  rw play_angel_move_at at h, split_ifs at h with h₄,
+  { cases h₄ with h₄ h₅, convert h₅, },
+  { cases h }
+end
+
+lemma play_move_hist_len_eq_of_act {pw : ℕ} {g : Game pw}
+  (h : g.play_move.act) :
+  g.play_move.s.history.length = g.s.history.length + 2 :=
+begin
+  have h₁ : g.act := act_play_move_at_succ h,
+  rw [play_move_at_act h₁, play_angel_move_at],
+  rw dif_pos, { refl }, exact ⟨h₁, (angel_hvm_of_next_act h).some_spec⟩,
+end
+
+lemma play_hist_len_eq_of_act {pw n : ℕ} {g : Game pw}
+  (h : (g.play n).act) :
+  (g.play n).s.history.length = g.s.history.length + n * 2 :=
+begin
+  induction n with n ih, { refl }, rw play_at_succ' at h ⊢,
+  let g₁ : Game pw := _, change g.play n with g₁ at ih h ⊢,
+  have h₁ := act_play_move_at_succ h, specialize ih h₁,
+  rw [play_move_hist_len_eq_of_act h, ih, add_assoc, nat.succ_mul],
+end
+
+lemma hist_len_ne_of_play_lt {pw n k : ℕ} {g : Game pw}
+  (h₁ : k < n) (h₂ : (g.play n).act) :
+  (g.play k).s.history.length ≠ (g.play n).s.history.length :=
+begin
+  have h₃ := act_play_at_le (nat.le_of_lt h₁) h₂,
+  rw [play_hist_len_eq_of_act h₂, play_hist_len_eq_of_act h₃], intro h,
+  replace h := nat.add_left_cancel h,
+  rw nat.mul_left_inj at h, swap, { dec_trivial },
+  subst h, exact nat.lt_asymm h₁ h₁,
+end
+
+lemma hist_ne_of_play_lt {pw n k : ℕ} {g : Game pw}
+  (h₁ : k < n) (h₂ : (g.play n).act) :
+  (g.play k).s.history ≠ (g.play n).s.history :=
+hist_ne_of_hist_len_ne (hist_len_ne_of_play_lt h₁ h₂)
+
+lemma state_ne_of_play_lt {pw n k : ℕ} {g : Game pw}
+  (h₁ : k < n) (h₂ : (g.play n).act) :
+  (g.play k).s ≠ (g.play n).s :=
+by { have h₃ := hist_ne_of_play_lt h₁ h₂, contrapose! h₃, rw h₃ }
+
+lemma apply_angel_move_ne_of_hist_ne {pw : ℕ} {s₁ s₂ : State}
+  {ma₁ ma₂ : Angel_move} (h : s₁.history.length ≠ s₂.history.length) :
+  apply_angel_move s₁ ma₁ ≠ apply_angel_move s₂ ma₂ :=
+begin
+  contrapose! h, simp_rw [apply_angel_move, apply_move] at h,
+  replace h := h.2.1.2, rw h,
+end
+
+lemma apply_devil_move_ne_of_hist_ne {s₁ s₂ : State}
+  {md₁ md₂ : Devil_move} (h : s₁.history.length ≠ s₂.history.length) :
+  apply_devil_move s₁ md₁ ≠ apply_devil_move s₂ md₂ :=
+begin
+  contrapose! h, simp_rw [apply_devil_move, apply_move] at h,
+  replace h := h.2.1.2, rw h,
+end
+
+-- #exit
+
 def mk_angel_for_played_move_at_play_move {pw : ℕ}
   (a₀ a : Angel pw) (s' : State) (hs : s'.act) :
   Angel pw :=
@@ -385,154 +454,96 @@ lemma angel_played_move_at_play_move {pw : ℕ}
   (h : angel_played_move_at g.s s₀' ma) :
   angel_played_move_at g.play_move.s s₀' ma :=
 begin
-  let a := g.a,
-  let d := g.d,
-  let s := g.s,
-  rcases h with ⟨s₀, md₀, a₀, d₀, n, h₁, h₂⟩,
-  by_cases hs : g.act,
-  {
-    let md := d.f s hs,
-    let s' := apply_devil_move s md.m,
+  let a := g.a, let d := g.d, let s := g.s,
+  rcases h with ⟨s₀, md₀, a₀, d₀, n, h₁, h₂⟩, by_cases hs : g.act,
+  { let md := d.f s hs, let s' := apply_devil_move s md.m,
     let d₁ := d₀.set_move s md,
     let a₁ := mk_angel_for_played_move_at_play_move a₀ a s' hs,
     use [s₀, md₀, a₁, d₁, n.succ, by rw h₁],
     have h₁ : ∀ (k ≤ n), ((init_game a₁ d₁ s₀).play k).s =
       ((init_game a₀ d₀ s₀).play k).s,
-    {
-      rintro k hk,
-      induction k with k ih, { refl },
-      simp_rw play_at_succ',
+    { rintro k hk, induction k with k ih, { refl }, simp_rw play_at_succ',
       specialize ih (nat.le_of_succ_le hk),
       replace ih : (init_game a₁ d₁ s₀).play k =
         ((init_game a₀ d₀ s₀).play k).set_players a₁ d₁,
-      sorry,
-      -- {
-      --   ext,
-      --   {
-      --     exact play_at_players_eq.1,
-      --   },
-      --   {
-      --     exact play_at_players_eq.2,
-      --   },
-      --   {
-      --     rw ih,
-      --     refl,
-      --   },
-      -- },
+      { ext,
+        { exact play_at_players_eq.1 },
+        { exact play_at_players_eq.2 },
+        { rw ih, refl }},
       rw ih, clear ih,
       have hs₁ : ((init_game a₀ d₀ s₀).play k).act,
-      sorry,
+      { apply act_play_at_le (nat.le_of_succ_le hk),
+        change ((init_game a₀ d₀ s₀).play n).s.act,
+        rw ←h₂, exact hs },
       repeat { rw play_move_at_act, swap, { exact hs₁ }},
       let g₁ : Game pw := _,
       change (init_game a₀ d₀ s₀).play k with g₁ at hs₁ ⊢,
       have ha : g₁.a = a₀ := play_at_players_eq.1,
       have hd : g₁.d = d₀ := play_at_players_eq.2,
-      let sk := g₁.s,
-      let mdk := d₀.f sk hs₁,
+      let sk := g₁.s, let mdk := d₀.f sk hs₁,
       let sk' := apply_devil_move sk mdk.m,
+      have hy : (play_devil_move_at g₁ hs₁).s = sk',
+      { change apply_devil_move sk _ = apply_devil_move _ _, congr' 2, rw hd },
       have h₁ : d₁.f sk hs₁ = mdk,
-      sorry,
-      have h₂ : play_devil_move_at (g₁.set_players a₁ d₁) hs₁ =
+      { change dite _ _ _ = _, rw dif_neg,
+        change ((init_game a₀ d₀ s₀).play k).s ≠ g.s, rw h₂,
+        apply state_ne_of_play_lt (nat.succ_le_iff.mp hk),
+        change ((init_game a₀ d₀ s₀).play n).s.act, rw ←h₂, exact hs },
+      have hx : play_devil_move_at (g₁.set_players a₁ d₁) hs₁ =
         (play_devil_move_at g₁ hs₁).set_players a₁ d₁,
-      sorry,
-      rw h₂, clear h₂,
-      have h₂ : angel_has_valid_move pw sk'.board,
-      sorry,
+      { ext,
+        { exact play_devil_move_at_players_eq.1, },
+        { exact play_devil_move_at_players_eq.2, },
+        { change apply_devil_move g₁.s _ = apply_devil_move _ _,
+          congr' 2, change d₁.f sk _ = _, rw [h₁, hd] }},
+      rw hx, clear hx, have hx : angel_has_valid_move pw sk'.board,
+      { have h₃ : g₁.play_move.act,
+        { change ((init_game a₀ d₀ s₀).play k).play_move.act,
+          rw ←play_at_succ', apply act_play_at_le hk,
+          change ((init_game a₀ d₀ s₀).play n).s.act,
+          rw ←h₂, exact hs },
+        convert (angel_hvm_of_next_act h₃).some_spec, rw ←hy, refl },
       simp_rw play_angel_move_at,
-      rw dif_pos,
-      swap, sorry;{
-        -- use hs₁, convert h₂,
-        -- change apply_devil_move _ _ = apply_devil_move _ _,
-        -- congr' 2,
-        -- rw hd,
-      },
-      rw dif_pos,
-      swap, sorry;{
-        -- use hs₁, convert h₂,
-        -- change apply_devil_move _ _ = apply_devil_move _ _,
-        -- congr' 2,
-        -- rw hd,
-      },
+      repeat { rw dif_pos, swap, { use hs₁, convert hx }},
       change apply_angel_move (play_devil_move_at g₁ hs₁).s
         (a₁.f (play_devil_move_at g₁ hs₁).s _ _).m =
         apply_angel_move _ (g₁.a.f (play_devil_move_at g₁ hs₁).s _ _).m,
-      congr' 2, rw ha,
-      generalize_proofs h₃,
+      congr' 2, rw ha, generalize_proofs h₃,
       change (mk_angel_for_played_move_at_play_move _ _ _ _).f _ _ _ = _,
       rw mk_angel_for_played_move_at_play_move,
-      rw dif_pos,
-      swap, sorry,
-      have h₄ : (play_devil_move_at g₁ hs₁).s = sk',
-      sorry,
-      change dite _ _ _ = _,
-      rw dif_neg,
-      rw h₄,
-      change apply_devil_move g₁.s mdk.m ≠ apply_devil_move g.s md.m,
-      sorry
-    },
-    sorry
-    -- specialize h₁ n (le_refl n),
-    -- replace h₁ : (init_game a₁ d₁ s₀).play n = g.set_players a₁ d₁,
-    -- {
-    --   ext,
-    --   {
-    --     exact play_at_players_eq.1,
-    --   },
-    --   {
-    --     exact play_at_players_eq.2,
-    --   },
-    --   {
-    --     rw h₁,
-    --     exact h₂.symm,
-    --   },
-    -- },
-    -- rw play_at_succ',
-    -- rw play_move_at_act hs,
-    -- rw h₁, clear h₁,
-    -- rw play_move_at_act, swap, { exact hs },
-    -- symmetry,
-    -- have h₁ : play_devil_move_at (g.set_players a₁ d₁) hs =
-    --   (play_devil_move_at g hs).set_players a₁ d₁,
-    -- {
-    --   ext,
-    --   {
-    --     exact play_devil_move_at_players_eq.1,
-    --   },
-    --   {
-    --     exact play_devil_move_at_players_eq.2,
-    --   },
-    --   {
-    --     change apply_devil_move g.s _ = apply_devil_move _ _,
-    --     congr' 2,
-    --     change d₁.f s hs = g.d.f g.s hs,
-    --     change dite _ _ _ = _,
-    --     rw dif_pos rfl,
-    --   },
-    -- },
-    -- rw h₁, clear h₁,
-    -- simp_rw play_angel_move_at,
-    -- split_ifs with h₁, swap, { refl },
-    -- cases h₁ with h₁ h₂,
-    -- change apply_angel_move ((play_devil_move_at g hs).s) _ =
-    --   apply_angel_move _ _,
-    -- congr' 2,
-    -- change a₁.f s' _ _ = a.f s' _ _,
-    -- generalize_proofs,
-    -- change (mk_angel_for_played_move_at_play_move _ _ _ _).f _ _ _ = _,
-    -- rw mk_angel_for_played_move_at_play_move,
-    -- rw dif_pos, swap, { exact h₂ },
-    -- change dite _ _ _ = _,
-    -- rw dif_pos rfl,
-  },
-  {
-    sorry
-    -- use [s₀, md₀, a₀, d₀, n, h₁],
-    -- rw play_move_at_not_act h₃,
-    -- exact h₂,
-  },
+      split_ifs with hh, swap, { refl },
+      change dite _ _ _ = _, rw dif_neg, rw hy,
+      change apply_devil_move ((init_game a₀ d₀ s₀).play k).s mdk.m ≠
+        apply_devil_move g.s md.m,
+      rw h₂, replace hk := nat.lt_of_succ_le hk,
+      apply apply_devil_move_ne_of_hist_ne, apply hist_len_ne_of_play_lt hk,
+      change ((init_game a₀ d₀ s₀).play n).s.act, rw ←h₂, exact hs },
+    specialize h₁ n (le_refl n),
+    replace h₁ : (init_game a₁ d₁ s₀).play n = g.set_players a₁ d₁,
+    { ext,
+      { exact play_at_players_eq.1 },
+      { exact play_at_players_eq.2 },
+      { rw h₁, exact h₂.symm }},
+    rw [play_at_succ', play_move_at_act hs, h₁, play_move_at_act],
+    swap, { exact hs }, symmetry,
+    have h₁ : play_devil_move_at (g.set_players a₁ d₁) hs =
+      (play_devil_move_at g hs).set_players a₁ d₁,
+    { ext,
+      { exact play_devil_move_at_players_eq.1 },
+      { exact play_devil_move_at_players_eq.2 },
+      { change apply_devil_move g.s _ = apply_devil_move _ _,
+        congr' 2, change d₁.f s hs = g.d.f g.s hs,
+        change dite _ _ _ = _, rw dif_pos rfl }},
+    rw h₁, clear h₁, simp_rw play_angel_move_at,
+    split_ifs with h₁, swap, { refl }, cases h₁ with h₁ h₂,
+    change apply_angel_move ((play_devil_move_at g hs).s) _ =
+      apply_angel_move _ _,
+    congr' 2, change a₁.f s' _ _ = a.f s' _ _, generalize_proofs,
+    change (mk_angel_for_played_move_at_play_move _ _ _ _).f _ _ _ = _,
+    rw mk_angel_for_played_move_at_play_move, rw dif_pos, swap, { exact h₂ },
+    change dite _ _ _ = _, rw dif_pos rfl },
+  { use [s₀, md₀, a₀, d₀, n, h₁], rw play_move_at_not_act hs, exact h₂ },
 end
-
-#exit
 
 lemma angel_played_move_at_play {pw n : ℕ}
   {g : Game pw} {s' : State} {ma : Valid_angel_move pw s'.board}

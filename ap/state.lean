@@ -24,3 +24,10 @@ instance : inhabited State := ⟨state₀⟩
 
 def State.finish (s : State) : State :=
 {s with act := false}
+
+-----
+
+lemma hist_ne_of_hist_len_ne {s₁ s₂ : State}
+  (h : s₁.history.length ≠ s₂.history.length) :
+  s₁.history ≠ s₂.history :=
+by { contrapose! h, rw h }
