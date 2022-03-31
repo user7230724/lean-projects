@@ -102,6 +102,7 @@ lemma exi_angel_move_hws_of_not_devil_hws {pw : ℕ} {s : State}
   ∃ (ma : Valid_angel_move pw (apply_devil_move s md.m).board),
   ¬devil_hws_at pw (apply_angel_move (apply_devil_move s md.m) ma.m) :=
 begin
+  have hs := act_of_not_devil_hws h,
   have h₁ := exi_moves_hws_of_not_devil_hws h,
   intro md, specialize h₁ md, simp_rw devil_hws_at, contrapose! h₁,
   simp_rw not_angel_wins_at at h₁ ⊢,
@@ -127,7 +128,8 @@ begin
   simp_rw apply_devil_move, congr' 3,
   have h₆ : ∃ (ma : Valid_angel_move pw s'.board),
     angel_played_move_at g.s s' ma,
-  { exact ⟨_, angel_played_move_at_play (angel_played_move_at_apply_move rfl)⟩ },
+  { exact ⟨_, angel_played_move_at_play
+    (angel_played_move_at_apply_move hs rfl)⟩ },
   change (mk_devil_st_for_ma_exi_devil_st _).f _ _ = _,
   rw mk_devil_st_for_ma_exi_devil_st, dsimp,
   split_ifs with hx, swap, { contradiction }, clear hx,
@@ -136,7 +138,7 @@ begin
   suffices h₉ : apply_angel_move (apply_devil_move s md.m) h₆.some.m = s₁,
   { rw h₉ }, change apply_angel_move s' _ = apply_angel_move _ _, congr,
   apply angel_played_move_at_eq h₆.some_spec,
-  exact angel_played_move_at_play (angel_played_move_at_apply_move rfl),
+  exact angel_played_move_at_play (angel_played_move_at_apply_move hs rfl),
 end
 
 def mk_angel_st_for_not_devil_hws (pw : ℕ) : Angel pw :=

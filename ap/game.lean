@@ -350,24 +350,27 @@ lemma init_game_play_move {pw : ℕ}
 dif_pos (init_game_act hs)
 
 lemma angel_played_move_at_apply_move {pw : ℕ} {s s' : State}
-  {md : Valid_devil_move s.board}
-  {ma : Valid_angel_move pw s'.board}
-  (h : s' = apply_devil_move s md.m) :
+  {md : Valid_devil_move s.board} {ma : Valid_angel_move pw s'.board}
+  (hs : s.act) (h : s' = apply_devil_move s md.m) :
   angel_played_move_at (apply_angel_move s' ma.m) s' ma :=
 begin
-  sorry
-  -- let a := (default : Angel pw).set_move s' ma,
-  -- let d := (default : Devil).set_move s md,
-  -- use [s, md, a, d, 1, h],
-  -- change _ = (init_game a d s).play_move.s, rw init_game_play_move,
-  -- have h₁ : play_devil_move_at (init_game a d s)  = init_game a d s',
-  -- { ext; try { refl }, change apply_devil_move s (d.f s).m = s',
-  --   rw h, congr, change dite _ _ _ = _, split_ifs; refl },
-  -- rw h₁, clear h₁, rw play_angel_move_at, split_ifs with h₁,
-  -- { change _ = apply_angel_move s' (a.f s' h₁).m,
-  --   congr, symmetry, change dite _ _ _ = _, split_ifs; refl },
-  -- { change (init_game a d s').s with s' at h₁,
-  --   cases ma with m h₂, apply h₁.elim, exact ⟨m, h₂⟩ },
+  let a := (default : Angel pw).set_move s' ma,
+  let d := (default : Devil).set_move s md, use [s, md, a, d, 1, h],
+  rw [play_1, play_move_at_act], swap, { exact hs }, rw play_angel_move_at,
+  have h₄ : (play_devil_move_at (init_game a d s) hs).s = s',
+  { symmetry, convert h, rw play_devil_move_at, change apply_devil_move _ _ = _,
+    congr, change dite _ _ _ = _, rw dif_pos; refl },
+  split_ifs with h₁,
+  { cases h₁ with h₂ h₃, rw play_devil_move_at_players_eq.1,
+    change (init_game a d s).a with a, generalize_proofs,
+    change _ = apply_angel_move _ _, simp_rw h₄, congr, { exact h₄.symm },
+    symmetry, have hs₁ : s'.act, { rw ←h₄, exact hs },
+    have h₅ : a.f s' hs₁ ⟨_, ma.h⟩ == ma,
+    { change dite _ _ _ == _, rw dif_pos rfl },
+    convert h₅ },
+  { contrapose! h₁, clear h₁, split, { assumption },
+    suffices h₁ : angel_has_valid_move pw s'.board, { convert h₁, },
+    exact ⟨_, ma.h⟩ },
 end
 
 lemma angel_played_move_at_play_move {pw : ℕ}
