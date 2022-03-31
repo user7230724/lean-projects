@@ -562,8 +562,7 @@ lemma angel_played_move_at_play {pw n : ℕ}
   (h : angel_played_move_at g.s s' ma) :
   angel_played_move_at (g.play n).s s' ma :=
 begin
-  induction n with n ih, { exact h },
-  rw play_at_succ',
+  induction n with n ih, { exact h }, rw play_at_succ',
   exact angel_played_move_at_play_move ih,
 end
 
