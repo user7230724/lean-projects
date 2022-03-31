@@ -32,7 +32,7 @@ instance {b : Board} : inhabited (Valid_devil_move b) :=
 ⟨⟨none, trivial⟩⟩
 
 def apply_move (s : State) (b : Board) : State :=
-{ board := b, history := s.board :: s.history }
+{s with board := b, history := s.board :: s.history }
 
 def apply_angel_move (s : State) (p : Angel_move) : State :=
 apply_move s {s.board with angel := p}
@@ -47,90 +47,90 @@ apply_move s (apply_devil_move' s m)
 -----
 
 structure Angel (pw : ℕ) : Type :=
-(f : Π (s : State),
+(f : Π (s : State), s.act →
   angel_has_valid_move pw s.board → Valid_angel_move pw s.board)
 
 structure Devil : Type :=
-(f : Π (s : State), Valid_devil_move s.board)
+(f : Π (s : State), s.act → Valid_devil_move s.board)
 
 instance {pw : ℕ} : inhabited (Angel pw) :=
-⟨⟨λ s h, ⟨h.some, h.some_spec⟩⟩⟩
+⟨⟨λ s hs h, ⟨h.some, h.some_spec⟩⟩⟩
 
 instance : inhabited Devil :=
-⟨⟨λ s, ⟨none, trivial⟩⟩⟩
+⟨⟨λ s hs, ⟨none, trivial⟩⟩⟩
 
 def Angel.sup {pw pw₁ : ℕ} (a₁ : Angel pw₁) (a : Angel pw) : Prop :=
-∀ s h, ∃ h₁, (a₁.f s h₁).m = (a.f s h).m
+∀ s hs h, ∃ hs₁ h₁, (a₁.f s hs₁ h₁).m = (a.f s hs h).m
 
 def Angel.sub {pw₁ pw : ℕ} (a : Angel pw₁) (a₁ : Angel pw) : Prop :=
 a₁.sup a
 
 def Angel_prev_moves (pw : ℕ) (s : State) :=
-Π (s₁ : State), s₁.history.length < s.history.length →
+Π (s₁ : State), s₁.act → s₁.history.length < s.history.length →
 angel_has_valid_move pw s₁.board → Valid_angel_move pw s₁.board
 
 def Devil_prev_moves (s : State) :=
-Π (s₁ : State), s₁.history.length < s.history.length →
+Π (s₁ : State), s₁.act → s₁.history.length < s.history.length →
 Valid_devil_move s₁.board
 
 def Angel.set_prev_moves {pw : ℕ} (a : Angel pw) (s : State)
   (pm : Angel_prev_moves pw s) : Angel pw :=
 begin
-  refine ⟨λ s₁ h₁, _⟩,
+  refine ⟨λ s₁ hs h₁, _⟩,
   apply dite (s₁.history.length < s.history.length); intro h₂,
-  { exact pm s₁ h₂ h₁ },
-  { exact a.f s₁ h₁ },
+  { exact pm s₁ hs h₂ h₁ },
+  { exact a.f s₁ hs h₁ },
 end
 
 def Devil.set_prev_moves (d : Devil) (s : State)
   (pm : Devil_prev_moves s) : Devil :=
 begin
-  refine ⟨λ s₁, _⟩,
+  refine ⟨λ s₁ hs, _⟩,
   apply dite (s₁.history.length < s.history.length); intro h₁,
-  { exact pm s₁ h₁ },
-  { exact d.f s₁ },
+  { exact pm s₁ hs h₁ },
+  { exact d.f s₁ hs },
 end
 
 def Angel.set_move {pw : ℕ} (a : Angel pw) (s : State)
   (ma : Valid_angel_move pw s.board) : Angel pw :=
 begin
-  refine ⟨λ s₁ h, _⟩, apply dite (s₁ = s); intro h₁,
+  refine ⟨λ s₁ hs h, _⟩, apply dite (s₁ = s); intro h₁,
   { cases h₁, exact ma },
-  { exact a.f s₁ h },
+  { exact a.f s₁ hs h },
 end
 
 def Devil.set_move (d : Devil) (s : State)
   (md : Valid_devil_move s.board) : Devil :=
 begin
-  refine ⟨λ s₁, _⟩, apply dite (s₁ = s); intro h₁,
+  refine ⟨λ s₁ hs, _⟩, apply dite (s₁ = s); intro h₁,
   { cases h₁, exact md },
-  { exact d.f s₁ },
+  { exact d.f s₁ hs },
 end
 
 def Angel.prev_moves_id {pw : ℕ} (a : Angel pw) (s : State) : Angel pw :=
-a.set_prev_moves s (λ s₁ _ h, a.f s₁ h)
+a.set_prev_moves s (λ s₁ hs _ h, a.f s₁ hs h)
 
 def Devil.prev_moves_id (d : Devil) (s : State) : Devil :=
-d.set_prev_moves s (λ s₁ h, d.f s₁)
+d.set_prev_moves s (λ s₁ hs h, d.f s₁ hs)
 
 def Angel.prev_moves_set {pw : ℕ} (a : Angel pw) (s : State)
   (s₁ : State) (m : Valid_angel_move pw s₁.board)
   (h : s₁.history.length < s.history.length) : Angel pw :=
 begin
-  apply a.set_prev_moves s, rintro s₂ h₁ h₂,
+  apply a.set_prev_moves s, rintro s₂ hs h₁ h₂,
   apply dite (s₂ = s₁); intro h₃,
   { cases h₃, exact m },
-  { exact a.f s₂ h₂ },
+  { exact a.f s₂ hs h₂ },
 end
 
 def Devil.prev_moves_set (d : Devil) (s : State)
   (s₁ : State) (m : Valid_devil_move s₁.board)
   (h : s₁.history.length < s.history.length) : Devil :=
 begin
-  apply d.set_prev_moves s, rintro s₂ h₁,
+  apply d.set_prev_moves s, rintro s₂ hs h₁,
   apply dite (s₂ = s₁); intro h₂,
   { cases h₂, exact m },
-  { exact d.f s₂ },
+  { exact d.f s₂ hs },
 end
 
 def angel_state (s : State) : Prop := odd s.history.length
@@ -149,7 +149,7 @@ lemma angel_has_valid_move_ge_of {pw pw₁ : ℕ} {b : Board}
 by { cases h₂ with m h₂, use m, exact angel_move_valid_ge_of h₁ h₂ }
 
 lemma angels_eq_iff {pw : ℕ} {a₁ a₂ : Angel pw} :
-  a₁ = a₂ ↔ ∀ s h, a₁.f s h = a₂.f s h :=
+  a₁ = a₂ ↔ ∀ s hs h, a₁.f s hs h = a₂.f s hs h :=
 begin
   split; intro h,
   { subst h, simp },
@@ -157,7 +157,7 @@ begin
 end
 
 lemma devils_eq_iff {d₁ d₂ : Devil} :
-  d₁ = d₂ ↔ ∀ s, d₁.f s = d₂.f s :=
+  d₁ = d₂ ↔ ∀ s hs, d₁.f s hs = d₂.f s hs :=
 begin
   split; intro h,
   { subst h, simp },
@@ -166,31 +166,31 @@ end
 
 lemma angel_prev_moves_id_eq {pw : ℕ} {a : Angel pw} {s : State} :
   a.prev_moves_id s = a :=
-by { rw angels_eq_iff, rintro s₁ h, change dite _ _ _ = _, split_ifs; refl }
+by { rw angels_eq_iff, rintro s₁ hs h, change dite _ _ _ = _, split_ifs; refl }
 
 lemma devil_prev_moves_id_eq {d : Devil} {s : State} :
   d.prev_moves_id s = d :=
-by { rw devils_eq_iff, rintro s₁, change dite _ _ _ = _, split_ifs; refl }
+by { rw devils_eq_iff, rintro s₁ hs, change dite _ _ _ = _, split_ifs; refl }
 
 lemma angel_set_move_eq {pw : ℕ} {a : Angel pw}
-  {s : State} {m : Valid_angel_move pw s.board} {h} :
-  (a.set_move s m).f s h = m :=
+  {s : State} {m : Valid_angel_move pw s.board} {hs h} :
+  (a.set_move s m).f s hs h = m :=
 by { change dite _ _ _ = _, split_ifs with h₁; refl }
 
 lemma devil_set_move_eq {d : Devil}
-  {s : State} {m : Valid_devil_move s.board} :
-  (d.set_move s m).f s = m :=
+  {s : State} {m : Valid_devil_move s.board} {hs} :
+  (d.set_move s m).f s hs = m :=
 by { change dite _ _ _ = _, split_ifs with h₁; refl }
 
 lemma angel_set_move_self {pw : ℕ} {a : Angel pw}
-  {s : State} {h} : a.set_move s (a.f s h) = a :=
+  {s : State} {hs h} : a.set_move s (a.f s hs h) = a :=
 begin
   rw angels_eq_iff; intros, change dite _ _ _ = _, split_ifs with h₂,
   { subst h₂ }, { refl },
 end
 
 lemma devil_set_move_self {d : Devil}
-  {s : State} : d.set_move s (d.f s) = d :=
+  {s : State} {hs} : d.set_move s (d.f s hs) = d :=
 begin
   rw devils_eq_iff; intros, change dite _ _ _ = _, split_ifs with h₂,
   { subst h₂ }, { refl },
@@ -200,7 +200,7 @@ lemma angel_set_move_set_move_eq {pw : ℕ} {a : Angel pw} {s : State}
   {m₁ m₂ : Valid_angel_move pw s.board} :
   (a.set_move s m₁).set_move s m₂ = a.set_move s m₂ :=
 begin
-  rw angels_eq_iff, rintro s₁ h₁,
+  rw angels_eq_iff, rintro s₁ hs h₁,
   change dite _ _ _ = _, split_ifs with h₂,
   { subst h₂, rw angel_set_move_eq },
   { change dite _ _ _ = dite _ _ _, simp_rw dif_neg h₂ },
@@ -210,7 +210,7 @@ lemma devil_set_move_set_move_eq {d : Devil} {s : State}
   {m₁ m₂ : Valid_devil_move s.board} :
   (d.set_move s m₁).set_move s m₂ = d.set_move s m₂ :=
 begin
-  rw devils_eq_iff, rintro s₁,
+  rw devils_eq_iff, rintro s₁ hs,
   change dite _ _ _ = _, split_ifs with h₂,
   { subst h₂, rw devil_set_move_eq },
   { change dite _ _ _ = dite _ _ _, simp_rw dif_neg h₂ },
@@ -220,7 +220,7 @@ lemma angel_prev_moves_set_eq {pw : ℕ} {a : Angel pw} {s s₁ : State}
   {m : Valid_angel_move pw s₁.board} {h} :
   a.prev_moves_set s s₁ m h = a.set_move s₁ m :=
 begin
-  rw angels_eq_iff, rintro s₂ h,
+  rw angels_eq_iff, rintro s₂ hs h,
   change dite _ _ _ = _, split_ifs with h₁,
   { dsimp, split_ifs with h₂,
     { subst h₂, simp [angel_set_move_eq] },
@@ -234,7 +234,7 @@ lemma devil_prev_moves_set_eq {d : Devil} {s s₁ : State}
   {m : Valid_devil_move s₁.board} {h} :
   d.prev_moves_set s s₁ m h = d.set_move s₁ m :=
 begin
-  rw devils_eq_iff, rintro s₂,
+  rw devils_eq_iff, rintro s₂ hs,
   change dite _ _ _ = _, split_ifs with h₁,
   { dsimp, split_ifs with h₂,
     { subst h₂, simp [devil_set_move_eq] },

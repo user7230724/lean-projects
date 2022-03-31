@@ -4,7 +4,7 @@ import data.set.basic
 import logic.function.iterate
 
 import .point .dist .board .state .game
-import .determinacy .angel_pw_ge
+import .determinacy .pw_ge
 
 noncomputable theory
 open_locale classical
@@ -28,13 +28,11 @@ def devil_hws (pw : ℕ) := devil_hws_at pw state₀
 
 lemma angel_pw_0_not_hws : ¬angel_hws 0 :=
 begin
-  rintro ⟨a, h⟩, contrapose! h, clear h, use default,
-  rw not_angel_wins_at, use 1,
-  change ¬Game.act (ite _ _ _), split_ifs,
-  swap, { exact (h trivial).elim }, clear h,
-  change ¬Game.act (dite _ _ _), split_ifs,
-  swap, { exact not_false }, rcases h with ⟨p, h₁, h₂, h₃⟩,
-  rw [nat.le_zero_iff, dist_eq_zero_iff] at h₂, contradiction,
+  rintro ⟨a, h⟩, contrapose! h, clear h, use default, rw not_angel_wins_at, use 1,
+  rw [play_1, play_move_at_act], swap, { triv },
+  rw [play_angel_move_at, dif_neg], { exact not_false },
+  push_neg, rintro h₁ ⟨ma, h₂, h₃, h₄⟩,
+  rw [nat.le_zero_iff, dist_eq_zero_iff] at h₃, contradiction,
 end
 
 lemma angel_pw_1_not_hws : ¬angel_hws 1 :=
