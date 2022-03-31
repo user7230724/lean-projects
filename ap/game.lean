@@ -2,8 +2,9 @@ import tactic.induction
 import data.int.basic
 import data.set.basic
 import logic.function.iterate
+import data.list
 
-import .point .dist .board .state .player
+import .util .point .dist .board .state .player
 
 noncomputable theory
 open_locale classical
@@ -76,8 +77,6 @@ def angel_played_move_at {pw : ℕ} (sx : State) (s' : State)
 ∃ (s : State) (md : Valid_devil_move s.board) (a : Angel pw) (d : Devil) (n : ℕ),
 s' = apply_devil_move s md.m ∧
 sx = ((init_game a d s).play n).s
-
--- #exit
 
 -----
 
@@ -196,20 +195,30 @@ begin
   { rw play_at_succ' at h₂, exact ih (act_play_move_at_succ h₂) },
 end
 
+lemma hist_len_play_angel_move_at' {pw pw₁ : ℕ} {g : Game pw}
+  {a₁ : Angel pw₁} {h₁ h₂} :
+  (play_angel_move_at' a₁ g h₁ h₂).s.history.length = g.s.history.length.succ :=
+hist_len_apply_angel_move
+
+lemma hist_len_play_devil_move_at {pw : ℕ} {g : Game pw} {hs} :
+  (play_devil_move_at g hs).s.history.length = g.s.history.length.succ :=
+hist_len_apply_devil_move
+
 lemma play_angel_move_at_hist_len_ge {pw : ℕ} {g : Game pw} :
   g.s.history.length ≤ (play_angel_move_at g).s.history.length :=
 begin
   rw play_angel_move_at, split_ifs, swap, { refl },
+  rw hist_len_play_angel_move_at',
   exact nat.le_of_lt (nat.lt_succ_self _),
 end
 
 lemma play_devil_move_at_hist_len_ge {pw : ℕ} {g : Game pw} {hs} :
   g.s.history.length ≤ (play_devil_move_at g hs).s.history.length :=
-nat.le_of_lt (nat.lt_succ_self _)
+by { rw hist_len_play_devil_move_at, exact nat.le_of_lt (nat.lt_succ_self _) }
 
 lemma play_devil_move_at_hist_len_eq {pw : ℕ} {g : Game pw} {hs} :
   (play_devil_move_at g hs).s.history.length = g.s.history.length.succ :=
-rfl
+by rw hist_len_play_devil_move_at
 
 lemma play_move_at_hist_len_ge {pw : ℕ} {g : Game pw} :
   g.s.history.length ≤ g.play_move.s.history.length :=
@@ -219,8 +228,11 @@ begin
   { change (play_devil_move_at g hs).a with g.a,
     transitivity (play_devil_move_at g hs).s.history.length,
     { exact play_devil_move_at_hist_len_ge },
-    { exact nat.le_of_lt (nat.lt_succ_self _) }},
-  { exact nat.le_of_lt (nat.lt_succ_self _) },
+    { rw hist_len_play_angel_move_at',
+      exact nat.le_of_lt (nat.lt_succ_self _) }},
+  { change _ ≤ (play_devil_move_at g hs).s.history.length,
+    rw hist_len_play_devil_move_at,
+    exact nat.le_of_lt (nat.lt_succ_self _) },
 end
 
 lemma play_at_hist_len_ge {pw n : ℕ} {g : Game pw} :
@@ -279,7 +291,8 @@ begin
     change (g₁.set_devil d').d with d',
     ext; try { refl }, change _ = apply_devil_move _ _,
     simp [apply_devil_move, apply_move], simp_rw Game.set_state,
-    refine ⟨_, ⟨rfl, rfl⟩, rfl⟩, change (g₁.set_devil d').s with g₁.s,
+    refine ⟨_, snoc_eq_snoc_iff.mpr ⟨rfl, rfl⟩, rfl⟩,
+    change (g₁.set_devil d').s with g₁.s,
     congr' 1, generalize_proofs, change d'.f g₁.s h with dite _ _ _,
     split_ifs with h₂,
     { exfalso, contrapose! h₂, clear h₂,
@@ -390,7 +403,8 @@ lemma play_move_hist_len_eq_of_act {pw : ℕ} {g : Game pw}
 begin
   have h₁ : g.act := act_play_move_at_succ h,
   rw [play_move_at_act h₁, play_angel_move_at],
-  rw dif_pos, { refl }, exact ⟨h₁, (angel_hvm_of_next_act h).some_spec⟩,
+  rw dif_pos, { rw [hist_len_play_angel_move_at', hist_len_play_devil_move_at] },
+  exact ⟨h₁, (angel_hvm_of_next_act h).some_spec⟩,
 end
 
 lemma play_hist_len_eq_of_act {pw n : ℕ} {g : Game pw}
@@ -429,7 +443,7 @@ lemma apply_angel_move_ne_of_hist_ne {pw : ℕ} {s₁ s₂ : State}
   apply_angel_move s₁ ma₁ ≠ apply_angel_move s₂ ma₂ :=
 begin
   contrapose! h, simp_rw [apply_angel_move, apply_move] at h,
-  replace h := h.2.1.2, rw h,
+  rw (snoc_eq_snoc_iff.mp h.2.1).1,
 end
 
 lemma apply_devil_move_ne_of_hist_ne {s₁ s₂ : State}
@@ -437,10 +451,8 @@ lemma apply_devil_move_ne_of_hist_ne {s₁ s₂ : State}
   apply_devil_move s₁ md₁ ≠ apply_devil_move s₂ md₂ :=
 begin
   contrapose! h, simp_rw [apply_devil_move, apply_move] at h,
-  replace h := h.2.1.2, rw h,
+  rw (snoc_eq_snoc_iff.mp h.2.1).1,
 end
-
--- #exit
 
 def mk_angel_for_played_move_at_play_move {pw : ℕ}
   (a₀ a : Angel pw) (s' : State) (hs : s'.act) :

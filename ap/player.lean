@@ -32,7 +32,7 @@ instance {b : Board} : inhabited (Valid_devil_move b) :=
 ⟨⟨none, trivial⟩⟩
 
 def apply_move (s : State) (b : Board) : State :=
-{s with board := b, history := s.board :: s.history }
+{s with board := b, history := s.history ++ [s.board] }
 
 def apply_angel_move (s : State) (p : Angel_move) : State :=
 apply_move s {s.board with angel := p}
@@ -243,3 +243,15 @@ begin
     { subst h₂, contradiction },
     { refl }},
 end
+
+lemma hist_len_apply_move {s : State} {b : Board} :
+  (apply_move s b).history.length = s.history.length.succ :=
+by { change (_ ++ [_]).length = _, rw list.length_append, refl }
+
+lemma hist_len_apply_angel_move {s : State} {ma : Angel_move} :
+  (apply_angel_move s ma).history.length = s.history.length.succ :=
+hist_len_apply_move
+
+lemma hist_len_apply_devil_move {s : State} {md : Devil_move} :
+  (apply_devil_move s md).history.length = s.history.length.succ :=
+hist_len_apply_move
