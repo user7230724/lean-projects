@@ -32,8 +32,8 @@ begin
   rw not_angel_wins_at, use 1,
   change ¬Game.act (ite _ _ _), split_ifs,
   swap, { exact (h trivial).elim }, clear h,
-  change ¬Game.act (dite _ _ _), split_ifs, swap, { trivial },
-  rcases h with ⟨p, h₁, h₂, h₃⟩,
+  change ¬Game.act (dite _ _ _), split_ifs,
+  swap, { exact not_false }, rcases h with ⟨p, h₁, h₂, h₃⟩,
   rw [nat.le_zero_iff, dist_eq_zero_iff] at h₂, contradiction,
 end
 

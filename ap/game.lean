@@ -27,6 +27,9 @@ def Game.set_devil {pw : ℕ} (g : Game pw) (d₁ : Devil) : Game pw :=
 def Game.set_state {pw : ℕ} (g : Game pw) (s₁ : State) : Game pw :=
 {g with s := s₁}
 
+def Game.finish {pw : ℕ} (g : Game pw) : Game pw :=
+{g with s := apply_move g.s g.s.board, act := false}
+
 def Game.set_players {pw pw₁ : ℕ} (g : Game pw)
   (a₁ : Angel pw₁) (d₁ : Devil) : Game pw₁ :=
 (g.set_angel a₁).set_devil d₁
@@ -42,7 +45,7 @@ g.set_state (apply_angel_move g.s (a₁.f g.s h).m)
 def play_angel_move_at {pw : ℕ} (g : Game pw) :=
 if h : angel_has_valid_move pw g.s.board
 then play_angel_move_at' g.a g h
-else {g with act := false}
+else g.finish
 
 def play_devil_move_at {pw : ℕ} (g : Game pw) :=
 g.set_state (apply_devil_move g.s (g.d.f g.s).m)
@@ -190,7 +193,7 @@ end
 lemma play_angel_move_at_hist_len_ge {pw : ℕ} {g : Game pw} :
   g.s.history.length ≤ (play_angel_move_at g).s.history.length :=
 begin
-  rw play_angel_move_at, split_ifs, swap, { refl },
+  rw play_angel_move_at, split_ifs;
   exact nat.le_of_lt (nat.lt_succ_self _),
 end
 
@@ -211,7 +214,7 @@ begin
     transitivity (play_devil_move_at g).s.history.length,
     { exact play_devil_move_at_hist_len_ge },
     { exact nat.le_of_lt (nat.lt_succ_self _) }},
-  { exact nat.le_of_lt (nat.lt_succ_self _) },
+  { exact nat.le_of_lt (nat.le_of_lt (nat.lt_succ_self _)) },
 end
 
 lemma play_at_hist_len_ge {pw n : ℕ} {g : Game pw} :

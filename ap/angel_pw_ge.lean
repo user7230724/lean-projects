@@ -36,10 +36,7 @@ lemma sup_angel_play_angel_move_at_eq {pw pw₁ pw₂ : ℕ}
   (h₁ : a₂.sup a₁)
   (h₂ : angel_has_valid_move pw₁ g.s.board) :
   ∃ h₃, play_angel_move_at' a₂ g h₃ = play_angel_move_at' a₁ g h₂ :=
-begin
-  obtain ⟨h₃, h₅⟩ := h₁ g.s h₂, use h₃,
-  simp_rw play_angel_move_at', refine ⟨rfl, rfl, by rw h₅, rfl⟩,
-end
+by { obtain ⟨h₃, h₅⟩ := h₁ g.s h₂, use h₃, simp_rw [play_angel_move_at', h₅] }
 
 lemma sup_angel_play_eq {pw pw₁ n : ℕ}
   {g : Game pw} {a₁ : Angel pw₁}
