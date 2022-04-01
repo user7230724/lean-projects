@@ -288,3 +288,13 @@ begin
   { replace h := h.1, replace h₁ := h₁.2, replace h₂ := h₂.2, congr,
     rw set.ext_iff at h, have h₃ := h p₁, simp at h₃, exact h₃ h₁ },
 end
+
+lemma angel_set_move_eq_pos {pw : ℕ} {a : Angel pw} {s : State}
+  {ma : Valid_angel_move pw s.board} {hs h} :
+  (a.set_move s ma).f s hs h = ma :=
+by { rw Angel.set_move, dsimp, split_ifs; refl }
+
+lemma devil_set_move_eq_pos {d : Devil} {s : State}
+  {md : Valid_devil_move s.board} {hs} :
+  (d.set_move s md).f s hs = md :=
+by { rw Devil.set_move, dsimp, split_ifs; refl }
