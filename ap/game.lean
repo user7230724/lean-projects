@@ -369,48 +369,22 @@ lemma angel_played_move_at_apply_move {pw : ℕ} {s s' : State}
 begin
   let a := (default : Angel pw).set_move s' ma,
   let d := (default : Devil).set_move s md,
-  use [s, md, a, d, 1, h],
-  have hs₁ : s'.act := by rwa h,
+  use [s, md, a, d, 1, h], have hs₁ : s'.act := by rwa h,
   have hvm_s' : angel_has_valid_move pw s'.board := ⟨_, ma.h⟩,
-  refine ⟨_, _, _⟩,
-  { exact ⟨hs₁, hvm_s', angel_set_move_eq_pos⟩ },
-  { dec_trivial },
-
-  rw [play_1, play_move_at_act], swap, { exact hs },
-  rw play_angel_move_at,
-  rw dif_pos, swap,
-  {
-    sorry
-  },
-  symmetry,
-  change apply_angel_move _ _ = _,
+  refine ⟨_, _, _⟩, { exact ⟨hs₁, hvm_s', angel_set_move_eq_pos⟩ },
+  { dec_trivial }, rw [play_1, play_move_at_act], swap, { exact hs },
+  rw play_angel_move_at, rw dif_pos, swap,
+  { use hs, convert hvm_s', convert h.symm,
+    change apply_devil_move s (d.f s hs).m = _, congr,
+    exact devil_set_move_eq_pos },
+  symmetry, change apply_angel_move _ _ = _,
   have h₁ : (play_devil_move_at (init_game a d s) hs).s = s',
-  sorry,
-  congr' 1,
-  change (a.f _ _ _).m = _,
-  generalize_proofs h₂,
-  suffices h₃ : (a.f (play_devil_move_at (init_game a d s) hs).s hs h₂).m =
-    (a.f s' hs₁ hvm_s').m, { rw [h₃, angel_set_move_eq_pos] },
-  simp_rw h₁,
-
-  -- rw play_angel_move_at,
-  -- have h₄ : (play_devil_move_at (init_game a d s) hs).s = s',
-  -- { symmetry, convert h, rw play_devil_move_at, change apply_devil_move _ _ = _,
-  --   congr, change dite _ _ _ = _, rw dif_pos; refl },
-  -- split_ifs with h₁,
-  -- { cases h₁ with h₂ h₃, rw play_devil_move_at_players_eq.1,
-  --   change (init_game a d s).a with a, generalize_proofs,
-  --   change _ = apply_angel_move _ _, simp_rw ←h₄,
-
-    
-
-  --   symmetry, have hs₁ : s'.act, { rw ←h₄, exact hs },
-  --   have h₅ : a.f s' hs₁ ⟨_, ma.h⟩ == ma,
-  --   { change dite _ _ _ == _, rw dif_pos rfl },
-  --   convert h₅ },
-  -- { contrapose! h₁, clear h₁, split, { assumption },
-  --   suffices h₁ : angel_has_valid_move pw s'.board, { convert h₁, },
-  --   exact ⟨_, ma.h⟩ },
+  { convert h.symm, change apply_devil_move s (d.f s hs).m = _,
+    congr, exact devil_set_move_eq_pos },
+  congr' 1, change (a.f _ _ _).m = _, generalize_proofs h₂,
+  have h₃ : (a.f (play_devil_move_at (init_game a d s) hs).s hs h₂).m =
+    (a.f s' hs₁ hvm_s').m, { congr' },
+  rw [h₃, angel_set_move_eq_pos],
 end
 
 #exit
