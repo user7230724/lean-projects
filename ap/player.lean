@@ -3,7 +3,7 @@ import tactic.induction
 import data.int.basic
 import data.set.basic
 
-import .point .dist .board .state
+import .util .point .dist .board .state
 
 noncomputable theory
 open_locale classical
@@ -267,6 +267,28 @@ lemma valid_devil_move_ext {b : Board}
   (h : md₁.m = md₂.m) : md₁ = md₂ :=
 by { cases md₁, cases md₂, congr, exact h }
 
+lemma angel_moves_eq_iff' {pw : ℕ} {s : State}
+  {ma₁ ma₂ : Valid_angel_move pw s.board} : ma₁ = ma₂ ↔
+  (apply_angel_move s ma₁.m).board = (apply_angel_move s ma₂.m).board :=
+begin
+  split; intro h, { rw h }, simp_rw [apply_angel_move, apply_move] at h,
+  cases h with h₁ h₂, cases ma₁, cases ma₂, simp at h₂ ⊢, exact h₂,
+end
+
+lemma devil_moves_eq_iff' {s : State}
+  {md₁ md₂ : Valid_devil_move s.board} : md₁ = md₂ ↔
+  (apply_devil_move s md₁.m).board = (apply_devil_move s md₂.m).board :=
+begin
+  split; intro h, { rw h }, simp_rw [apply_devil_move, apply_move] at h,
+  cases md₁ with m₁ h₁, cases md₂ with m₂ h₂,
+  apply valid_devil_move_ext, dsimp at h ⊢,
+  cases m₁ with p₁; cases m₂ with p₂; simp_rw apply_devil_move' at h,
+  { cases h₂ with h₂ h₃, contrapose! h₃, rw h, simp },
+  { cases h₁ with h₁ h₃, contrapose! h₃, rw ←h, simp },
+  { replace h := h.1, replace h₁ := h₁.2, replace h₂ := h₂.2, congr,
+    rw set.ext_iff at h, have h₃ := h p₁, simp at h₃, exact h₃ h₁ },
+end
+
 lemma angel_moves_eq_iff {pw : ℕ} {s : State}
   {ma₁ ma₂ : Valid_angel_move pw s.board} :
   ma₁ = ma₂ ↔ apply_angel_move s ma₁.m = apply_angel_move s ma₂.m :=
@@ -298,3 +320,24 @@ lemma devil_set_move_eq_pos {d : Devil} {s : State}
   {md : Valid_devil_move s.board} {hs} :
   (d.set_move s md).f s hs = md :=
 by { rw Devil.set_move, dsimp, split_ifs; refl }
+
+lemma state_eq_of_apply_angel_move_eq {s₁ s₂ : State}
+  {ma₁ ma₂ : Angel_move}
+  (h : apply_angel_move s₁ ma₁ = apply_angel_move s₂ ma₂) :
+  s₁ = s₂ :=
+begin
+  cases s₁ with b₁ t₁ a₁, cases s₂ with b₂ t₂ a₂,
+  simp_rw [apply_angel_move, apply_move] at h, simp only,
+  rcases h with ⟨⟨h₁, h₂⟩, h₃, h₄⟩, rw snoc_eq_snoc_iff at h₃, cc,
+end
+
+lemma state_eq_of_apply_devil_move_eq {s₁ s₂ : State}
+  {ma₁ ma₂ : Devil_move}
+  (h : apply_devil_move s₁ ma₁ = apply_devil_move s₂ ma₂) :
+  s₁ = s₂ :=
+begin
+  cases s₁ with b₁ t₁ a₁, cases s₂ with b₂ t₂ a₂,
+  cases ma₁ with p₁; cases ma₂ with p₂;
+  simp_rw [apply_devil_move, apply_devil_move', apply_move, snoc_eq_snoc_iff] at h;
+  simp only; cc,
+end

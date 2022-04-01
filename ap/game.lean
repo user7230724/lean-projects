@@ -623,13 +623,39 @@ begin
       exact gt_of_ge_of_gt h₆ h₂ }},
 end
 
+lemma angel_played_move_at_eq_aux {pw n : ℕ}
+  {sx s₀ s' : State} {md : Valid_devil_move s₀.board}
+  {a : Angel pw} {d : Devil} {hs hvm}
+  (h₁ : s' = apply_devil_move s₀ md.m)
+  (h₂ : sx = ((init_game a d s₀).play n).s)
+  (h₃ : n ≠ 0) :
+  sx.history.nth (s₀.history.length + 2) = option.some
+    (apply_angel_move s' (a.f s' hs hvm).m).board :=
+begin
+  sorry
+end
+
+#exit
+
 lemma angel_played_move_at_eq {pw : ℕ}
   {sx s' : State} {ma₁ ma₂ : Valid_angel_move pw s'.board}
   (hx : angel_played_move_at sx s' ma₁)
   (hy : angel_played_move_at sx s' ma₂) :
   ma₁ = ma₂ :=
 begin
-  obtain ⟨s₀₁, md₁, a₁, d₁, n₁, h₁, ⟨hs₁, hvm₁, h₂⟩, h₃, h₄⟩ := hx,
-  obtain ⟨s₀₂, md₂, a₂, d₂, n₂, h₅, ⟨hs₂, hvm₂, h₆⟩, h₇, h₈⟩ := hy,
-  sorry
+  obtain ⟨s₀, md₁, a₁, d₁, n₁, h₁, ⟨hs₁, hvm₁, rfl⟩, h₃, h₄⟩ := hx,
+  obtain ⟨s₀', md₂, a₂, d₂, n₂, h₅, ⟨hs₂, hvm₂, rfl⟩, h₇, h₈⟩ := hy,
+  obtain rfl : s₀ = s₀',
+  { subst h₁, exact state_eq_of_apply_devil_move_eq h₅ },
+  obtain rfl : md₁ = md₂,
+  { subst h₁, rwa ←devil_moves_eq_iff at h₅ },
+  clear h₅, change hvm₂ with hvm₁, clear hvm₂,
+  change hs₂ with hs₁, clear hs₂, let i := s₀.history.length,
+  have h₅ : sx.history.nth (i + 2) = option.some
+    (apply_angel_move s' (a₁.f s' hs₁ hvm₁).m).board,
+  { exact angel_played_move_at_eq_aux h₁ h₄ h₃ },
+  have h₆ : sx.history.nth (i + 2) = option.some
+    (apply_angel_move s' (a₂.f s' hs₁ hvm₁).m).board,
+  { exact angel_played_move_at_eq_aux h₁ h₈ h₇ },
+  simp [h₅] at h₆, rwa angel_moves_eq_iff',
 end
