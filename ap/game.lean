@@ -625,9 +625,11 @@ end
 
 lemma angel_played_move_at_eq {pw : ℕ}
   {sx s' : State} {ma₁ ma₂ : Valid_angel_move pw s'.board}
-  (h₁ : angel_played_move_at sx s' ma₁)
-  (h₂ : angel_played_move_at sx s' ma₂) :
+  (hx : angel_played_move_at sx s' ma₁)
+  (hy : angel_played_move_at sx s' ma₂) :
   ma₁ = ma₂ :=
 begin
+  obtain ⟨s₀₁, md₁, a₁, d₁, n₁, h₁, ⟨hs₁, hvm₁, h₂⟩, h₃, h₄⟩ := hx,
+  obtain ⟨s₀₂, md₂, a₂, d₂, n₂, h₅, ⟨hs₂, hvm₂, h₆⟩, h₇, h₈⟩ := hy,
   sorry
 end
