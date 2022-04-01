@@ -77,7 +77,7 @@ def angel_played_move_at {pw : ℕ} (s : State) (s₀' : State)
   (ma : Valid_angel_move pw s₀'.board) : Prop :=
 ∃ (s₀ : State) (md : Valid_devil_move s₀.board) (a : Angel pw) (d : Devil) (n : ℕ),
 s₀' = apply_devil_move s₀ md.m ∧ (∃ hs h, a.f s₀' hs h = ma) ∧
-n ≠ 0 ∧ s = ((init_game a d s).play n).s
+n ≠ 0 ∧ s = ((init_game a d s₀).play n).s
 
 -----
 
@@ -347,8 +347,7 @@ begin
   rw devil_prev_moves_set_eq,
 end
 
-lemma play_1 {pw : ℕ} {g : Game pw} : g.play 1 = g.play_move :=
-rfl
+lemma play_1 {pw : ℕ} {g : Game pw} : g.play 1 = g.play_move := rfl
 
 -----
 
@@ -368,25 +367,30 @@ lemma angel_played_move_at_apply_move {pw : ℕ} {s s' : State}
   (hs : s.act) (h : s' = apply_devil_move s md.m) :
   angel_played_move_at (apply_angel_move s' ma.m) s' ma :=
 begin
-  sorry
-  -- let a := (default : Angel pw).set_move s' ma,
-  -- let d := (default : Devil).set_move s md, use [s, md, a, d, 1, h],
-  -- have hs₁ : s'.act := by rwa h,
-  -- rw [play_1, play_move_at_act],
-  -- swap, {
-  --   change (apply_angel_move _ _).act,
-  --   rw [apply_angel_move, apply_move], simp only [hs₁],
-  -- },
-  -- refine ⟨_, _, _⟩,
-  -- {
-  --   use hs₁,
-  --   use ⟨_, ma.h⟩,
-  --   generalize_proofs h₁,
-  --   exact angel_set_move_eq_pos,
-  -- },
-  -- {
-  --   dec_trivial,
-  -- },
+  let a := (default : Angel pw).set_move s' ma,
+  let d := (default : Devil).set_move s md,
+  use [s, md, a, d, 1, h],
+  have hs₁ : s'.act := by rwa h,
+  have hvm_s' : angel_has_valid_move pw s'.board := ⟨_, ma.h⟩,
+  refine ⟨_, _, _⟩,
+  { exact ⟨hs₁, hvm_s', angel_set_move_eq_pos⟩ },
+  { dec_trivial },
+
+  rw [play_1, play_move_at_act], swap, { exact hs },
+  rw play_angel_move_at,
+  rw dif_pos, swap,
+  {
+    sorry
+  },
+  symmetry,
+  change apply_angel_move _ _ = _,
+  have h₁ : (play_devil_move_at (init_game a d s) hs).s = s',
+  sorry,
+  congr' 1,
+  change (a.f _ _ _).m = _,
+  generalize_proofs h₂,
+  simp_rw h₁,
+
   -- rw play_angel_move_at,
   -- have h₄ : (play_devil_move_at (init_game a d s) hs).s = s',
   -- { symmetry, convert h, rw play_devil_move_at, change apply_devil_move _ _ = _,
@@ -394,17 +398,10 @@ begin
   -- split_ifs with h₁,
   -- { cases h₁ with h₂ h₃, rw play_devil_move_at_players_eq.1,
   --   change (init_game a d s).a with a, generalize_proofs,
-  --   change _ = apply_angel_move _ _, simp_rw ←h₄, congr' 1,
-  --   {
-  --     simp_rw h₄,
-  --     generalize_proofs,
-  --     change s' = apply_devil_move _ _,
-  --     change (init_game a d (apply_angel_move s' ma.m)).s with
-  --       apply_angel_move s' ma.m,
-  --     change (init_game a d (apply_angel_move s' ma.m)).d with d,
-  --     symmetry,
-  --     sorry
-  --   },
+  --   change _ = apply_angel_move _ _, simp_rw ←h₄,
+
+    
+
   --   symmetry, have hs₁ : s'.act, { rw ←h₄, exact hs },
   --   have h₅ : a.f s' hs₁ ⟨_, ma.h⟩ == ma,
   --   { change dite _ _ _ == _, rw dif_pos rfl },
