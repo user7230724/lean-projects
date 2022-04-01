@@ -387,8 +387,6 @@ begin
   rw [h₃, angel_set_move_eq_pos],
 end
 
-#exit
-
 lemma angel_hvm_of_next_act {pw : ℕ} {g : Game pw}
   (h : g.play_move.act) :
   ∃ hs, angel_has_valid_move pw (play_devil_move_at g hs).s.board :=
@@ -470,7 +468,7 @@ lemma angel_played_move_at_play_move {pw : ℕ}
   angel_played_move_at g.play_move.s s₀' ma :=
 begin
   let a := g.a, let d := g.d, let s := g.s,
-  rcases h with ⟨s₀, md₀, a₀, d₀, n, h₁, h₂⟩, by_cases hs : g.act,
+  rcases h with ⟨s₀, md₀, a₀, d₀, n, h₁, hx, hy, h₂⟩, by_cases hs : g.act,
   { let md := d.f s hs, let s' := apply_devil_move s md.m,
     let d₁ := d₀.set_move s md,
     let a₁ := mk_angel_for_played_move_at_play_move a₀ a s' hs,
@@ -540,7 +538,17 @@ begin
       { exact play_at_players_eq.2 },
       { rw h₁, exact h₂.symm }},
     rw [play_at_succ', play_move_at_act hs, h₁, play_move_at_act],
-    swap, { exact hs }, symmetry,
+    swap, { exact hs }, refine ⟨_, _, _⟩,
+    { clear h₁, rcases hx with ⟨hs', h, hx⟩,
+      use [hs', h], rw ←hx, clear hx,
+      change (mk_angel_for_played_move_at_play_move _ _ _ _).f _ _ _ = _,
+      rw mk_angel_for_played_move_at_play_move,
+      split_ifs with hss, swap, { refl }, change dite _ _ _ = _,
+      rw dif_neg, change s₀' ≠ apply_devil_move g.s _, rw [h₁, h₂],
+      apply apply_devil_move_ne_of_hist_ne,
+      change ((init_game a₀ d₀ s₀).play 0).s.history.length ≠ _,
+      apply hist_len_ne_of_play_lt (pos_iff_ne_zero.mpr hy),
+      rw [Game.act, ←h₂], exact hs }, { dec_trivial }, symmetry,
     have h₁ : play_devil_move_at (g.set_players a₁ d₁) hs =
       (play_devil_move_at g hs).set_players a₁ d₁,
     { ext,
@@ -557,7 +565,7 @@ begin
     change (mk_angel_for_played_move_at_play_move _ _ _ _).f _ _ _ = _,
     rw mk_angel_for_played_move_at_play_move, rw dif_pos, swap, { exact h₂ },
     change dite _ _ _ = _, rw dif_pos rfl },
-  { use [s₀, md₀, a₀, d₀, n, h₁], rw play_move_at_not_act hs, exact h₂ },
+  { use [s₀, md₀, a₀, d₀, n, h₁, hx, hy], rw play_move_at_not_act hs, exact h₂ },
 end
 
 lemma angel_played_move_at_play {pw n : ℕ}
@@ -596,7 +604,7 @@ lemma hist_overlaps_of_angel_played_move_at {pw : ℕ}
   ∀ (k : ℕ), k.succ < s₀'.history.length →
   s.history.nth k = s₀'.history.nth k :=
 begin
-  rintro k h₂, rcases h₁ with ⟨s₀, md, a, d, n, rfl, rfl⟩,
+  rintro k h₂, rcases h₁ with ⟨s₀, md, a, d, n, rfl, hx, hy, rfl⟩, clear' hx hy,
   change (apply_devil_move s₀ md.m).history with (_ ++ _ : list _) at h₂ ⊢,
   rw [length_snoc, nat.succ_lt_succ_iff] at h₂, induction n with n ih,
   { change s₀.history.nth k = _, exact (list.nth_append h₂).symm },
@@ -621,8 +629,5 @@ lemma angel_played_move_at_eq {pw : ℕ}
   (h₂ : angel_played_move_at sx s' ma₂) :
   ma₁ = ma₂ :=
 begin
-  rcases h₁ with ⟨s₀₁, md₁, a₁, d₁, n₁, h₃, h₄⟩,
-  rcases h₂ with ⟨s₀₂, md₂, a₂, d₂, n₂, rfl, rfl⟩,
-  symmetry' at h₃ h₄,
   sorry
 end
