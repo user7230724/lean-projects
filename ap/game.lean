@@ -389,6 +389,8 @@ begin
   congr' 1,
   change (a.f _ _ _).m = _,
   generalize_proofs h₂,
+  suffices h₃ : (a.f (play_devil_move_at (init_game a d s) hs).s hs h₂).m =
+    (a.f s' hs₁ hvm_s').m, { rw [h₃, angel_set_move_eq_pos] },
   simp_rw h₁,
 
   -- rw play_angel_move_at,
