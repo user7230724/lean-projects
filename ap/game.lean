@@ -1,3 +1,4 @@
+import tactic
 import tactic.induction
 import data.int.basic
 import data.set.basic
@@ -72,11 +73,11 @@ def angel_hws_at (pw : ℕ) (s : State) :=
 def devil_hws_at (pw : ℕ) (s : State) :=
 ∃ (d : Devil), ∀ (a : Angel pw), (init_game a d s).devil_wins
 
-def angel_played_move_at {pw : ℕ} (sx : State) (s' : State)
-  (ma : Valid_angel_move pw s'.board) : Prop :=
-∃ (s : State) (md : Valid_devil_move s.board) (a : Angel pw) (d : Devil) (n : ℕ),
-s' = apply_devil_move s md.m ∧
-sx = ((init_game a d s).play n).s
+def angel_played_move_at {pw : ℕ} (s : State) (s₀' : State)
+  (ma : Valid_angel_move pw s₀'.board) : Prop :=
+∃ (s₀ : State) (md : Valid_devil_move s₀.board) (a : Angel pw) (d : Devil) (n : ℕ),
+s₀' = apply_devil_move s₀ md.m ∧ (∃ hs h, a.f s₀' hs h = ma) ∧
+n ≠ 0 ∧ s = ((init_game a d s).play n).s
 
 -----
 
@@ -618,5 +619,8 @@ lemma angel_played_move_at_eq {pw : ℕ}
   (h₂ : angel_played_move_at sx s' ma₂) :
   ma₁ = ma₂ :=
 begin
+  rcases h₁ with ⟨s₀₁, md₁, a₁, d₁, n₁, h₃, h₄⟩,
+  rcases h₂ with ⟨s₀₂, md₂, a₂, d₂, n₂, rfl, rfl⟩,
+  symmetry' at h₃ h₄,
   sorry
 end
