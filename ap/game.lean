@@ -566,6 +566,52 @@ begin
   exact angel_played_move_at_play_move ih,
 end
 
+lemma hist_len_game_finish {pw : ℕ} {g : Game pw} :
+  g.finish.s.history.length = g.s.history.length := rfl
+
+lemma hist_len_le_play_move {pw : ℕ} {g : Game pw} :
+  g.s.history.length ≤ g.play_move.s.history.length :=
+begin
+  rw Game.play_move, split_ifs with hs, swap, { refl },
+  rw play_angel_move_at, split_ifs with h,
+  { rw [hist_len_play_angel_move_at', hist_len_play_devil_move_at],
+    apply nat.le_succ_of_le (nat.le_succ _) },
+  { rw [hist_len_game_finish, hist_len_play_devil_move_at],
+    apply nat.le_succ },
+end
+
+lemma hist_len_le_play {pw n : ℕ} {g : Game pw} :
+  g.s.history.length ≤ (g.play n).s.history.length :=
+begin
+  induction n with n ih, { refl }, rw play_at_succ',
+  exact ih.trans hist_len_le_play_move,
+end
+
+lemma hist_overlaps_of_angel_played_move_at {pw : ℕ}
+  {s s₀' : State} {ma : Valid_angel_move pw s₀'.board}
+  (h₁ : angel_played_move_at s s₀' ma) :
+  ∀ (k : ℕ), k.succ < s₀'.history.length →
+  s.history.nth k = s₀'.history.nth k :=
+begin
+  rintro k h₂, rcases h₁ with ⟨s₀, md, a, d, n, rfl, rfl⟩,
+  change (apply_devil_move s₀ md.m).history with (_ ++ _ : list _) at h₂ ⊢,
+  rw [length_snoc, nat.succ_lt_succ_iff] at h₂, induction n with n ih,
+  { change s₀.history.nth k = _, exact (list.nth_append h₂).symm },
+  { simp_rw play_at_succ', let g : Game pw := _,
+    change (init_game a d s₀).play n with g at h₂ ih ⊢, rw ←ih, clear ih,
+    rw Game.play_move, split_ifs with hs, swap, { refl }, rw play_angel_move_at,
+    have h₆ : s₀.history.length ≤ g.s.history.length,
+    { change (init_game a d s₀).s.history.length ≤ _, exact hist_len_le_play },
+    split_ifs with h₃,
+    { change (_ ++ _ : list _).nth _ = _, rw list.nth_append,
+      { change (_ ++ _ : list _).nth _ = _, rw list.nth_append,
+        exact gt_of_ge_of_gt h₆ h₂ },
+      { rw hist_len_play_devil_move_at,
+        exact nat.lt_succ_of_le (nat.le_trans (le_of_lt h₂) h₆) }},
+    { change (_ ++ _ : list _).nth _ = _, rw list.nth_append,
+      exact gt_of_ge_of_gt h₆ h₂ }},
+end
+
 lemma angel_played_move_at_eq {pw : ℕ}
   {sx s' : State} {ma₁ ma₂ : Valid_angel_move pw s'.board}
   (h₁ : angel_played_move_at sx s' ma₁)

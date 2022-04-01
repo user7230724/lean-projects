@@ -16,3 +16,7 @@ begin
       exact ⟨h₁.symm, h₂⟩ <|> exact ⟨h₁, h₂.symm⟩ }},
   { rw [h.1, h.2] },
 end
+
+lemma length_snoc {α : Type*} {xs : list α} {x : α} :
+  (xs ++ [x]).length = xs.length.succ :=
+by { rw list.length_append, refl }

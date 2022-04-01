@@ -31,3 +31,6 @@ lemma hist_ne_of_hist_len_ne {s₁ s₂ : State}
   (h : s₁.history.length ≠ s₂.history.length) :
   s₁.history ≠ s₂.history :=
 by { contrapose! h, rw h }
+
+lemma hist_len_finish {s : State} :
+  s.finish.history.length = s.history.length := rfl

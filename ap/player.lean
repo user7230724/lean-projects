@@ -255,3 +255,35 @@ hist_len_apply_move
 lemma hist_len_apply_devil_move {s : State} {md : Devil_move} :
   (apply_devil_move s md).history.length = s.history.length.succ :=
 hist_len_apply_move
+
+lemma valid_angel_move_ext {pw : ℕ} {b : Board}
+  {ma₁ ma₂ : Valid_angel_move pw b}
+  (h : ma₁.m = ma₂.m) : ma₁ = ma₂ :=
+by { cases ma₁, cases ma₂, congr, exact h }
+
+lemma valid_devil_move_ext {b : Board}
+  {md₁ md₂ : Valid_devil_move b}
+  (h : md₁.m = md₂.m) : md₁ = md₂ :=
+by { cases md₁, cases md₂, congr, exact h }
+
+lemma angel_moves_eq_iff {pw : ℕ} {s : State}
+  {ma₁ ma₂ : Valid_angel_move pw s.board} :
+  ma₁ = ma₂ ↔ apply_angel_move s ma₁.m = apply_angel_move s ma₂.m :=
+begin
+  split; intro h, { rw h }, simp_rw [apply_angel_move, apply_move] at h,
+  exact valid_angel_move_ext h.1.2,
+end
+
+lemma devil_moves_eq_iff {s : State}
+  {md₁ md₂ : Valid_devil_move s.board} :
+  md₁ = md₂ ↔ apply_devil_move s md₁.m = apply_devil_move s md₂.m :=
+begin
+  split; intro h, { rw h }, simp_rw [apply_devil_move, apply_move] at h,
+  replace h := h.1, cases md₁ with m₁ h₁, cases md₂ with m₂ h₂,
+  apply valid_devil_move_ext, dsimp at h ⊢,
+  cases m₁ with p₁; cases m₂ with p₂; simp_rw apply_devil_move' at h,
+  { cases h₂ with h₂ h₃, contrapose! h₃, rw h, simp },
+  { cases h₁ with h₁ h₃, contrapose! h₃, rw ←h, simp },
+  { replace h := h.1, replace h₁ := h₁.2, replace h₂ := h₂.2, congr,
+    rw set.ext_iff at h, have h₃ := h p₁, simp at h₃, exact h₃ h₁ },
+end
