@@ -1,9 +1,6 @@
 import tactic
 import tactic.induction
 
-noncomputable theory
-open_locale classical
-
 def eq₁ {α : Sort*} (s : list α) : Prop := ∀ (x y ∈ s), x = y
 
 def eq₂ {α : Sort*} : list α → Prop
@@ -55,10 +52,10 @@ begin
     rw iff_of_true h₁ trivial at h, rwa iff_of_true h₂ trivial },
 end
 
-example {α : Sort*} {s : list α} : eq₁ s ↔ eq₂ s :=
+theorem eq₁_eq₂ {α : Sort*} {s : list α} : eq₁ s ↔ eq₂ s :=
 begin
   induction' s, { simp [eq₁, eq₂] },
   cases' s with x s, { simp [eq₁, eq₂], },
   cases' s with y s, { simp [eq₁, eq₂], exact λ h, h.symm },
-  rw eq₂, simp_rw ←ih, clear ih, exact eq_aux,
+  rw [eq₂, ←ih, eq_aux],
 end
