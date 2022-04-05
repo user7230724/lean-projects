@@ -198,15 +198,15 @@ end
 
 lemma hist_len_play_angel_move_at' {pw pw₁ : ℕ} {g : Game pw}
   {a₁ : Angel pw₁} {h₁ h₂} :
-  (play_angel_move_at' a₁ g h₁ h₂).s.history.length = g.s.history.length.succ :=
+  (play_angel_move_at' a₁ g h₁ h₂).s.len = g.s.len.succ :=
 hist_len_apply_angel_move
 
 lemma hist_len_play_devil_move_at {pw : ℕ} {g : Game pw} {hs} :
-  (play_devil_move_at g hs).s.history.length = g.s.history.length.succ :=
+  (play_devil_move_at g hs).s.len = g.s.len.succ :=
 hist_len_apply_devil_move
 
 lemma play_angel_move_at_hist_len_ge {pw : ℕ} {g : Game pw} :
-  g.s.history.length ≤ (play_angel_move_at g).s.history.length :=
+  g.s.len ≤ (play_angel_move_at g).s.len :=
 begin
   rw play_angel_move_at, split_ifs, swap, { refl },
   rw hist_len_play_angel_move_at',
@@ -214,30 +214,30 @@ begin
 end
 
 lemma play_devil_move_at_hist_len_ge {pw : ℕ} {g : Game pw} {hs} :
-  g.s.history.length ≤ (play_devil_move_at g hs).s.history.length :=
+  g.s.len ≤ (play_devil_move_at g hs).s.len :=
 by { rw hist_len_play_devil_move_at, exact nat.le_of_lt (nat.lt_succ_self _) }
 
 lemma play_devil_move_at_hist_len_eq {pw : ℕ} {g : Game pw} {hs} :
-  (play_devil_move_at g hs).s.history.length = g.s.history.length.succ :=
+  (play_devil_move_at g hs).s.len = g.s.len.succ :=
 by rw hist_len_play_devil_move_at
 
 lemma play_move_at_hist_len_ge {pw : ℕ} {g : Game pw} :
-  g.s.history.length ≤ g.play_move.s.history.length :=
+  g.s.len ≤ g.play_move.s.len :=
 begin
   rw Game.play_move, split_ifs with hs, swap, { refl },
   rw play_angel_move_at, split_ifs with h₁,
   { change (play_devil_move_at g hs).a with g.a,
-    transitivity (play_devil_move_at g hs).s.history.length,
+    transitivity (play_devil_move_at g hs).s.len,
     { exact play_devil_move_at_hist_len_ge },
     { rw hist_len_play_angel_move_at',
       exact nat.le_of_lt (nat.lt_succ_self _) }},
-  { change _ ≤ (play_devil_move_at g hs).s.history.length,
+  { change _ ≤ (play_devil_move_at g hs).s.len,
     rw hist_len_play_devil_move_at,
     exact nat.le_of_lt (nat.lt_succ_self _) },
 end
 
 lemma play_at_hist_len_ge {pw n : ℕ} {g : Game pw} :
-  g.s.history.length ≤ (g.play n).s.history.length :=
+  g.s.len ≤ (g.play n).s.len :=
 begin
   induction n with n ih,
   { refl },
@@ -297,7 +297,7 @@ begin
     congr' 1, generalize_proofs, change d'.f g₁.s h with dite _ _ _,
     split_ifs with h₂,
     { exfalso, contrapose! h₂, clear h₂,
-      transitivity (g.play n).s.history.length,
+      transitivity (g.play n).s.len,
       { exact play_at_hist_len_ge },
       { refl }},
     { congr, exact play_at_players_eq.2.symm }},
@@ -318,7 +318,7 @@ begin
     change a'.f g₂.s h hy with dite _ _ _,
     split_ifs with h₂,
     { exfalso, contrapose! h₂, clear h₂,
-      transitivity (g.play n).s.history.length,
+      transitivity (g.play n).s.len,
       { exact play_at_hist_len_ge },
       { exact play_devil_move_at_hist_len_ge }},
     { congr, exact play_at_players_eq.1.symm }},
@@ -327,7 +327,7 @@ end
 
 lemma angel_set_move_angel_wins_iff {pw : ℕ} {g : Game pw}
   {s : State} {m : Valid_angel_move pw s.board}
-  (h : s.history.length < g.s.history.length) :
+  (h : s.len < g.s.len) :
   (g.set_angel (g.a.set_move s m)).angel_wins ↔ g.angel_wins :=
 begin
   convert set_prev_moves_angel_wins_iff, ext,
@@ -338,7 +338,7 @@ end
 
 lemma devil_set_move_angel_wins_iff {pw : ℕ} {g : Game pw}
   {s : State} {m : Valid_devil_move s.board}
-  (h : s.history.length < g.s.history.length) :
+  (h : s.len < g.s.len) :
   (g.set_devil (g.d.set_move s m)).angel_wins ↔ g.angel_wins :=
 begin
   convert set_prev_moves_angel_wins_iff, ext,
@@ -400,7 +400,7 @@ end
 
 lemma play_move_hist_len_eq_of_act {pw : ℕ} {g : Game pw}
   (h : g.play_move.act) :
-  g.play_move.s.history.length = g.s.history.length + 2 :=
+  g.play_move.s.len = g.s.len + 2 :=
 begin
   have h₁ : g.act := act_play_move_at_succ h,
   rw [play_move_at_act h₁, play_angel_move_at],
@@ -410,7 +410,7 @@ end
 
 lemma play_hist_len_eq_of_act {pw n : ℕ} {g : Game pw}
   (h : (g.play n).act) :
-  (g.play n).s.history.length = g.s.history.length + n * 2 :=
+  (g.play n).s.len = g.s.len + n * 2 :=
 begin
   induction n with n ih, { refl }, rw play_at_succ' at h ⊢,
   let g₁ : Game pw := _, change g.play n with g₁ at ih h ⊢,
@@ -420,7 +420,7 @@ end
 
 lemma hist_len_ne_of_play_lt {pw n k : ℕ} {g : Game pw}
   (h₁ : k < n) (h₂ : (g.play n).act) :
-  (g.play k).s.history.length ≠ (g.play n).s.history.length :=
+  (g.play k).s.len ≠ (g.play n).s.len :=
 begin
   have h₃ := act_play_at_le (nat.le_of_lt h₁) h₂,
   rw [play_hist_len_eq_of_act h₂, play_hist_len_eq_of_act h₃], intro h,
@@ -440,19 +440,19 @@ lemma state_ne_of_play_lt {pw n k : ℕ} {g : Game pw}
 by { have h₃ := hist_ne_of_play_lt h₁ h₂, contrapose! h₃, rw h₃ }
 
 lemma apply_angel_move_ne_of_hist_ne {pw : ℕ} {s₁ s₂ : State}
-  {ma₁ ma₂ : Angel_move} (h : s₁.history.length ≠ s₂.history.length) :
+  {ma₁ ma₂ : Angel_move} (h : s₁.len ≠ s₂.len) :
   apply_angel_move s₁ ma₁ ≠ apply_angel_move s₂ ma₂ :=
 begin
   contrapose! h, simp_rw [apply_angel_move, apply_move] at h,
-  rw (snoc_eq_snoc_iff.mp h.2.1).1,
+  simp_rw [State.len, (snoc_eq_snoc_iff.mp h.2.1).1],
 end
 
 lemma apply_devil_move_ne_of_hist_ne {s₁ s₂ : State}
-  {md₁ md₂ : Devil_move} (h : s₁.history.length ≠ s₂.history.length) :
+  {md₁ md₂ : Devil_move} (h : s₁.len ≠ s₂.len) :
   apply_devil_move s₁ md₁ ≠ apply_devil_move s₂ md₂ :=
 begin
   contrapose! h, simp_rw [apply_devil_move, apply_move] at h,
-  rw (snoc_eq_snoc_iff.mp h.2.1).1,
+  simp_rw [State.len, (snoc_eq_snoc_iff.mp h.2.1).1],
 end
 
 def mk_angel_for_played_move_at_play_move {pw : ℕ}
@@ -546,7 +546,7 @@ begin
       split_ifs with hss, swap, { refl }, change dite _ _ _ = _,
       rw dif_neg, change s₀' ≠ apply_devil_move g.s _, rw [h₁, h₂],
       apply apply_devil_move_ne_of_hist_ne,
-      change ((init_game a₀ d₀ s₀).play 0).s.history.length ≠ _,
+      change ((init_game a₀ d₀ s₀).play 0).s.len ≠ _,
       apply hist_len_ne_of_play_lt (pos_iff_ne_zero.mpr hy),
       rw [Game.act, ←h₂], exact hs }, { dec_trivial }, symmetry,
     have h₁ : play_devil_move_at (g.set_players a₁ d₁) hs =
@@ -578,10 +578,10 @@ begin
 end
 
 lemma hist_len_game_finish {pw : ℕ} {g : Game pw} :
-  g.finish.s.history.length = g.s.history.length := rfl
+  g.finish.s.len = g.s.len := rfl
 
 lemma hist_len_le_play_move {pw : ℕ} {g : Game pw} :
-  g.s.history.length ≤ g.play_move.s.history.length :=
+  g.s.len ≤ g.play_move.s.len :=
 begin
   rw Game.play_move, split_ifs with hs, swap, { refl },
   rw play_angel_move_at, split_ifs with h,
@@ -592,7 +592,7 @@ begin
 end
 
 lemma hist_len_le_play {pw n : ℕ} {g : Game pw} :
-  g.s.history.length ≤ (g.play n).s.history.length :=
+  g.s.len ≤ (g.play n).s.len :=
 begin
   induction n with n ih, { refl }, rw play_at_succ',
   exact ih.trans hist_len_le_play_move,
@@ -601,23 +601,24 @@ end
 lemma hist_overlaps_of_angel_played_move_at {pw : ℕ}
   {s s₀' : State} {ma : Valid_angel_move pw s₀'.board}
   (h₁ : angel_played_move_at s s₀' ma) :
-  ∀ (k : ℕ), k.succ < s₀'.history.length →
+  ∀ (k : ℕ), k.succ < s₀'.len →
   s.history.nth k = s₀'.history.nth k :=
 begin
   rintro k h₂, rcases h₁ with ⟨s₀, md, a, d, n, rfl, hx, hy, rfl⟩, clear' hx hy,
   change (apply_devil_move s₀ md.m).history with (_ ++ _ : list _) at h₂ ⊢,
-  rw [length_snoc, nat.succ_lt_succ_iff] at h₂, induction n with n ih,
+  change _ < (snoc _ _).length at h₂,
+  rw [length_snoc, nat.succ_lt_succ_iff] at h₂ ,induction n with n ih,
   { change s₀.history.nth k = _, exact (list.nth_append h₂).symm },
   { simp_rw play_at_succ', let g : Game pw := _,
     change (init_game a d s₀).play n with g at h₂ ih ⊢, rw ←ih, clear ih,
     rw Game.play_move, split_ifs with hs, swap, { refl }, rw play_angel_move_at,
-    have h₆ : s₀.history.length ≤ g.s.history.length,
-    { change (init_game a d s₀).s.history.length ≤ _, exact hist_len_le_play },
+    have h₆ : s₀.len ≤ g.s.len,
+    { change (init_game a d s₀).s.len ≤ _, exact hist_len_le_play },
     split_ifs with h₃,
     { change (_ ++ _ : list _).nth _ = _, rw list.nth_append,
       { change (_ ++ _ : list _).nth _ = _, rw list.nth_append,
         exact gt_of_ge_of_gt h₆ h₂ },
-      { rw hist_len_play_devil_move_at,
+      { rw [←State.len, hist_len_play_devil_move_at],
         exact nat.lt_succ_of_le (nat.le_trans (le_of_lt h₂) h₆) }},
     { change (_ ++ _ : list _).nth _ = _, rw list.nth_append,
       exact gt_of_ge_of_gt h₆ h₂ }},
@@ -629,7 +630,7 @@ lemma angel_played_move_at_eq_aux {pw n : ℕ}
   (h₁ : s' = apply_devil_move s₀ md.m)
   (h₂ : sx = ((init_game a d s₀).play n).s)
   (h₃ : 2 ≤ n) :
-  sx.history.nth (s₀.history.length + 1) = option.some
+  sx.history.nth (s₀.len + 1) = option.some
     (apply_angel_move s' (a.f s' hs hvm).m).board :=
 begin
   sorry
@@ -651,9 +652,9 @@ begin
   --   let s₁ : State := apply_angel_move s' (a.f s' hs hvm).m,
   --   change s₁.history.nth _ = some s₁.board,
   --   rw list.nth_eq_some,
-  --   have h₅ : s'.history.length = s₀.history.length + 1,
+  --   have h₅ : s'.len = s₀.len + 1,
   --   sorry,
-  --   have h₆ : s₁.history.length = s₀.history.length + 2,
+  --   have h₆ : s₁.len = s₀.len + 2,
   --   sorry,
   --   fsplit,
   --   {
@@ -667,7 +668,7 @@ begin
   -- sorry
 end
 
--- #exit
+#exit
 
 lemma angel_played_move_at_eq {pw : ℕ}
   {sx s' : State} {ma₁ ma₂ : Valid_angel_move pw s'.board}
@@ -682,7 +683,7 @@ begin
   obtain rfl : md₁ = md₂,
   { subst h₁, rwa ←devil_moves_eq_iff at h₅ },
   clear h₅, change hvm₂ with hvm₁, clear hvm₂,
-  change hs₂ with hs₁, clear hs₂, let i := s₀.history.length,
+  change hs₂ with hs₁, clear hs₂, let i := s₀.len,
   have h₅ : sx.history.nth (i + 2) = option.some
     (apply_angel_move s' (a₁.f s' hs₁ hvm₁).m).board,
   { exact angel_played_move_at_eq_aux h₁ h₄ h₃ },
