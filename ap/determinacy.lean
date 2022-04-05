@@ -3,7 +3,7 @@ import data.int.basic
 import data.set.basic
 import logic.function.iterate
 
-import .game
+import .util .game
 
 noncomputable theory
 open_locale classical
@@ -74,9 +74,8 @@ begin
   let g : Game pw := _, change g.angel_wins at h₃,
   let g₁ : Game pw := _, change g₁.angel_wins,
   have h₄ : g₁ = g.set_devil (d.set_move s md₀) := rfl, rw h₄, clear h₄,
-  have h₄ : s.history.length < (g.set_devil d).s.history.length,
-  { change _ < (apply_angel_move _ _).history.length,
-    exact nat.lt_succ_of_lt (nat.lt_succ_self _) },
+  have h₄ : s.len < (g.set_devil d).s.len,
+  { exact length_lt_length_snoc₂ },
   apply (devil_set_move_angel_wins_iff h₄).mpr, exact h₃,
 end
 

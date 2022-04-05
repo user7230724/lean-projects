@@ -667,7 +667,7 @@ begin
   -- sorry
 end
 
-#exit
+-- #exit
 
 lemma angel_played_move_at_eq {pw : ℕ}
   {sx s' : State} {ma₁ ma₂ : Valid_angel_move pw s'.board}

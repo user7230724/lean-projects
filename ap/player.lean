@@ -339,5 +339,5 @@ begin
   cases s₁ with b₁ t₁ a₁, cases s₂ with b₂ t₂ a₂,
   cases ma₁ with p₁; cases ma₂ with p₂;
   simp_rw [apply_devil_move, apply_devil_move', apply_move, snoc_eq_snoc_iff] at h;
-  simp only; cc,
+  simp only; tauto!,
 end
