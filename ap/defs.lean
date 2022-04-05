@@ -72,19 +72,6 @@ structure Angel (pw : ℕ) : Type :=
 structure Devil : Type :=
 (f : Π (s : State), s.act → Valid_devil_move s.board)
 
--- Game
-
-@[ext] structure Game (pw : ℕ) : Type :=
-(a : Angel pw)
-(d : Devil)
-(s : State)
-
-def init_game {pw : ℕ} (a : Angel pw) (d : Devil) (s : State) : Game pw :=
-{ a := a, d := d, s := s }
-
-def Game.act {pw : ℕ} (g : Game pw) : Prop :=
-g.s.act
-
 def apply_move (s : State) (b : Board) : State :=
 {s with board := b, history := s.history ++ [s.board] }
 
@@ -97,6 +84,19 @@ def apply_devil_move' (s : State) : Devil_move → Board
 
 def apply_devil_move (s : State) (m : Devil_move) : State :=
 apply_move s (apply_devil_move' s m)
+
+-- Game
+
+@[ext] structure Game (pw : ℕ) : Type :=
+(a : Angel pw)
+(d : Devil)
+(s : State)
+
+def init_game {pw : ℕ} (a : Angel pw) (d : Devil) (s : State) : Game pw :=
+{ a := a, d := d, s := s }
+
+def Game.act {pw : ℕ} (g : Game pw) : Prop :=
+g.s.act
 
 def Game.set_state {pw : ℕ} (g : Game pw) (s₁ : State) : Game pw :=
 {g with s := s₁}
