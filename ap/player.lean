@@ -300,3 +300,37 @@ begin
   simp_rw [apply_devil_move, apply_devil_move', apply_move, snoc_eq_snoc_iff] at h;
   simp only; tauto!,
 end
+
+lemma apply_move_state_nth_eq_some_of {n : ℕ} {s : State} {b sb : Board}
+  (h : s.nth n = some sb) :
+  (apply_move s b).nth n = some sb :=
+begin
+  simp_rw [State.nth, apply_move] at h ⊢, rw list.nth_append,
+  { exact h },
+  { rw [length_snoc, nat.lt_succ_iff], obtain ⟨h₁, h₂⟩ := list.nth_eq_some.mp h,
+    rw length_snoc at h₁, exact nat.lt_succ_iff.mp h₁ },
+end
+
+lemma apply_angel_move_state_nth_eq_some_of {n : ℕ}
+  {s : State} {ma : Angel_move} {b : Board}
+  (h : s.nth n = some b) :
+  (apply_angel_move s ma).nth n = some b :=
+apply_move_state_nth_eq_some_of h
+
+lemma apply_devil_move_state_nth_eq_some_of {n : ℕ}
+  {s : State} {ma : Devil_move} {b : Board}
+  (h : s.nth n = some b) :
+  (apply_devil_move s ma).nth n = some b :=
+apply_move_state_nth_eq_some_of h
+
+lemma apply_move_len {s : State} {b : Board} :
+  (apply_move s b).len = s.len.succ :=
+length_snoc
+
+lemma apply_angel_move_len {s : State} {ma : Angel_move} :
+  (apply_angel_move s ma).len = s.len.succ :=
+apply_move_len
+
+lemma apply_devil_move_len {s : State} {ma : Devil_move} :
+  (apply_devil_move s ma).len = s.len.succ :=
+apply_move_len

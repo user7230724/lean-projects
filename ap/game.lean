@@ -584,17 +584,41 @@ end
 
 lemma angel_played_move_at_eq_aux {pw n : ℕ}
   {sx s₀ s' : State} {md : Valid_devil_move s₀.board}
-  {a : Angel pw} {d : Devil} {hs hvm}
+  {a : Angel pw} {d : Devil} {hs hvm h₄}
   (h₁ : s' = apply_devil_move s₀ md.m)
   (h₂ : sx = ((init_game a d s₀).play n).s)
-  (h₃ : n ≠ 0) :
+  (h₃ : n ≠ 0)
+  (hh : md = d.f s₀ h₄) :
   sx.nth (s₀.len + 2) = option.some
     (apply_angel_move s' (a.f s' hs hvm).m).board :=
 begin
-  sorry
+  cases n, { contradiction }, clear h₃,
+  let i : ℕ := _, change s₀.len + 2 with i,
+  let s₁ : State := apply_angel_move s' (a.f s' hs hvm).m,
+  change _ = some (State.board s₁), have h₅ : i = s₁.len,
+  { change s₁ with apply_angel_move _ _, subst s',
+    rw [apply_angel_move_len, apply_devil_move_len] },
+  induction n with n ih generalizing sx,
+  { rw [play_1, play_move_at_act] at h₂, swap, { exact h₄ },
+    subst sx, have h₆ : play_devil_move_at (init_game a d s₀) h₄ =
+      (init_game a d s'),
+    { ext,
+      { exact play_devil_move_at_players_eq.1 },
+      { exact play_devil_move_at_players_eq.2 },
+      { subst s',
+        change apply_devil_move s₀ (d.f s₀ _).m = apply_devil_move s₀ _, rw hh }},
+    rw [h₆, play_angel_move_at, dif_pos], clear h₆, swap, { exact ⟨hs, hvm⟩ },
+    change s₁.nth _ = _, rw h₅, exact state_nth_len },
+  { rw play_at_succ' at h₂, let g₁ : Game pw := (init_game a d s₀).play n.succ,
+    change (init_game a d s₀).play n.succ with g₁ at ih h₂, subst sx,
+    specialize ih rfl, rw Game.play_move, split_ifs with hs₁, swap, { exact ih },
+    let g₂ : Game pw := _, change play_devil_move_at g₁ hs₁ with g₂,
+    have ih₁ : g₂.s.nth i = some s₁.board,
+    { exact apply_move_state_nth_eq_some_of ih },
+    rw play_angel_move_at, split_ifs with hh,
+    { exact apply_move_state_nth_eq_some_of ih₁ },
+    { exact ih₁ }},
 end
-
--- #exit
 
 lemma angel_played_move_at_eq {pw : ℕ}
   {sx s' : State} {ma₁ ma₂ : Valid_angel_move pw s'.board}
@@ -604,17 +628,27 @@ lemma angel_played_move_at_eq {pw : ℕ}
 begin
   obtain ⟨s₀, md₁, a₁, d₁, n₁, h₁, ⟨hs₁, hvm₁, rfl⟩, h₃, h₄⟩ := hx,
   obtain ⟨s₀', md₂, a₂, d₂, n₂, h₅, ⟨hs₂, hvm₂, rfl⟩, h₇, h₈⟩ := hy,
+  have hs : s₀.act,
+  { subst s', exact hs₂ },
   obtain rfl : s₀ = s₀',
   { subst h₁, exact state_eq_of_apply_devil_move_eq h₅ },
   obtain rfl : md₁ = md₂,
   { subst h₁, rwa ←devil_moves_eq_iff at h₅ },
   clear h₅, change hvm₂ with hvm₁, clear hvm₂,
   change hs₂ with hs₁, clear hs₂, let i := s₀.len,
+  have hd₁ : d₁.f s₀ hs = md₁,
+  {
+    sorry
+  },
+  have hd₂ : d₂.f s₀ hs = md₁,
+  {
+    sorry
+  },
   have h₅ : sx.nth (i + 2) = option.some
     (apply_angel_move s' (a₁.f s' hs₁ hvm₁).m).board,
-  { exact angel_played_move_at_eq_aux h₁ h₄ h₃ },
+  { exact angel_played_move_at_eq_aux h₁ h₄ h₃ hd₁.symm },
   have h₆ : sx.nth (i + 2) = option.some
     (apply_angel_move s' (a₂.f s' hs₁ hvm₁).m).board,
-  { exact angel_played_move_at_eq_aux h₁ h₈ h₇ },
+  { exact angel_played_move_at_eq_aux h₁ h₈ h₇ hd₂.symm },
   simp [h₅] at h₆, rwa angel_moves_eq_iff',
 end

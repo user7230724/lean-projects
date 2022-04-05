@@ -25,3 +25,12 @@ by { contrapose! h, rw [State.len, h] }
 
 lemma hist_len_finish {s : State} :
   s.finish.len = s.len := rfl
+
+lemma state_nth_len {s : State} :
+  s.nth s.len = some s.board :=
+begin
+  rw [State.len, State.nth, list.nth_eq_some],
+  use length_lt_length_snoc, rw list.nth_le_append_right,
+  { simp_rw nat.sub_self, refl },
+  { refl },
+end
