@@ -3,56 +3,15 @@ import tactic.induction
 import data.int.basic
 import data.set.basic
 
-import .util .point .dist .board .state
+import .base .point .dist .board .state
 
 noncomputable theory
 open_locale classical
 
-def Angel_move : Type := Point
-def Devil_move : Type := option Point
-
-def angel_move_valid (pw : ℕ) (b : Board) (p : Angel_move) : Prop :=
-p ≠ b.angel ∧ dist p b.angel ≤ pw ∧ p ∈ b.squares
-
-def devil_move_valid (b : Board) : Devil_move → Prop
-| (option.none) := true
-| (option.some p) := p ≠ b.angel ∧ p ∈ b.squares
-
-def angel_has_valid_move (pw : ℕ) (b : Board) :=
-∃ (m : Angel_move), angel_move_valid pw b m
-
-structure Valid_angel_move (pw : ℕ) (b : Board) :=
-(m : Angel_move)
-(h : angel_move_valid pw b m)
-
-structure Valid_devil_move (b : Board) :=
-(m : Devil_move)
-(h : devil_move_valid b m)
-
 instance {b : Board} : inhabited (Valid_devil_move b) :=
 ⟨⟨none, trivial⟩⟩
 
-def apply_move (s : State) (b : Board) : State :=
-{s with board := b, history := s.history ++ [s.board] }
-
-def apply_angel_move (s : State) (p : Angel_move) : State :=
-apply_move s {s.board with angel := p}
-
-def apply_devil_move' (s : State) : Devil_move → Board
-| (option.none) := s.board
-| (option.some p) := {s.board with squares := s.board.squares \ {p}}
-
-def apply_devil_move (s : State) (m : Devil_move) : State :=
-apply_move s (apply_devil_move' s m)
-
 -----
-
-structure Angel (pw : ℕ) : Type :=
-(f : Π (s : State), s.act →
-  angel_has_valid_move pw s.board → Valid_angel_move pw s.board)
-
-structure Devil : Type :=
-(f : Π (s : State), s.act → Valid_devil_move s.board)
 
 instance {pw : ℕ} : inhabited (Angel pw) :=
 ⟨⟨λ s hs h, ⟨h.some, h.some_spec⟩⟩⟩
@@ -67,18 +26,18 @@ def Angel.sub {pw₁ pw : ℕ} (a : Angel pw₁) (a₁ : Angel pw) : Prop :=
 a₁.sup a
 
 def Angel_prev_moves (pw : ℕ) (s : State) :=
-Π (s₁ : State), s₁.act → s₁.history.length < s.history.length →
+Π (s₁ : State), s₁.act → s₁.len < s.len →
 angel_has_valid_move pw s₁.board → Valid_angel_move pw s₁.board
 
 def Devil_prev_moves (s : State) :=
-Π (s₁ : State), s₁.act → s₁.history.length < s.history.length →
+Π (s₁ : State), s₁.act → s₁.len < s.len →
 Valid_devil_move s₁.board
 
 def Angel.set_prev_moves {pw : ℕ} (a : Angel pw) (s : State)
   (pm : Angel_prev_moves pw s) : Angel pw :=
 begin
   refine ⟨λ s₁ hs h₁, _⟩,
-  apply dite (s₁.history.length < s.history.length); intro h₂,
+  apply dite (s₁.len < s.len); intro h₂,
   { exact pm s₁ hs h₂ h₁ },
   { exact a.f s₁ hs h₁ },
 end
@@ -87,7 +46,7 @@ def Devil.set_prev_moves (d : Devil) (s : State)
   (pm : Devil_prev_moves s) : Devil :=
 begin
   refine ⟨λ s₁ hs, _⟩,
-  apply dite (s₁.history.length < s.history.length); intro h₁,
+  apply dite (s₁.len < s.len); intro h₁,
   { exact pm s₁ hs h₁ },
   { exact d.f s₁ hs },
 end
@@ -116,7 +75,7 @@ d.set_prev_moves s (λ s₁ hs h, d.f s₁ hs)
 
 def Angel.prev_moves_set {pw : ℕ} (a : Angel pw) (s : State)
   (s₁ : State) (m : Valid_angel_move pw s₁.board)
-  (h : s₁.history.length < s.history.length) : Angel pw :=
+  (h : s₁.len < s.len) : Angel pw :=
 begin
   apply a.set_prev_moves s, rintro s₂ hs h₁ h₂,
   apply dite (s₂ = s₁); intro h₃,
@@ -126,7 +85,7 @@ end
 
 def Devil.prev_moves_set (d : Devil) (s : State)
   (s₁ : State) (m : Valid_devil_move s₁.board)
-  (h : s₁.history.length < s.history.length) : Devil :=
+  (h : s₁.len < s.len) : Devil :=
 begin
   apply d.set_prev_moves s, rintro s₂ hs h₁,
   apply dite (s₂ = s₁); intro h₂,
@@ -134,8 +93,8 @@ begin
   { exact d.f s₂ hs },
 end
 
-def angel_state (s : State) : Prop := odd s.history.length
-def devil_state (s : State) : Prop := even s.history.length
+def angel_state (s : State) : Prop := odd s.len
+def devil_state (s : State) : Prop := even s.len
 
 -----
 
@@ -246,15 +205,15 @@ begin
 end
 
 lemma hist_len_apply_move {s : State} {b : Board} :
-  (apply_move s b).history.length = s.history.length.succ :=
+  (apply_move s b).len = s.len.succ :=
 by { change (_ ++ [_]).length = _, rw list.length_append, refl }
 
 lemma hist_len_apply_angel_move {s : State} {ma : Angel_move} :
-  (apply_angel_move s ma).history.length = s.history.length.succ :=
+  (apply_angel_move s ma).len = s.len.succ :=
 hist_len_apply_move
 
 lemma hist_len_apply_devil_move {s : State} {md : Devil_move} :
-  (apply_devil_move s md).history.length = s.history.length.succ :=
+  (apply_devil_move s md).len = s.len.succ :=
 hist_len_apply_move
 
 lemma valid_angel_move_ext {pw : ℕ} {b : Board}

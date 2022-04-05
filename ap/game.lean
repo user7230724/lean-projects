@@ -5,33 +5,16 @@ import data.set.basic
 import logic.function.iterate
 import data.list
 
-import .util .point .dist .board .state .player
+import .base .point .dist .board .state .player
 
 noncomputable theory
 open_locale classical
-
-@[ext] structure Game (pw : ℕ) : Type :=
-(a : Angel pw)
-(d : Devil)
-(s : State)
-
-def init_game {pw : ℕ} (a : Angel pw) (d : Devil) (s : State) : Game pw :=
-{ a := a, d := d, s := s }
-
-def Game.act {pw : ℕ} (g : Game pw) : Prop :=
-g.s.act
 
 def Game.set_angel {pw pw₁ : ℕ} (g : Game pw) (a₁ : Angel pw₁) : Game pw₁ :=
 {g with a := a₁}
 
 def Game.set_devil {pw : ℕ} (g : Game pw) (d₁ : Devil) : Game pw :=
 {g with d := d₁}
-
-def Game.set_state {pw : ℕ} (g : Game pw) (s₁ : State) : Game pw :=
-{g with s := s₁}
-
-def Game.finish {pw : ℕ} (g : Game pw) : Game pw :=
-g.set_state g.s.finish
 
 def Game.set_players {pw pw₁ : ℕ} (g : Game pw)
   (a₁ : Angel pw₁) (d₁ : Devil) : Game pw₁ :=
@@ -42,33 +25,8 @@ def Game.set_prev_moves {pw : ℕ} (g : Game pw)
   (fd : Devil_prev_moves g.s) : Game pw :=
 g.set_players (g.a.set_prev_moves g.s fa) (g.d.set_prev_moves g.s fd)
 
-def play_angel_move_at' {pw pw₁ : ℕ} (a₁ : Angel pw₁) (g : Game pw) (hs h) :=
-g.set_state (apply_angel_move g.s (a₁.f g.s hs h).m)
-
-def play_angel_move_at {pw : ℕ} (g : Game pw) :=
-if h : g.act ∧ angel_has_valid_move pw g.s.board
-then play_angel_move_at' g.a g h.1 h.2
-else g.finish
-
-def play_devil_move_at {pw : ℕ} (g : Game pw) (hs) :=
-g.set_state (apply_devil_move g.s (g.d.f g.s hs).m)
-
-def Game.play_move {pw : ℕ} (g : Game pw) :=
-if hs : g.act
-then play_angel_move_at (play_devil_move_at g hs)
-else g
-
-def Game.play {pw : ℕ} (g : Game pw) (n : ℕ) :=
-(Game.play_move^[n]) g
-
-def Game.angel_wins {pw : ℕ} (g : Game pw) :=
-∀ (n : ℕ), (g.play n).act
-
 def Game.devil_wins {pw : ℕ} (g : Game pw) :=
 ∃ (n : ℕ), ¬(g.play n).act
-
-def angel_hws_at (pw : ℕ) (s : State) :=
-∃ (a : Angel pw), ∀ (d : Devil), (init_game a d s).angel_wins
 
 def devil_hws_at (pw : ℕ) (s : State) :=
 ∃ (d : Devil), ∀ (a : Angel pw), (init_game a d s).devil_wins
@@ -629,46 +587,14 @@ lemma angel_played_move_at_eq_aux {pw n : ℕ}
   {a : Angel pw} {d : Devil} {hs hvm}
   (h₁ : s' = apply_devil_move s₀ md.m)
   (h₂ : sx = ((init_game a d s₀).play n).s)
-  (h₃ : 2 ≤ n) :
-  sx.history.nth (s₀.len + 1) = option.some
+  (h₃ : n ≠ 0) :
+  sx.nth (s₀.len + 2) = option.some
     (apply_angel_move s' (a.f s' hs hvm).m).board :=
 begin
   sorry
-  -- repeat { cases n, { contrapose h₃, dec_trivial, }},
-  -- replace h₃ : s₀.act,
-  -- sorry,
-  -- induction n with n ih,
-  -- {
-  --   subst sx,
-  --   rw play_1,
-  --   rw play_move_at_act, swap, { exact h₃ },
-  --   have h₄ : play_devil_move_at (init_game a d s₀) h₃ =
-  --     init_game a d s',
-  --   sorry, rw h₄, clear h₄,
-  --   rw play_angel_move_at,
-  --   rw dif_pos, swap, { split; assumption },
-  --   change (apply_angel_move s' (a.f s' _ _).m).history.nth _ = _,
-  --   generalize_proofs,
-  --   let s₁ : State := apply_angel_move s' (a.f s' hs hvm).m,
-  --   change s₁.history.nth _ = some s₁.board,
-  --   rw list.nth_eq_some,
-  --   have h₅ : s'.len = s₀.len + 1,
-  --   sorry,
-  --   have h₆ : s₁.len = s₀.len + 2,
-  --   sorry,
-  --   fsplit,
-  --   {
-  --     rw h₆,
-  --     apply nat.lt_succ_self,
-  --   },
-  --   {
-      
-  --   },
-  -- },
-  -- sorry
 end
 
-#exit
+-- #exit
 
 lemma angel_played_move_at_eq {pw : ℕ}
   {sx s' : State} {ma₁ ma₂ : Valid_angel_move pw s'.board}
@@ -684,10 +610,10 @@ begin
   { subst h₁, rwa ←devil_moves_eq_iff at h₅ },
   clear h₅, change hvm₂ with hvm₁, clear hvm₂,
   change hs₂ with hs₁, clear hs₂, let i := s₀.len,
-  have h₅ : sx.history.nth (i + 2) = option.some
+  have h₅ : sx.nth (i + 2) = option.some
     (apply_angel_move s' (a₁.f s' hs₁ hvm₁).m).board,
   { exact angel_played_move_at_eq_aux h₁ h₄ h₃ },
-  have h₆ : sx.history.nth (i + 2) = option.some
+  have h₆ : sx.nth (i + 2) = option.some
     (apply_angel_move s' (a₂.f s' hs₁ hvm₁).m).board,
   { exact angel_played_move_at_eq_aux h₁ h₈ h₇ },
   simp [h₅] at h₆, rwa angel_moves_eq_iff',

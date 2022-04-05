@@ -3,7 +3,7 @@ import data.int.basic
 import data.set.basic
 import logic.function.iterate
 
-import .util .game
+import .defs .game
 
 noncomputable theory
 open_locale classical

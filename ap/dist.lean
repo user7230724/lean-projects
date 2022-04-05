@@ -2,13 +2,10 @@ import tactic.induction
 import data.int.basic
 import data.set.basic
 
-import .point
+import .base .point
 
 noncomputable theory
 open_locale classical
-
-def dist (p₁ p₂ : Point) : ℕ :=
-(max (|p₁.x - p₂.x|) (|p₁.y - p₂.y|)).to_nat
 
 -----
 
