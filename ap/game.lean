@@ -34,8 +34,11 @@ def devil_hws_at (pw : ℕ) (s : State) :=
 def angel_played_move_at {pw : ℕ} (s : State) (s₀' : State)
   (ma : Valid_angel_move pw s₀'.board) : Prop :=
 ∃ (s₀ : State) (md : Valid_devil_move s₀.board) (a : Angel pw) (d : Devil) (n : ℕ),
-s₀' = apply_devil_move s₀ md.m ∧ (∃ hs h, a.f s₀' hs h = ma) ∧
-n ≠ 0 ∧ s = ((init_game a d s₀).play n).s
+(∃ hs, d.f s₀ hs = md) ∧
+s₀' = apply_devil_move s₀ md.m ∧
+(∃ hs h, a.f s₀' hs h = ma) ∧
+n ≠ 0 ∧
+s = ((init_game a d s₀).play n).s
 
 -----
 
@@ -327,7 +330,8 @@ lemma angel_played_move_at_apply_move {pw : ℕ} {s s' : State}
 begin
   let a := (default : Angel pw).set_move s' ma,
   let d := (default : Devil).set_move s md,
-  use [s, md, a, d, 1, h], have hs₁ : s'.act := by rwa h,
+  use [s, md, a, d, 1, ⟨hs, devil_set_move_eq_pos⟩, h],
+  have hs₁ : s'.act := by rwa h,
   have hvm_s' : angel_has_valid_move pw s'.board := ⟨_, ma.h⟩,
   refine ⟨_, _, _⟩, { exact ⟨hs₁, hvm_s', angel_set_move_eq_pos⟩ },
   { dec_trivial }, rw [play_1, play_move_at_act], swap, { exact hs },
@@ -426,11 +430,16 @@ lemma angel_played_move_at_play_move {pw : ℕ}
   angel_played_move_at g.play_move.s s₀' ma :=
 begin
   let a := g.a, let d := g.d, let s := g.s,
-  rcases h with ⟨s₀, md₀, a₀, d₀, n, h₁, hx, hy, h₂⟩, by_cases hs : g.act,
+  rcases h with ⟨s₀, md₀, a₀, d₀, n, hmd, h₁, hx, hy, h₂⟩, by_cases hs : g.act,
   { let md := d.f s hs, let s' := apply_devil_move s md.m,
     let d₁ := d₀.set_move s md,
     let a₁ := mk_angel_for_played_move_at_play_move a₀ a s' hs,
-    use [s₀, md₀, a₁, d₁, n.succ, by rw h₁],
+    have hmd₁ : ∃ hs, d₁.f s₀ hs = md₀,
+    { cases hmd with hs₁ hmd, use hs₁, change dite _ _ _ = _,
+      rw dif_neg, { exact hmd }, change ((init_game a₀ d₀ s₀).play 0).s ≠ g.s,
+      rw h₂, apply state_ne_of_play_lt (nat.pos_of_ne_zero hy),
+      change g.s.act at hs, rwa h₂ at hs },
+    use [s₀, md₀, a₁, d₁, n.succ, hmd₁, by rw h₁],
     have h₁ : ∀ (k ≤ n), ((init_game a₁ d₁ s₀).play k).s =
       ((init_game a₀ d₀ s₀).play k).s,
     { rintro k hk, induction k with k ih, { refl }, simp_rw play_at_succ',
@@ -523,7 +532,8 @@ begin
     change (mk_angel_for_played_move_at_play_move _ _ _ _).f _ _ _ = _,
     rw mk_angel_for_played_move_at_play_move, rw dif_pos, swap, { exact h₂ },
     change dite _ _ _ = _, rw dif_pos rfl },
-  { use [s₀, md₀, a₀, d₀, n, h₁, hx, hy], rw play_move_at_not_act hs, exact h₂ },
+  { use [s₀, md₀, a₀, d₀, n, hmd, h₁, hx, hy],
+    rw play_move_at_not_act hs, exact h₂ },
 end
 
 lemma angel_played_move_at_play {pw n : ℕ}
@@ -562,7 +572,8 @@ lemma hist_overlaps_of_angel_played_move_at {pw : ℕ}
   ∀ (k : ℕ), k.succ < s₀'.len →
   s.history.nth k = s₀'.history.nth k :=
 begin
-  rintro k h₂, rcases h₁ with ⟨s₀, md, a, d, n, rfl, hx, hy, rfl⟩, clear' hx hy,
+  rintro k h₂,
+  rcases h₁ with ⟨s₀, md, a, d, n, hmd, rfl, hx, hy, rfl⟩, clear' hx hy,
   change (apply_devil_move s₀ md.m).history with (_ ++ _ : list _) at h₂ ⊢,
   change _ < (snoc _ _).length at h₂,
   rw [length_snoc, nat.succ_lt_succ_iff] at h₂ ,induction n with n ih,
@@ -626,8 +637,8 @@ lemma angel_played_move_at_eq {pw : ℕ}
   (hy : angel_played_move_at sx s' ma₂) :
   ma₁ = ma₂ :=
 begin
-  obtain ⟨s₀, md₁, a₁, d₁, n₁, h₁, ⟨hs₁, hvm₁, rfl⟩, h₃, h₄⟩ := hx,
-  obtain ⟨s₀', md₂, a₂, d₂, n₂, h₅, ⟨hs₂, hvm₂, rfl⟩, h₇, h₈⟩ := hy,
+  obtain ⟨s₀, md₁, a₁, d₁, n₁, hmd₁, h₁, ⟨hs₁, hvm₁, rfl⟩, h₃, h₄⟩ := hx,
+  obtain ⟨s₀', md₂, a₂, d₂, n₂, hmd₂, h₅, ⟨hs₂, hvm₂, rfl⟩, h₇, h₈⟩ := hy,
   have hs : s₀.act,
   { subst s', exact hs₂ },
   obtain rfl : s₀ = s₀',
@@ -636,19 +647,11 @@ begin
   { subst h₁, rwa ←devil_moves_eq_iff at h₅ },
   clear h₅, change hvm₂ with hvm₁, clear hvm₂,
   change hs₂ with hs₁, clear hs₂, let i := s₀.len,
-  have hd₁ : d₁.f s₀ hs = md₁,
-  {
-    sorry
-  },
-  have hd₂ : d₂.f s₀ hs = md₁,
-  {
-    sorry
-  },
   have h₅ : sx.nth (i + 2) = option.some
     (apply_angel_move s' (a₁.f s' hs₁ hvm₁).m).board,
-  { exact angel_played_move_at_eq_aux h₁ h₄ h₃ hd₁.symm },
+  { exact angel_played_move_at_eq_aux h₁ h₄ h₃ hmd₁.some_spec.symm },
   have h₆ : sx.nth (i + 2) = option.some
     (apply_angel_move s' (a₂.f s' hs₁ hvm₁).m).board,
-  { exact angel_played_move_at_eq_aux h₁ h₈ h₇ hd₂.symm },
+  { exact angel_played_move_at_eq_aux h₁ h₈ h₇ hmd₂.some_spec.symm },
   simp [h₅] at h₆, rwa angel_moves_eq_iff',
 end
