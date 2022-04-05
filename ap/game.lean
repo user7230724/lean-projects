@@ -628,12 +628,46 @@ lemma angel_played_move_at_eq_aux {pw n : ℕ}
   {a : Angel pw} {d : Devil} {hs hvm}
   (h₁ : s' = apply_devil_move s₀ md.m)
   (h₂ : sx = ((init_game a d s₀).play n).s)
-  (h₃ : n ≠ 0) :
-  sx.history.nth (s₀.history.length + 2) = option.some
+  (h₃ : 2 ≤ n) :
+  sx.history.nth (s₀.history.length + 1) = option.some
     (apply_angel_move s' (a.f s' hs hvm).m).board :=
 begin
   sorry
+  -- repeat { cases n, { contrapose h₃, dec_trivial, }},
+  -- replace h₃ : s₀.act,
+  -- sorry,
+  -- induction n with n ih,
+  -- {
+  --   subst sx,
+  --   rw play_1,
+  --   rw play_move_at_act, swap, { exact h₃ },
+  --   have h₄ : play_devil_move_at (init_game a d s₀) h₃ =
+  --     init_game a d s',
+  --   sorry, rw h₄, clear h₄,
+  --   rw play_angel_move_at,
+  --   rw dif_pos, swap, { split; assumption },
+  --   change (apply_angel_move s' (a.f s' _ _).m).history.nth _ = _,
+  --   generalize_proofs,
+  --   let s₁ : State := apply_angel_move s' (a.f s' hs hvm).m,
+  --   change s₁.history.nth _ = some s₁.board,
+  --   rw list.nth_eq_some,
+  --   have h₅ : s'.history.length = s₀.history.length + 1,
+  --   sorry,
+  --   have h₆ : s₁.history.length = s₀.history.length + 2,
+  --   sorry,
+  --   fsplit,
+  --   {
+  --     rw h₆,
+  --     apply nat.lt_succ_self,
+  --   },
+  --   {
+      
+  --   },
+  -- },
+  -- sorry
 end
+
+#exit
 
 lemma angel_played_move_at_eq {pw : ℕ}
   {sx s' : State} {ma₁ ma₂ : Valid_angel_move pw s'.board}
