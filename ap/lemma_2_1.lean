@@ -1,7 +1,7 @@
 import tactic
 import tactic.induction
 
-import .base .induct
+import .base .determinacy .induct
 
 noncomputable theory
 open_locale classical
@@ -24,6 +24,8 @@ lemma D_wins_n_of_D_hws {pw : ℕ}
 begin
   sorry
 end
+
+-- #exit
 
 lemma A_bounded_n_pw {pw n k : ℕ} {a : A pw} {d : D}
   (h : k ≤ n) :
