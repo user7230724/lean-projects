@@ -11,7 +11,7 @@ def D_hws (pw : ℕ) := D_hws_at pw state₀
 def D_wins_in {pw : ℕ} (a : A pw) (d : D) (n : ℕ) :=
 ∀ (k : ℕ), n ≤ k → ¬(simulate a d k).act
 
-def Bound (r : ℕ) : set Point :=
+def Bounded (r : ℕ) : set Point :=
 {p : Point | dist p center ≤ r}
 
 def trapped_in {pw : ℕ} (a : A pw) (d : D) (B : set Point) :=
@@ -25,9 +25,9 @@ begin
   sorry
 end
 
-lemma A_bound_n_pw {pw n k : ℕ} {a : A pw} {d : D}
+lemma A_bounded_n_pw {pw n k : ℕ} {a : A pw} {d : D}
   (h : k ≤ n) :
-  (simulate a d k).s.board.A ∈ Bound (n * pw) :=
+  (simulate a d k).s.board.A ∈ Bounded (n * pw) :=
 begin
   induction k with k ih generalizing n,
   { apply nat.zero_le },
@@ -53,12 +53,12 @@ end
 lemma lem_2_1 {pw : ℕ}
   (h : D_hws pw) :
   ∃ (N : ℕ) (d : D), ∀ (a : A pw),
-  trapped_in a d (Bound N) :=
+  trapped_in a d (Bounded N) :=
 begin
   obtain ⟨n, d, h₁⟩ := D_wins_n_of_D_hws h,
   use [n * pw, d], intro a, specialize h₁ a, intro k,
   have h₂ := h₁ _ (le_refl _), by_cases h₃ : n ≤ k,
   { have h₄ := h₁ _ h₃, have h₅ := simulate_eq_of_not_act h₄ h₂,
-    rw h₅, clear' k h₁ h₂ h₃ h₄ h₅, exact A_bound_n_pw (le_refl _) },
-  { push_neg at h₃, exact A_bound_n_pw (le_of_lt h₃) },
+    rw h₅, clear' k h₁ h₂ h₃ h₄ h₅, exact A_bounded_n_pw (le_refl _) },
+  { push_neg at h₃, exact A_bounded_n_pw (le_of_lt h₃) },
 end
