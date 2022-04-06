@@ -25,7 +25,7 @@ begin
   sorry
 end
 
--- #exit
+#exit
 
 lemma A_bounded_n_pw {pw n k : ℕ} {a : A pw} {d : D}
   (h : k ≤ n) :
