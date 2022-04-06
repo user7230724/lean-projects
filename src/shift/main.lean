@@ -3,7 +3,6 @@ import tactic.induction
 import data.nat.pow
 import data.nat.parity
 import data.nat.lattice
-import data.nat.modeq
 
 noncomputable theory
 open_locale classical
