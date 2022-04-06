@@ -36,8 +36,7 @@ end
 lemma shift_mul_2 {n : ℕ} :
   shift (n * 2) = shift n :=
 begin
-  generalize h : shift n = r,
-  rw shift at h ⊢,
+  generalize h : shift n = r, rw shift at h ⊢,
   by_cases h₁ : {k : ℕ | odd k ∧ ∃ (p : ℕ), k * 2 ^ p = n}.nonempty,
   { have h₂ : {k : ℕ | odd k ∧ ∃ (p : ℕ), k * 2 ^ p = n * 2}.nonempty,
     { rcases h₁ with ⟨k, h₁, p, h₂⟩, use [k, h₁, p + 1],
@@ -64,10 +63,25 @@ begin
     have h₃ := nat.nonempty_of_Inf_eq_succ h, contradiction },
 end
 
+lemma not_even_mul_2_add_1 {n : ℕ} : ¬even (n * 2 + 1) :=
+begin
+  rw even, push_neg, rintro k h, replace h := congr_arg (λ n, n % 2) h,
+  simp [nat.add_mod] at h, exact h,
+end
+
 lemma shift_mul_2_add_1 {n : ℕ} :
   shift (n * 2 + 1) = n * 2 + 1 :=
 begin
-  sorry
+  rw shift, have h : {k : ℕ | odd k ∧ ∃ (p : ℕ), k * 2 ^ p = n * 2 + 1}.nonempty,
+  { use n * 2 + 1, simp, use [not_even_mul_2_add_1, 0], simp },
+  rw [nat.Inf_def h, nat.find_eq_iff], clear h, simp,
+  refine ⟨⟨not_even_mul_2_add_1, _⟩, _⟩,
+  { use 0, simp },
+  { rintro k h₁ h₂ p, rw ←nat.odd_iff_not_even at h₂,
+    rcases h₂ with ⟨k, rfl⟩, cases p,
+    { apply ne_of_lt, simp at *, exact h₁ },
+    { rw pow_succ, intro h₂, replace h₂ := congr_arg (λ n, n % 2) h₂,
+      simp [nat.add_mod, nat.mul_mod] at h₂, exact h₂ }},
 end
 
 lemma shift_def {n : ℕ} :
