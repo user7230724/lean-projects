@@ -3,13 +3,13 @@ import tactic.induction
 
 import .defs .lemmas
 
-theorem angel_hws_iff_pw_ge_2 {pw : ℕ} :
-  angel_hws pw ↔ 2 ≤ pw :=
+theorem A_hws_iff_pw_ge_2 {pw : ℕ} :
+  A_hws pw ↔ 2 ≤ pw :=
 begin
-  cases pw, simp [angel_pw_0_not_hws],
-  cases pw, simp [angel_pw_1_not_hws], simp [nat.succ_le_succ],
-  refine angel_pw_ge_hws _ angel_pw_2_hws, simp [nat.succ_le_succ],
+  cases pw, simp [A_pw_0_not_hws],
+  cases pw, simp [A_pw_1_not_hws], simp [nat.succ_le_succ],
+  refine A_pw_ge_hws _ A_pw_2_hws, simp [nat.succ_le_succ],
 end
 
-theorem exi_pw_angel_hws : ∃ (pw : ℕ), angel_hws pw :=
-⟨2, angel_pw_2_hws⟩
+theorem exi_pw_A_hws : ∃ (pw : ℕ), A_hws pw :=
+⟨2, A_pw_2_hws⟩
