@@ -1,7 +1,7 @@
 import tactic
 import tactic.induction
 
-import .base .game .pw_ge
+import .base .game .pw_1 .pw_2 .pw_ge
 
 noncomputable theory
 open_locale classical
@@ -17,8 +17,6 @@ def D_wins {pw : ℕ} (a : A pw) (d : D) :=
 
 def D_hws (pw : ℕ) := D_hws_at pw state₀
 
------
-
 lemma A_pw_0_not_hws : ¬A_hws 0 :=
 begin
   rintro ⟨a, h⟩, contrapose! h, clear h, use default, rw not_A_wins_at, use 1,
@@ -27,18 +25,6 @@ begin
   push_neg, rintro h₁ ⟨ma, h₂, h₃, h₄⟩,
   rw [nat.le_zero_iff, dist_eq_zero_iff] at h₃, contradiction,
 end
-
-lemma A_pw_1_not_hws : ¬A_hws 1 :=
-begin
-  sorry
-end
-
-lemma A_pw_2_hws : A_hws 2 :=
-begin
-  sorry
-end
-
------
 
 lemma A_pw_ge_hws {pw pw₁ : ℕ}
   (h₁ : pw ≤ pw₁) (h₂ : A_hws pw) : A_hws pw₁ :=
