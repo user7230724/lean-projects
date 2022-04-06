@@ -75,15 +75,18 @@ structure D : Type :=
 def apply_move (s : State) (b : Board) : State :=
 {s with board := b, history := s.history ++ [s.board] }
 
-def apply_A_move (s : State) (p : A_move) : State :=
-apply_move s {s.board with A := p}
+def apply_A_move_b (b : Board) (m : A_move) : Board :=
+{b with A := m}
 
-def apply_D_move' (s : State) : D_move → Board
-| (option.none) := s.board
-| (option.some p) := {s.board with squares := s.board.squares \ {p}}
+def apply_D_move_b (b : Board) : D_move → Board
+| (option.none) := b
+| (option.some p) := {b with squares := b.squares \ {p}}
+
+def apply_A_move (s : State) (m : A_move) : State :=
+apply_move s (apply_A_move_b s.board m)
 
 def apply_D_move (s : State) (m : D_move) : State :=
-apply_move s (apply_D_move' s m)
+apply_move s (apply_D_move_b s.board m)
 
 -- Game
 

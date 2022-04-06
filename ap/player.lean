@@ -230,7 +230,7 @@ lemma A_moves_eq_iff' {pw : ℕ} {s : State}
   {ma₁ ma₂ : Valid_A_move pw s.board} : ma₁ = ma₂ ↔
   (apply_A_move s ma₁.m).board = (apply_A_move s ma₂.m).board :=
 begin
-  split; intro h, { rw h }, simp_rw [apply_A_move, apply_move] at h,
+  split; intro h, { rw h }, simp_rw [apply_A_move, apply_A_move_b, apply_move] at h,
   cases h with h₁ h₂, cases ma₁, cases ma₂, simp at h₂ ⊢, exact h₂,
 end
 
@@ -241,7 +241,7 @@ begin
   split; intro h, { rw h }, simp_rw [apply_D_move, apply_move] at h,
   cases md₁ with m₁ h₁, cases md₂ with m₂ h₂,
   apply valid_D_move_ext, dsimp at h ⊢,
-  cases m₁ with p₁; cases m₂ with p₂; simp_rw apply_D_move' at h,
+  cases m₁ with p₁; cases m₂ with p₂; simp_rw apply_D_move_b at h,
   { cases h₂ with h₂ h₃, contrapose! h₃, rw h, simp },
   { cases h₁ with h₁ h₃, contrapose! h₃, rw ←h, simp },
   { replace h := h.1, replace h₁ := h₁.2, replace h₂ := h₂.2, congr,
@@ -252,7 +252,7 @@ lemma A_moves_eq_iff {pw : ℕ} {s : State}
   {ma₁ ma₂ : Valid_A_move pw s.board} :
   ma₁ = ma₂ ↔ apply_A_move s ma₁.m = apply_A_move s ma₂.m :=
 begin
-  split; intro h, { rw h }, simp_rw [apply_A_move, apply_move] at h,
+  split; intro h, { rw h }, simp_rw [apply_A_move, apply_A_move_b, apply_move] at h,
   exact valid_A_move_ext h.1.2,
 end
 
@@ -263,7 +263,7 @@ begin
   split; intro h, { rw h }, simp_rw [apply_D_move, apply_move] at h,
   replace h := h.1, cases md₁ with m₁ h₁, cases md₂ with m₂ h₂,
   apply valid_D_move_ext, dsimp at h ⊢,
-  cases m₁ with p₁; cases m₂ with p₂; simp_rw apply_D_move' at h,
+  cases m₁ with p₁; cases m₂ with p₂; simp_rw apply_D_move_b at h,
   { cases h₂ with h₂ h₃, contrapose! h₃, rw h, simp },
   { cases h₁ with h₁ h₃, contrapose! h₃, rw ←h, simp },
   { replace h := h.1, replace h₁ := h₁.2, replace h₂ := h₂.2, congr,
@@ -286,7 +286,7 @@ lemma state_eq_of_apply_A_move_eq {s₁ s₂ : State}
   s₁ = s₂ :=
 begin
   cases s₁ with b₁ t₁ a₁, cases s₂ with b₂ t₂ a₂,
-  simp_rw [apply_A_move, apply_move] at h, simp only,
+  simp_rw [apply_A_move, apply_A_move_b, apply_move] at h, simp only,
   rcases h with ⟨⟨h₁, h₂⟩, h₃, h₄⟩, rw snoc_eq_snoc_iff at h₃, cc,
 end
 
@@ -297,7 +297,7 @@ lemma state_eq_of_apply_D_move_eq {s₁ s₂ : State}
 begin
   cases s₁ with b₁ t₁ a₁, cases s₂ with b₂ t₂ a₂,
   cases ma₁ with p₁; cases ma₂ with p₂;
-  simp_rw [apply_D_move, apply_D_move', apply_move, snoc_eq_snoc_iff] at h;
+  simp_rw [apply_D_move, apply_D_move_b, apply_move, snoc_eq_snoc_iff] at h;
   simp only; tauto!,
 end
 
@@ -334,3 +334,7 @@ apply_move_len
 lemma apply_D_move_len {s : State} {ma : D_move} :
   (apply_D_move s ma).len = s.len.succ :=
 apply_move_len
+
+lemma apply_D_move_b_A {b : Board} {md : Valid_D_move b} :
+  (apply_D_move_b b md.m).A = b.A :=
+by { rcases md with ⟨_ | md, h⟩; refl }

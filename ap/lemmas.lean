@@ -7,15 +7,13 @@ noncomputable theory
 open_locale classical
 
 def play {pw : ℕ} (a : A pw) (d : D) (n : ℕ) :=
-(init_game a d state₀).play n
+simulate a d n
 
 def A_wins {pw : ℕ} (a : A pw) (d : D) :=
 (init_game a d state₀).A_wins
 
 def D_wins {pw : ℕ} (a : A pw) (d : D) :=
 (init_game a d state₀).D_wins
-
-def D_hws (pw : ℕ) := D_hws_at pw state₀
 
 lemma A_pw_0_not_hws : ¬A_hws 0 :=
 begin

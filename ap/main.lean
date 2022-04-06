@@ -1,6 +1,9 @@
 import tactic
 import tactic.induction
 
+noncomputable theory
+open_locale classical
+
 import .defs .lemmas
 
 theorem A_hws_iff_pw_ge_2 {pw : ℕ} :
