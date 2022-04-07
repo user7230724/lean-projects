@@ -17,11 +17,28 @@ def Bounded (r : ℕ) : set Point :=
 def trapped_in {pw : ℕ} (a : A pw) (d : D) (B : set Point) :=
 all_b a d (λ b, b.A ∈ B)
 
+lemma exi_ma_inf_n_act_of_exi_wins {pw : ℕ} {d : D} {s : State}
+  (hs : s.act) (hvm : A_has_valid_move pw s.board)
+  (h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act) :
+  ∃ (ma : Valid_A_move pw s.board), {n : ℕ | ∃ (a : A pw),
+  a.f s hs hvm = ma ∧ ((init_game a d s).play n).act}.infinite :=
+begin
+  sorry
+end
+
+def mk_A_for_lem_2_1 (pw : ℕ) (d : D) : A pw := ⟨λ s hs hvm,
+if h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act
+then (exi_ma_inf_n_act_of_exi_wins hs hvm h).some
+else ⟨_, hvm.some_spec⟩⟩
+
 lemma D_wins_n_of_D_hws {pw : ℕ}
   (h : D_hws pw) :
   ∃ (n : ℕ) (d : D), ∀ (a : A pw),
   D_wins_in a d n :=
 begin
+  contrapose! h,
+  rw forall_swap at h,
+  change ∀ (d : D) (n : ℕ), _ at h,
   sorry
 end
 
