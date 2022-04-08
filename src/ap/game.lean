@@ -334,3 +334,7 @@ begin
   induction n with n ih, { refl }, rw play_at_succ',
   exact ih.trans hist_len_le_play_move,
 end
+
+lemma play_add {pw n k} {g : Game pw} :
+  g.play (n + k) = (g.play n).play k :=
+by { rw add_comm, apply function.iterate_add_apply }

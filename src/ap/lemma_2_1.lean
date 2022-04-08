@@ -31,18 +31,28 @@ if h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act
 then (exi_ma_inf_n_act_of_exi_wins hs hvm h).some
 else ⟨_, hvm.some_spec⟩⟩
 
+lemma D_wins_n_of_D_hws_aux {pw : ℕ} {s : State} {d : D}
+  (h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act) :
+  ¬(init_game (mk_A_for_lem_2_1 pw d) d state₀).D_wins :=
+begin
+  sorry
+end
+
+#exit
+
 lemma D_wins_n_of_D_hws {pw : ℕ}
   (h : D_hws pw) :
   ∃ (n : ℕ) (d : D), ∀ (a : A pw),
   D_wins_in a d n :=
 begin
-  contrapose! h,
-  rw forall_swap at h,
-  change ∀ (d : D) (n : ℕ), _ at h,
-  sorry
+  contrapose! h, rw forall_swap at h, change ∀ (d : D) (n : ℕ), _ at h,
+  simp_rw [D_wins_in, simulate] at h, push_neg at h, rw [D_hws, D_hws_at],
+  push_neg, intro d, specialize h d, let a := mk_A_for_lem_2_1 pw d, use a,
+  replace h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d state₀).play n).act,
+  { intro n, specialize h n, cases h with a h, use a, rcases h with ⟨k, h₁, h₂⟩,
+    obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le h₁, apply act_play_at_le h₁ h₂ },
+  exact D_wins_n_of_D_hws_aux h,
 end
-
-#exit
 
 lemma A_bounded_n_pw {pw n k : ℕ} {a : A pw} {d : D}
   (h : k ≤ n) :
