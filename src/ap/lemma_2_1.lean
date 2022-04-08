@@ -31,9 +31,9 @@ if h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act
 then (exi_ma_inf_n_act_of_exi_wins hs hvm h).some
 else ⟨_, hvm.some_spec⟩⟩
 
-lemma D_wins_n_of_D_hws_aux {pw : ℕ} {s : State} {d : D}
+lemma mk_A_for_lem_2_1_wins_n_of {pw n : ℕ} {s : State} {d : D}
   (h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act) :
-  ¬(init_game (mk_A_for_lem_2_1 pw d) d state₀).D_wins :=
+  ((init_game (mk_A_for_lem_2_1 pw d) d s).play n).act :=
 begin
   sorry
 end
@@ -51,7 +51,7 @@ begin
   replace h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d state₀).play n).act,
   { intro n, specialize h n, cases h with a h, use a, rcases h with ⟨k, h₁, h₂⟩,
     obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le h₁, apply act_play_at_le h₁ h₂ },
-  exact D_wins_n_of_D_hws_aux h,
+  rw Game.D_wins, push_neg, intro n, exact mk_A_for_lem_2_1_wins_n_of h,
 end
 
 lemma A_bounded_n_pw {pw n k : ℕ} {a : A pw} {d : D}
