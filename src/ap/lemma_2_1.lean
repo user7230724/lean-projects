@@ -17,6 +17,8 @@ def Bounded (r : ℕ) : set Point :=
 def trapped_in {pw : ℕ} (a : A pw) (d : D) (B : set Point) :=
 all_b a d (λ b, b.A ∈ B)
 
+-- This is wrong
+-- Change `s` with `s'`
 lemma exi_ma_inf_n_act_of_exi_wins {pw : ℕ} {d : D} {s : State}
   (hs : s.act) (hvm : A_has_valid_move pw s.board)
   (h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act) :
@@ -31,11 +33,23 @@ if h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act
 then (exi_ma_inf_n_act_of_exi_wins hs hvm h).some
 else ⟨_, hvm.some_spec⟩⟩
 
-lemma mk_A_for_lem_2_1_wins_n_of {pw n : ℕ} {s : State} {d : D}
+lemma mk_A_for_lem_2_1_wins_at_play {pw n : ℕ} {s : State} {d : D}
   (h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act) :
   ((init_game (mk_A_for_lem_2_1 pw d) d s).play n).act :=
 begin
-  sorry
+  have hs : s.act,
+  { specialize h 0, cases h with a h, exact h },
+  induction n with n ih,
+  { exact hs },
+  {
+    rw play_at_succ',
+    let a : A pw := _,
+    change mk_A_for_lem_2_1 pw d with a at ih,
+    let g : Game pw := _,
+    change g.act at ih,
+    change g.play_move.act,
+    sorry
+  },
 end
 
 #exit
@@ -51,7 +65,7 @@ begin
   replace h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d state₀).play n).act,
   { intro n, specialize h n, cases h with a h, use a, rcases h with ⟨k, h₁, h₂⟩,
     obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le h₁, apply act_play_at_le h₁ h₂ },
-  rw Game.D_wins, push_neg, intro n, exact mk_A_for_lem_2_1_wins_n_of h,
+  rw Game.D_wins, push_neg, intro n, exact mk_A_for_lem_2_1_wins_at_play h,
 end
 
 lemma A_bounded_n_pw {pw n k : ℕ} {a : A pw} {d : D}
