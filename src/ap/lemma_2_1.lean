@@ -17,12 +17,6 @@ def Bounded (r : ℕ) : set Point :=
 def trapped_in {pw : ℕ} (a : A pw) (d : D) (B : set Point) :=
 all_b a d (λ b, b.A ∈ B)
 
-def mk_A_for_lem_2_1 (pw : ℕ) (d : D) : A pw := ⟨λ s' hs' hvm,
-if h : ∃ ma s₁, ∀ (n : ℕ), ∃ (a : A pw),
-  ((init_game a d s₁).play n).act ∧ a.f s' hs' hvm = ma
-then h.some
-else ⟨_, hvm.some_spec⟩⟩
-
 lemma exi_A_forall_n_play_act_of_swap {pw : ℕ} {s₀ : State} {d : D}
   (h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s₀).play n).act) :
   ∃ (a : A pw), ∀ (n : ℕ), ((init_game a d s₀).play n).act :=
