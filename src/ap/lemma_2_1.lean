@@ -31,9 +31,9 @@ all_b a d (λ b, b.A ∈ B)
 -- then (exi_ma_inf_n_act_of_exi_wins h₁ h₂).some
 -- else ⟨_, hvm.some_spec⟩⟩
 
-lemma exi_A_forall_n_play_act_of_swap {pw : ℕ} {s : State} {d : D}
-  (h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act) :
-  ∃ (a : A pw), ∀ (n : ℕ), ((init_game a d s).play n).act :=
+lemma exi_A_forall_n_play_act_of_swap {pw : ℕ} {s₀ : State} {d : D}
+  (h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s₀).play n).act) :
+  ∃ (a : A pw), ∀ (n : ℕ), ((init_game a d s₀).play n).act :=
 begin
   sorry
 end
