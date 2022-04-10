@@ -139,9 +139,9 @@ begin
   rw add_comm (n * 2), exact play_len_le,
 end
 
-lemma exi_A_wins_of_invariant {pw : ℕ} {d : D} {P : State → Prop} {s₀ : State}
-  (hP : ∀ (s : State), P s → s.act)
+lemma exi_A_wins_of_invariant {P : State → Prop} {pw : ℕ} {d : D} {s₀ : State}
   (h₀ : P s₀)
+  (hP : ∀ (s : State), P s → s.act)
   (hm : ∀ (s s' : State) hs, P s → s' = apply_D_move s (d.f s hs).m →
     ∃ (ma : Valid_A_move pw s'.board), P (apply_A_move s' ma.m)) :
   ∃ (a : A pw), (init_game a d s₀).A_wins :=

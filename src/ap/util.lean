@@ -1,6 +1,8 @@
 import tactic.induction
+import data.nat.parity
 import data.int.basic
 import data.set.basic
+import data.set.finite
 import data.list
 
 noncomputable theory
@@ -46,3 +48,10 @@ length_lt_length_append_cons
 lemma length_lt_length_snoc₂ {α : Type*} {xs : list α} {x y : α} :
   xs.length < (snoc (snoc xs x) y).length :=
 by { transitivity (snoc xs x).length; exact length_lt_length_snoc }
+
+lemma exi_ge_of_set_inf {P : ℕ → Prop} {n : ℕ}
+  (h : {n : ℕ | P n}.infinite) : ∃ (k : ℕ), n ≤ k ∧ P k :=
+begin
+  obtain ⟨k, h₁, h₂⟩ := h.exists_nat_lt n,
+  exact ⟨k, nat.le_of_lt h₂, h₁⟩,
+end

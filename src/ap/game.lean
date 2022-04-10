@@ -338,3 +338,7 @@ end
 lemma play_add {pw n k} {g : Game pw} :
   g.play (n + k) = (g.play n).play k :=
 by { rw add_comm, apply function.iterate_add_apply }
+
+lemma play_add' {pw n k} {g : Game pw} :
+  g.play (n + k) = (g.play k).play n :=
+by { apply function.iterate_add_apply }

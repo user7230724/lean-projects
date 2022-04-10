@@ -17,14 +17,38 @@ def Bounded (r : ℕ) : set Point :=
 def trapped_in {pw : ℕ} (a : A pw) (d : D) (B : set Point) :=
 all_b a d (λ b, b.A ∈ B)
 
-lemma exi_A_forall_n_play_act_of_swap {pw : ℕ} {s₀ : State} {d : D}
-  (h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s₀).play n).act) :
-  ∃ (a : A pw), ∀ (n : ℕ), ((init_game a d s₀).play n).act :=
+lemma exi_ma_inf_n_of_exi_A {pw : ℕ} {d : D} {s s' : State} {hs}
+  (h₁ : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act)
+  (h₂ : s' = apply_D_move s (d.f s hs).m) :
+  ∃ (ma : Valid_A_move pw s'.board),
+  {n : ℕ | ∃ (a : A pw) hs' hvm, a.f s' hs' hvm = ma ∧
+  ((init_game a d s).play n).act}.infinite :=
 begin
   sorry
 end
 
 #exit
+
+lemma exi_A_forall_n_play_act_of_swap {pw : ℕ} {d : D} {s : State}
+  (h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act) :
+  ∃ (a : A pw), ∀ (n : ℕ), ((init_game a d s).play n).act :=
+begin
+  apply @exi_A_wins_of_invariant (λ s, ∀ (n : ℕ), ∃ (a : A pw),
+    ((init_game a d s).play n).act); assumption <|> clear h; dsimp,
+  { rintro s h₁, specialize h₁ 0, exact h₁.some_spec },
+  { rintro s s' hs h₁ h₂, obtain ⟨ma, hma⟩ := exi_ma_inf_n_of_exi_A h₁ h₂,
+    use ma, rintro n, obtain ⟨k, h₃, a, hs', hvm, hh, h₄⟩ := exi_ge_of_set_inf hma,
+    use a, convert_to ((init_game a d s).play (n + 1)).act,
+    { rw [play_add', play_1], congr, symmetry, ext,
+      { exact play_move_at_players_eq.1 },
+      { exact play_move_at_players_eq.2 },
+      { have h₅ := act_of_play_act h₄, rw play_move_at_act h₅,
+        have h₆ : play_D_move_at (init_game a d s) h₅ = init_game a d s',
+        { ext; try { refl }, exact h₂.symm },
+        rw [h₆, play_A_move_at, dif_pos], clear h₆, swap, { exact ⟨hs', hvm⟩ },
+        change apply_A_move s' (a.f s' _ _).m = apply_A_move s' ma.m, congr' }},
+    exact act_play_at_le h₃ h₄ },
+end
 
 lemma D_wins_n_of_D_hws {pw : ℕ}
   (h : D_hws pw) :
