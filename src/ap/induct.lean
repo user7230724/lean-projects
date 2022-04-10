@@ -91,7 +91,7 @@ begin
   { exact h },
 end
 
-lemma play_eq_of_not_act {pw n : ℕ} {g : Game pw}
+lemma play_eq_of_not_act' {pw n : ℕ} {g : Game pw}
   (h : ¬g.act) : g.play n = g :=
 begin
   rw play_eq_iff_states_eq, induction n with n ih,
@@ -111,7 +111,7 @@ begin
   obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le h₃,
   rw simulate_add at h₁ ⊢,
   let g : Game pw := _, change simulate a d n₂ with g at h₁ h₂ ⊢,
-  exact play_eq_of_not_act h₂,
+  exact play_eq_of_not_act' h₂,
 end
 
 lemma play_move_len_le {pw : ℕ} {g : Game pw} :
@@ -179,4 +179,13 @@ begin
     generalize hma : a.f s' hs hvm = ma,
     change Exists.some _ = _ at hma, generalize_proofs h₁ at hma,
     have h₂ := h₁.some_spec s hs ih rfl, subst hma, assumption },
+end
+
+lemma play_eq_of_not_act {pw n k : ℕ} {a : A pw} {d : D} {s : State}
+  (h₁ : ¬((init_game a d s).play n).act)
+  (h₂ : ¬((init_game a d s).play k).act) :
+  (init_game a d s).play n = (init_game a d s).play k :=
+begin
+  wlog h₃ : k ≤ n, obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h₃,
+  rw play_add, exact play_eq_of_not_act' h₂,
 end
