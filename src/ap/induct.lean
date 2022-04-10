@@ -138,3 +138,40 @@ begin
   change ((simulate a d 0).play n).s.len ≤ n * 2 + (simulate a d 0).s.len,
   rw add_comm (n * 2), exact play_len_le,
 end
+
+lemma exi_A_wins_of_invariant {pw : ℕ} {d : D} {P : State → Prop} {s₀ : State}
+  (hP : ∀ (s : State), P s → s.act)
+  (h₀ : P s₀)
+  (hm : ∀ (s s' : State) hs, P s → s' = apply_D_move s (d.f s hs).m →
+    ∃ (ma : Valid_A_move pw s'.board), P (apply_A_move s' ma.m)) :
+  ∃ (a : A pw), (init_game a d s₀).A_wins :=
+begin
+  let a : A pw,
+  { refine ⟨λ s' hs' hvm, _⟩, refine (_ : ∃ (ma : Valid_A_move pw s'.board),
+      ∀ (s : State) hs, P s → s' = apply_D_move s (d.f s hs).m →
+      P (apply_A_move s' ma.m)).some,
+    by_cases h₁ : ∃ (s : State) hs, P s ∧ s' = apply_D_move s (d.f s hs).m,
+    { rcases h₁ with ⟨s, hs, h₁, h₂⟩, specialize hm s s' hs h₁ h₂,
+      cases hm with ma hm, use ma, intros, assumption },
+    { refine ⟨⟨_, hvm.some_spec⟩, _⟩, rintro s₁ hs₁ h₂ h₃, push_neg at h₁,
+      specialize h₁ s₁ hs₁, push_neg at h₁, specialize h₁ h₂, contradiction }},
+  use a, rintro n, apply hP, induction n with n ih,
+  { assumption },
+  { rw play_at_succ', let g : Game pw := _,
+    change (init_game a d s₀).play n with g at ih ⊢,
+    have hs := hP _ ih, rw play_move_at_act hs, let s := g.s,
+    let s' := apply_D_move s (d.f s hs).m,
+    have h₁ : play_D_move_at g hs = init_game a d s',
+    { ext,
+      { exact play_at_players_eq.1 },
+      { exact play_at_players_eq.2 },
+      { change apply_D_move _ _ = apply_D_move _ _, congr,
+        exact play_at_players_eq.2 }},
+    rw h₁, clear h₁, have hvm : A_has_valid_move pw s'.board,
+    { specialize hm s s' hs ih rfl, cases hm with ma hma, exact ⟨_, ma.h⟩ },
+    rw [play_A_move_at, dif_pos], swap, { split; assumption },
+    change P (apply_A_move s' (a.f s' hs hvm).m),
+    generalize hma : a.f s' hs hvm = ma,
+    change Exists.some _ = _ at hma, generalize_proofs h₁ at hma,
+    have h₂ := h₁.some_spec s hs ih rfl, subst hma, assumption },
+end
