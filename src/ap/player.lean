@@ -367,17 +367,7 @@ begin
       use (fin.of_nat xz.to_nat, fin.of_nat yz.to_nat),
       change mk_f_for_fintype_Valid_A_move _ _ _ _ = _,
       dunfold mk_f_for_fintype_Valid_A_move,
-      rw dif_pos,
-      swap,
-      sorry,
-      simp only,
-      ext; simp,
-      {
-        sorry
-      },
-      {
-        sorry
-      },
+      sorry
     },
   },
   sorry,
