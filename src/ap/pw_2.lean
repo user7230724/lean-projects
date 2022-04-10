@@ -1,7 +1,7 @@
 import tactic
 import tactic.induction
 
-import .base .lemma_2_1
+import .base .lemma_2_4
 
 noncomputable theory
 open_locale classical

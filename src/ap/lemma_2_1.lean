@@ -6,7 +6,7 @@ import .base .determinacy .induct
 noncomputable theory
 open_locale classical
 
-def A_trapped_in {pw : ℕ} (a : A pw) (d : D) (B : set Point) :=
+def A_trapped_in_for {pw : ℕ} (a : A pw) (d : D) (B : set Point) :=
 all_b a d (λ b, b.A ∈ B)
 
 lemma exi_ma_inf_n_of_exi_A {pw : ℕ} {d : D} {s s' : State} {hs}
@@ -92,7 +92,7 @@ end
 lemma lem_2_1 {pw : ℕ}
   (h : D_hws pw) :
   ∃ (N : ℕ) (d : D), ∀ (a : A pw),
-  A_trapped_in a d (Bounded N) :=
+  A_trapped_in_for a d (Bounded N) :=
 begin
   obtain ⟨n, d, h₁⟩ := D_wins_n_of_D_hws h,
   use [n * pw, d], intro a, specialize h₁ a, intro k,
