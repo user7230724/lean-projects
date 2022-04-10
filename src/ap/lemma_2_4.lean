@@ -1,7 +1,7 @@
 import tactic
 import tactic.induction
 
-import .base .nice_D
+import .base .nice
 
 noncomputable theory
 open_locale classical
