@@ -339,36 +339,38 @@ lemma apply_D_move_b_A {b : Board} {md : Valid_D_move b} :
   (apply_D_move_b b md.m).A = b.A :=
 by { rcases md with ⟨_ | md, h⟩; refl }
 
-def fintype_Valid_A_move_func {pw : ℕ} {b : Board}
-  (p : fin (pw * 2 + 1) × fin (pw * 2 + 1)) : Point :=
-⟨b.A.x + p.1 - pw, b.A.y + p.2 - pw⟩
+-----
 
-lemma mk_f_for_fintype_Valid_A_move (pw : ℕ) (b : Board)
-  (ma₀ : Valid_A_move pw b)
-  (p : fin (pw * 2 + 1) × fin (pw * 2 + 1)) :
-  Valid_A_move pw b :=
-if h : A_move_valid pw b ⟨b.A.x + p.1 - pw, b.A.y + p.2 - pw⟩
-then ⟨_, h⟩ else ma₀
+def Valid_A_move_subtype (pw : ℕ) (b : Board) :=
+{m : A_move // A_move_valid pw b m}
+
+def Valid_D_move_subtype (b : Board) :=
+{m : D_move // D_move_valid b m}
+
+def Valid_A_move_equiv_subtype {pw : ℕ} {b : Board} :
+  Valid_A_move pw b ≃ Valid_A_move_subtype pw b :=
+begin
+  fapply equiv.of_bijective, { intro ma, exact ⟨_, ma.h⟩ }, fsplit,
+  { rintro ⟨m₁, h₁⟩ ⟨m2, h₂⟩ h₃, congr, exact subtype.mk.inj h₃ },
+  { rintro ⟨m, h⟩, use ⟨_, h⟩ },
+end
+
+def Valid_D_move_equiv_subtype {b : Board} :
+  Valid_D_move b ≃ Valid_D_move_subtype b :=
+begin
+  fapply equiv.of_bijective, { intro ma, exact ⟨_, ma.h⟩ }, fsplit,
+  { rintro ⟨m₁, h₁⟩ ⟨m2, h₂⟩ h₃, congr, exact subtype.mk.inj h₃ },
+  { rintro ⟨m, h⟩, use ⟨_, h⟩ },
+end
+
+-----
+
+instance {pw : ℕ} {b : Board} : fintype (Valid_A_move_subtype pw b) :=
+begin
+  apply fintype_subtype_of_set_finite, apply set.finite.inter_of_right,
+  apply set.finite.inter_of_left, change {p : Point | dist p b.A ≤ pw}.finite,
+  exact dist_le_set_finite,
+end
 
 instance {pw : ℕ} {b : Board} : fintype (Valid_A_move pw b) :=
-begin
-  apply set.fintype_of_univ_finite,
-  by_cases h : nonempty (Valid_A_move pw b),
-  {
-    cases h with ma₀,
-    let f := mk_f_for_fintype_Valid_A_move pw b ma₀,
-    refine @set.finite.of_preimage _ _ f _ _ _,
-    { apply set.finite.of_fintype },
-    {
-      rintro ⟨m, hm⟩,
-      obtain ⟨h₁, h₂, h₃⟩ := id hm,
-      let xz : ℤ := pw + m.x - b.A.x,
-      let yz : ℤ := pw + m.y - b.A.y,
-      use (fin.of_nat xz.to_nat, fin.of_nat yz.to_nat),
-      change mk_f_for_fintype_Valid_A_move _ _ _ _ = _,
-      dunfold mk_f_for_fintype_Valid_A_move,
-      sorry
-    },
-  },
-  sorry,
-end
+fintype.of_equiv _ Valid_A_move_equiv_subtype.symm

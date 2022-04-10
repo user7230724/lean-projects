@@ -1,7 +1,6 @@
 import tactic.induction
 import data.nat.parity
-import data.int.basic
-import data.set.basic
+import data.int.interval
 import data.set.finite
 import data.list
 
@@ -82,4 +81,45 @@ begin
   { exact set.infinite_univ },
   { exact set.finite_univ },
   { exact h },
+end
+
+lemma fintype_subtype_of_set_finite {α : Type} {P : α → Prop}
+  (h : {x : α | P x}.finite) : fintype {x : α // P x} :=
+begin
+  apply set.fintype_of_univ_finite, rw set.univ_subtype,
+  apply set.finite.bUnion h, simp,
+end
+
+lemma set_finite_of_set_equiv_finite' {α β : Type} (e : α ≃ β) {P : α → Prop}
+  (h : {x : α | P x}.finite) : {y : β | P (e.inv_fun y)}.finite :=
+begin
+  fapply set.finite_of_finite_image,
+  { exact α },
+  { exact e.inv_fun },
+  { apply set.inj_on_of_injective,
+    exact function.right_inverse.injective e.right_inv },
+  { convert h, ext a, split; intro h₁,
+    { rcases h₁ with ⟨b, h₁, h₂⟩, subst h₂, exact h₁ },
+    { use e.to_fun a, fsplit,
+      { change P _, convert h₁, exact e.left_inv a },
+      { exact e.left_inv a }}},
+end
+
+lemma set_finite_of_set_equiv_finite {α β : Type} (e : α ≃ β) {P : β → Prop}
+  (h : {x : α | P (e.to_fun x)}.finite) : {y : β | P y}.finite :=
+begin
+  replace h := set_finite_of_set_equiv_finite' e h, dsimp at h, convert h,
+  funext y, congr, exact eq.symm (e.right_inv y),
+end
+
+lemma abs_le_finite {d : ℤ} : {a : ℤ | |a| ≤ d}.finite :=
+by { simp_rw abs_le, apply set.finite_Icc }
+
+lemma abs_sub_le_finite {c d : ℤ} : {a : ℤ | |a - c| ≤ d}.finite :=
+begin
+  fapply set.finite.of_preimage,
+  { exact ℤ },
+  { intro a, exact a + c },
+  { simp, exact abs_le_finite },
+  { intro a, use a - c, simp },
 end

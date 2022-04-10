@@ -65,3 +65,25 @@ begin
   { have h := @triangle_aux (a.y - b.y) (b.y - c.y) (|a.x - b.x|) (|b.x - c.x|),
     simp [max_comm] at h, exact h },
 end
+
+lemma dist_comm {a b : Point} : dist a b = dist b a :=
+by { simp_rw dist, congr' 2; apply abs_sub_comm }
+
+lemma dist_le_iff_zify {a b : Point} {d : ℕ} :
+  dist a b ≤ d ↔ max (|a.x - b.x|) (|a.y - b.y|) ≤ d :=
+by { simp [dist] }
+
+lemma dist_le_iff {a b : Point} {d : ℕ} :
+  dist a b ≤ d ↔ |a.x - b.x| ≤ d ∧ |a.y - b.y| ≤ d :=
+by simp [dist_le_iff_zify]
+
+lemma dist_le_set_finite {c : Point} {d : ℕ} :
+  {p : Point | dist p c ≤ d}.finite :=
+begin
+  simp_rw dist_le_iff, apply set_finite_of_set_equiv_finite Point_equiv_prod.symm,
+  convert_to {p : ℤ × ℤ | (|p.1 - c.x|) ≤ d ∧ (|p.2 - c.y|) ≤ d}.finite,
+  { rw set.ext_iff, intro p, change _ ∧ _ ↔ _ ∧ _, rw iff_iff_eq,
+    congr; rw Point_equiv_symm_apply },
+  apply @set.finite.prod ℤ ℤ {x : ℤ | |x - c.x| ≤ ↑d} {y : ℤ | |y - c.y| ≤ ↑d};
+  exact abs_sub_le_finite,
+end
