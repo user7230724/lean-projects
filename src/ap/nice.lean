@@ -26,51 +26,7 @@ lemma lem_2_3 {pw : ℕ}
   ∀ (a : A pw), A_trapped_in_for a d (Bounded N)) :
   ∃ (d : D), d.nice pw ∧ ∀ (a : A pw), (init_game a d state₀).D_wins :=
 begin
-  rcases h with ⟨N, d₀, h₁, h₂⟩,
-  let B : set Point := _,
-  change Bounded N with B at h₂,
-  let d : D,
-  {
-    refine ⟨λ s hs, _⟩,
-    apply dite (A_trapped_in pw s B); intro h,
-    {
-      apply dite (∃ (md : Valid_D_move s.board) (p : Point),
-        md.m = some p ∧ p ∈ B); intro h₃,
-      {
-        exact h₃.some,
-      },
-      {
-        exact default,
-      },
-    },
-    {
-      exact d₀.f s hs,
-    },
-  },
-  use d,
-  fsplit,
-  sorry;{
-    rintro s hs p b h₃ h₄ h₅,
-    change Valid_D_move.m (dite _ _ _) = _ at h₄,
-    split_ifs at h₄ with h₆,
-    {
-      rw A_trapped at h₃,
-      have hh := h₃,
-      push_neg at hh,
-      specialize hh B,
-      contradiction,
-    },
-    {
-      cases h₄,
-    },
-    {
-      apply h₁; assumption,
-    },
-  },
-  {
-    rintro a,
-    sorry
-  },
+  sorry
 end
 
 #exit
