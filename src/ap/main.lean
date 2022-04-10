@@ -1,10 +1,10 @@
 import tactic
 import tactic.induction
 
+import .defs .lemmas
+
 noncomputable theory
 open_locale classical
-
-import .defs .lemmas
 
 theorem A_hws_iff_pw_ge_2 {pw : ℕ} :
   A_hws pw ↔ 2 ≤ pw :=
