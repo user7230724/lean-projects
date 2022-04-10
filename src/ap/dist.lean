@@ -7,6 +7,9 @@ import .base .point
 noncomputable theory
 open_locale classical
 
+def Bounded (r : ℕ) : set Point :=
+{p : Point | dist p center ≤ r}
+
 -----
 
 lemma dist_self {p} : dist p p = 0 :=

@@ -31,6 +31,8 @@ def Game.D_wins {pw : ℕ} (g : Game pw) :=
 def D_hws_at (pw : ℕ) (s : State) :=
 ∃ (d : D), ∀ (a : A pw), (init_game a d s).D_wins
 
+def D_hws (pw : ℕ) := D_hws_at pw state₀
+
 -----
 
 lemma not_A_wins_at {pw : ℕ} {g : Game pw} :

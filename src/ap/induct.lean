@@ -21,6 +21,11 @@ def any_s {pw : ℕ} (a : A pw) (d : D) (P : State → Prop) : Prop :=
 def any_b {pw : ℕ} (a : A pw) (d : D) (P : Board → Prop) : Prop :=
 any_s a d (λ s, P s.board)
 
+def D_wins_in {pw : ℕ} (a : A pw) (d : D) (n : ℕ) :=
+∀ (k : ℕ), n ≤ k → ¬(simulate a d k).act
+
+-----
+
 lemma induct_s_at {P : State → Prop} {pw n : ℕ} {g : Game pw}
   (h₁ : P g.s)
   (h₂ : ∀ {s : State} {ma},
