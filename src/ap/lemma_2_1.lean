@@ -24,10 +24,18 @@ lemma exi_ma_inf_n_of_exi_A {pw : ℕ} {d : D} {s s' : State} {hs}
   {n : ℕ | ∃ (a : A pw) hs' hvm, a.f s' hs' hvm = ma ∧
   ((init_game a d s).play n).act}.infinite :=
 begin
-  sorry
+  fapply exi_set_infinite_of_forall_exi_P_nat, rintro n,
+  obtain ⟨a, h₃⟩ := h₁ n, obtain ⟨a₁, h₄⟩ := h₁ 1, have hs' : s'.act,
+  { subst h₂, assumption },
+  have hvm : A_has_valid_move pw s'.board,
+  { rw [play_1, play_move_at_act] at h₄, swap, { assumption },
+    have h₅ : play_D_move_at (init_game a₁ d s) hs = init_game a₁ d s',
+    { subst h₂, refl },
+    rw [h₅, play_A_move_at] at h₄, clear h₅, split_ifs at h₄ with h₅,
+    { exact h₅.2 },
+    { cases h₄ }},
+  exact ⟨a.f s' hs' hvm, a, hs', hvm, rfl, h₃⟩,
 end
-
-#exit
 
 lemma exi_A_forall_n_play_act_of_swap {pw : ℕ} {d : D} {s : State}
   (h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d s).play n).act) :
@@ -63,8 +71,6 @@ begin
     obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le h₁, apply act_play_at_le h₁ h₂ },
   simp_rw Game.D_wins, push_neg, exact exi_A_forall_n_play_act_of_swap h,
 end
-
-#exit
 
 lemma A_bounded_n_pw {pw n k : ℕ} {a : A pw} {d : D}
   (h : k ≤ n) :

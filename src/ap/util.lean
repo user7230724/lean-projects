@@ -55,3 +55,31 @@ begin
   obtain ⟨k, h₁, h₂⟩ := h.exists_nat_lt n,
   exact ⟨k, nat.le_of_lt h₂, h₁⟩,
 end
+
+lemma exi_set_infinite_of_forall_exi_P {α β : Type} {P : α → β → Prop}
+  (h₁ : (set.univ : set α).infinite)
+  (h₂ : (set.univ : set β).finite)
+  (h₃ : ∀ (a : α), ∃ (b : β), P a b) :
+  ∃ (b : β), {a : α | P a b}.infinite :=
+begin
+  by_contra' h₄, simp_rw set.not_infinite at h₄,
+  have h₅ : {a : α | ∃ (b : β), P a b}.finite,
+  { convert_to (⋃ (b : β), {a : α | P a b}).finite, { ext a, simp, },
+    convert_to (⋃ (b : β) (h : b ∈ set.univ), {a : α | P a b}).finite,
+    { congr, ext b a, simp, intros, apply set.mem_univ },
+    apply set.finite.bUnion h₂, intros, apply h₄ },
+  replace h₅ : (set.univ : set α).finite,
+  { convert h₅, ext a, simp, exact h₃ a },
+  contradiction,
+end
+
+lemma exi_set_infinite_of_forall_exi_P_nat {α : Type} [fintype α]
+  {P : ℕ → α → Prop}
+  (h : ∀ (n : ℕ), ∃ (a : α), P n a) :
+  ∃ (a : α), {n : ℕ | P n a}.infinite :=
+begin
+  fapply exi_set_infinite_of_forall_exi_P,
+  { exact set.infinite_univ },
+  { exact set.finite_univ },
+  { exact h },
+end
