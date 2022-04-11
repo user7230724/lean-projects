@@ -3,6 +3,7 @@ import data.nat.parity
 import data.int.interval
 import data.set.finite
 import data.list
+import set_theory.cardinal
 
 noncomputable theory
 open_locale classical
