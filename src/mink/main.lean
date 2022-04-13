@@ -24,7 +24,17 @@ inductive Reduces : Expr → Expr → Prop
 | mk : Reduces (M ~ K) K
 | ms : Reduces (M ~ S) S
 | mm : Reduces (M ~ M) ⊥
+| call {a b c} (h₁ : Reduces a b) : Reduces (a ~ c) (b ~ c)
 
 inductive isK : Expr → Prop
 | triv : isK K
-| step {a b} : Reduces a b → isK b → isK a
+| step {a b} (hr : Reduces a b) (hk : isK b) : isK a
+
+-----
+
+def I := S ~ K ~ K
+
+example : ¬isK (S ~ I ~ I ~ (S ~ I ~ I)) :=
+begin
+  sorry
+end
