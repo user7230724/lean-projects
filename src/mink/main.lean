@@ -1,5 +1,6 @@
 import tactic
 import tactic.induction
+import logic.function.iterate
 
 inductive Expr
 | K : Expr
@@ -10,64 +11,40 @@ open Expr
 
 infixl ` ~ `:100 := App
 
-inductive Reduces : Expr → Expr → Prop
-| refl {a} : Reduces a a
-| trans {a b c} : Reduces a b → Reduces b c → Reduces a c
-| k {a b} : Reduces (K ~ a ~ b) a
-| s {a b c} : Reduces (S ~ a ~ b ~ c) (a ~ c ~ (b ~ c))
-| mk : Reduces (M ~ K) K
-| ms : Reduces (M ~ S) S
-| left {a b c} : Reduces a b → Reduces (a ~ c) (b ~ c)
-| right {a b c} : Reduces a b → Reduces (c ~ a) (c ~ b)
+@[simp]
+def reduce : Expr → Expr
+| (K ~ a ~ b) := a
+| (S ~ a ~ b ~ c) := a ~ c ~ (b ~ c)
+| (M ~ K) := K
+| (M ~ S) := S
+| (M ~ a) := M ~ reduce a
+| (a ~ b) := reduce a ~ b
+| a := a
 
-infix ` ==> `:50 := Reduces
+def T (a : Expr) :=
+∃ (n : ℕ), (reduce^[n] a) = K
 
 -----
 
 def I := S ~ K ~ K
 
-@[refl]
-lemma reduces_refl {a : Expr} : a ==> a :=
-Reduces.refl
+@[simp]
+lemma not_T {a : Expr} : ¬T a ↔ ∀ (n : ℕ), ¬(reduce^[n]) a = K :=
+by simp [T]
 
-@[trans]
-lemma reduces_trans {a b c : Expr} (h₁ : a ==> b) (h₂ : b ==> c) : a ==> c :=
-h₁.trans h₂
+lemma T_K : T K :=
+by { use 0, refl }
 
-lemma K_reduces_to_iff_eq_K {a : Expr} : K ==> a ↔ a = K :=
+lemma not_T_S : ¬T S :=
 begin
-  split; intro h,
-  { induction' h,
-    { refl },
-    { subst b, apply ih_h, refl }},
-  { subst h },
+  simp, intro n, induction n,
+  { simp },
+  { simpa [function.iterate_succ_apply] },
 end
 
-lemma not_K_reduces_to_S : ¬K ==> S :=
-by simp [K_reduces_to_iff_eq_K]
-
-lemma I_app_reduces_to_self {a : Expr} : I ~ a ==> a :=
+lemma not_T_M : ¬T M :=
 begin
-  transitivity, apply Reduces.s,
-  transitivity, apply Reduces.k,
-  refl,
+  simp, intro n, induction n,
+  { simp },
+  { simpa [function.iterate_succ_apply] },
 end
-
------
-
--- meta def reduce' : Expr → option Expr
--- | (K ~ a ~ b) := some a
--- | (S ~ a ~ b ~ c) := some (a ~ c ~ (b ~ c))
--- | (M ~ K) := some K
--- | (M ~ S) := some S
--- | _ := none
-
--- meta def reduce : Expr → Expr
--- | e@(a ~ b) := match reduce' e with
---   | some e₁ := reduce e₁
---   | none := match reduce' a with
---     | some a₁ := reduce (a₁ ~ b)
---     | none := e
---   end
--- end
--- | a := a
