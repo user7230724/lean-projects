@@ -32,19 +32,27 @@ def I := S ~ K ~ K
 lemma not_T {a : Expr} : ¬T a ↔ ∀ (n : ℕ), ¬(reduce^[n]) a = K :=
 by simp [T]
 
+lemma reduce_succ {a : Expr} {n : ℕ} :
+  (reduce^[n.succ]) a = (reduce^[n]) (reduce a) :=
+by apply function.iterate_succ_apply
+
+lemma reduce_succ' {a : Expr} {n : ℕ} :
+  (reduce^[n.succ]) a = reduce (reduce^[n] a) :=
+by apply function.iterate_succ_apply'
+
 lemma T_K : T K :=
 by { use 0, refl }
 
-lemma not_T_S : ¬T S :=
+lemma not_T_of_reduce_id {a : Expr}
+  (h₁ : a ≠ K) (h₂ : reduce a = a) : ¬T a :=
 begin
   simp, intro n, induction n,
-  { simp },
-  { simpa [function.iterate_succ_apply] },
+  { simpa },
+  { simpa [h₂] },
 end
 
+lemma not_T_S : ¬T S :=
+by simp [not_T_of_reduce_id]
+
 lemma not_T_M : ¬T M :=
-begin
-  simp, intro n, induction n,
-  { simp },
-  { simpa [function.iterate_succ_apply] },
-end
+by simp [not_T_of_reduce_id]
