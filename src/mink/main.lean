@@ -1,9 +1,6 @@
 import tactic
 import tactic.induction
 
-noncomputable theory
-open_locale classical
-
 inductive Expr
 | K : Expr
 | S : Expr
@@ -46,7 +43,7 @@ begin
   { subst h },
 end
 
-lemma not_K_reduces_S : ¬K ==> S :=
+lemma not_K_reduces_to_S : ¬K ==> S :=
 by simp [K_reduces_to_iff_eq_K]
 
 lemma I_app_reduces_to_self {a : Expr} : I ~ a ==> a :=
