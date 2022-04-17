@@ -8,10 +8,10 @@ inductive Expr
 | K : Expr
 | S : Expr
 | M : Expr
-| Call : Expr → Expr → Expr
+| App : Expr → Expr → Expr
 open Expr
 
-infixl ` ~ `:100 := Call
+infixl ` ~ `:100 := App
 
 inductive Reduces : Expr → Expr → Prop
 | k (a b) : Reduces (K ~ a ~ b) a
@@ -20,26 +20,29 @@ inductive Reduces : Expr → Expr → Prop
 | ms : Reduces (M ~ S) S
 | left {a b c} : Reduces a b → Reduces (a ~ c) (b ~ c)
 | right {a b c} : Reduces a b → Reduces (c ~ a) (c ~ b)
+| trans {a b c} : Reduces a b → Reduces b c → Reduces a c
 
-inductive isK : Expr → Prop
-| triv : isK K
-| step {a b} (hr : Reduces a b) (hk : isK b) : isK a
+infix ` ==> `:50 := Reduces
 
 -----
 
 def I := S ~ K ~ K
 
-inductive hasK : Expr → Prop
-| triv : hasK K
-| left (a b) : hasK a → hasK (a ~ b)
-| right (a b) : hasK b → hasK (a ~ b)
+-----
 
-lemma hasK_of_isK {a : Expr} (h : isK a) : hasK a :=
-begin
-  sorry
-end
+meta def reduce' : Expr → option Expr
+| (K ~ a ~ b) := some a
+| (S ~ a ~ b ~ c) := some (a ~ c ~ (b ~ c))
+| (M ~ K) := some K
+| (M ~ S) := some S
+| _ := none
 
-example : ¬isK (S ~ I ~ I ~ (S ~ I ~ I)) :=
-begin
-  sorry
+meta def reduce : Expr → Expr
+| e@(a ~ b) := match reduce' e with
+  | some e₁ := reduce e₁
+  | none := match reduce' a with
+    | some a₁ := reduce (a₁ ~ b)
+    | none := e
+  end
 end
+| a := a
