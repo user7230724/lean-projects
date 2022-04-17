@@ -21,8 +21,14 @@ def reduce : Expr → Expr
 | (a ~ b) := reduce a ~ b
 | a := a
 
+@[simp]
+def reduces (a b : Expr) :=
+∃ (n : ℕ), (reduce^[n] a) = b
+
+infix ` ==> `:50 := reduces
+
 def T (a : Expr) :=
-∃ (n : ℕ), (reduce^[n] a) = K
+reduces a K
 
 -----
 
@@ -55,6 +61,7 @@ by simp [not_T_of_reduce_id]
 
 -----
 
+@[reducible]
 def I := S ~ K ~ K
 
 @[simp]
@@ -74,3 +81,22 @@ lemma T_M_app_iff {a : Expr} : T (M ~ a) ↔ T a := by
       { contrapose! h, clear h ih, revert n,
         simp [←not_T, not_T_of_reduce_id] },
       { exact ih h }}}}
+
+lemma not_T_of_reduce_app {a : Expr}
+  (h : ∀ (n : ℕ), ∃ (b c : Expr), (reduce^[n]) a = b ~ c) : ¬T a :=
+by { rw not_T, intro n, specialize h n, rcases h with ⟨b, c, h⟩, simp [h] }
+
+lemma T_iff_T_reduces {a b : Expr} (h : a ==> b) : T a ↔ T b := by
+{
+  sorry
+}
+
+#exit
+
+lemma not_T_SII_SII : ¬T (S ~ I ~ I ~ (S ~ I ~ I)) := by {
+  apply not_T_of_reduce_app, intro n,
+  induction n using nat.strong_induction_on with n ih, dsimp at ih,
+  cases n; simp,
+  cases n; simp,
+  cases n; simp,
+}
