@@ -26,8 +26,6 @@ def T (a : Expr) :=
 
 -----
 
-def I := S ~ K ~ K
-
 @[simp]
 lemma not_T {a : Expr} : ¬T a ↔ ∀ (n : ℕ), ¬(reduce^[n]) a = K :=
 by simp [T]
@@ -56,3 +54,29 @@ by simp [not_T_of_reduce_id]
 
 lemma not_T_M : ¬T M :=
 by simp [not_T_of_reduce_id]
+
+-----
+
+def I := S ~ K ~ K
+
+@[simp]
+lemma T_I_app_iff {a : Expr} : T (I ~ a) ↔ T a :=
+begin
+  split; rintro ⟨n, h⟩,
+  { cases n, { cases h },
+    cases n, { cases h },
+    simp at h, use [n, h] },
+  { use n + 2, simpa },
+end
+
+lemma T_M_app_iff {a : Expr} : T (M ~ a) ↔ T a :=
+begin
+  split; rintro ⟨n, h⟩, cases n, { cases h }, use n, swap, use n + 1,
+  repeat {
+    induction' n with n ih; simp at *,
+    { cases a; simp * at * },
+    { cases a; simp at *; try { assumption },
+      { contrapose! h, clear h ih, revert n,
+        simp [←not_T, not_T_of_reduce_id] },
+      { exact ih h }}},
+end
