@@ -42,12 +42,10 @@ lemma T_K : T K :=
 by { use 0, refl }
 
 lemma not_T_of_reduce_id {a : Expr}
-  (h₁ : a ≠ K) (h₂ : reduce a = a) : ¬T a :=
-begin
-  simp, intro n, induction n,
+  (h₁ : a ≠ K) (h₂ : reduce a = a) : ¬T a := by
+{ simp, intro n, induction n,
   { simpa },
-  { simpa [h₂] },
-end
+  { simpa [h₂] }}
 
 lemma not_T_S : ¬T S :=
 by simp [not_T_of_reduce_id]
@@ -60,23 +58,19 @@ by simp [not_T_of_reduce_id]
 def I := S ~ K ~ K
 
 @[simp]
-lemma T_I_app_iff {a : Expr} : T (I ~ a) ↔ T a :=
-begin
-  split; rintro ⟨n, h⟩,
+lemma T_I_app_iff {a : Expr} : T (I ~ a) ↔ T a := by
+{ split; rintro ⟨n, h⟩,
   { cases n, { cases h },
     cases n, { cases h },
     simp at h, use [n, h] },
-  { use n + 2, simpa },
-end
+  { use n + 2, simpa }}
 
-lemma T_M_app_iff {a : Expr} : T (M ~ a) ↔ T a :=
-begin
-  split; rintro ⟨n, h⟩, cases n, { cases h }, use n, swap, use n + 1,
+lemma T_M_app_iff {a : Expr} : T (M ~ a) ↔ T a := by
+{ split; rintro ⟨n, h⟩, cases n, { cases h }, use n, swap, use n + 1,
   repeat {
     induction' n with n ih; simp at *,
     { cases a; simp * at * },
     { cases a; simp at *; try { assumption },
       { contrapose! h, clear h ih, revert n,
         simp [←not_T, not_T_of_reduce_id] },
-      { exact ih h }}},
-end
+      { exact ih h }}}}
