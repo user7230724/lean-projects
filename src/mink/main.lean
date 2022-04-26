@@ -4,74 +4,36 @@ import tactic.induction
 noncomputable theory
 open_locale classical
 
-namespace test
+inductive Expr : Type
+| M : Expr
+| K : Expr
+| S : Expr
+| App : Expr → Expr → Expr
+open Expr
 
-inductive T
-| nil : T
-| pair : T → T → T
-open T
+infixl ` ~ `:100 := App
 
-@[reducible] def zero : T := nil
-@[reducible] instance : has_zero T := ⟨nil⟩
+inductive Reduce : Expr → Expr → Prop
+| MK : Reduce (M ~ K) K
+| MS : Reduce (M ~ S) S
+| K {a b} : Reduce (K ~ a ~ b) a
+| S {a b c} : Reduce (S ~ a ~ b ~ c) (a ~ c ~ (b ~ c))
+| left {a b c} : Reduce a b → Reduce (a ~ c) (b ~ c)
+| right {a b c} : Reduce a b → Reduce (c ~ a) (c ~ b)
+| refl {a} : Reduce a a
+| trans {a b c} : Reduce a b → Reduce b c → Reduce a c
 
-@[reducible] def one : T := pair 0 0
-@[reducible] instance : has_one T := ⟨one⟩
-
-def is_nil : T → Prop
-| nil := true
-| (pair _ _) := false
-
-def is_pair : T → Prop
-| nil := false
-| (pair _ _) := true
-
-instance : has_coe_to_sort T Prop := ⟨is_pair⟩
+infix ` ==> `:50 := Reduce
 
 -----
 
-def True : T := 1
-def False : T := 0
+@[refl]
+lemma Reduce.refl' {a} : a ==> a :=
+Reduce.refl
 
-def Pro : T → T
-| 0 := True
-| 1 := True
-| _ := False
-
-def not : T → T
-| nil := 1
-| (pair _ _) := 0
-
-def and : T → T → T
-| 0 _ := 0
-| _ a := 1
-
-def or : T → T → T
-| 0 a := a
-| _ _ := 1
-
-def iff : T → T → T
-| 0 0 := True
-| 1 1 := True
-| _ _ := False
+@[trans]
+lemma Reduce.trans' {a b c} (h₁ : a ==> b) (h₂ : b ==> c) : a ==> c :=
+Reduce.trans h₁ h₂
 
 -----
 
-lemma not_not {a : T} (h : Pro a) : iff (not (not a)) a := by
-{
-  replace h : a = 0 ∨ a = 1,
-  {
-    cases a with a b,
-    { left, refl },
-    {
-      right,
-      cases a, swap, { exact h.elim },
-      cases b, swap, { exact h.elim },
-      triv,
-    },
-  },
-  rcases h with rfl | rfl; triv,
-}
-
------
-
-end test
