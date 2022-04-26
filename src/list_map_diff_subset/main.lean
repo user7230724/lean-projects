@@ -138,7 +138,9 @@ begin
     contrapose! h, exact list.of_mem_filter h },
 end
 
-example {α β : Type*} {f : α → β} {l₁ l₂ : list α} :
+-----
+
+theorem list.diff_map_subset {α β : Type*} {f : α → β} {l₁ l₂ : list α} :
   l₁.map f \ l₂.map f ⊆ (l₁ \ l₂).map f :=
 begin
   rintro y h, rw list.mem_diff_iff at h, rw list.mem_map,
