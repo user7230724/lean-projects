@@ -12,7 +12,7 @@ def Bounded (r : ℕ) : set Point :=
 
 -----
 
-lemma dist_self {p} : dist p p = 0 :=
+lemma dist_self {a : Point} : dist a a = 0 :=
 begin
   change int.to_nat _ = 0,
   simp_rw [sub_self, abs_zero, max_self], refl,

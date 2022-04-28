@@ -104,11 +104,11 @@ g.s.act
 def Game.set_state {pw : ℕ} (g : Game pw) (s₁ : State) : Game pw :=
 {g with s := s₁}
 
-def play_A_move_at' {pw pw₁ : ℕ} (a₁ : A pw₁) (g : Game pw) (hs h) :=
-g.set_state (apply_A_move g.s (a₁.f g.s hs h).m)
-
 def Game.finish {pw : ℕ} (g : Game pw) : Game pw :=
 g.set_state g.s.finish
+
+def play_A_move_at' {pw pw₁ : ℕ} (a₁ : A pw₁) (g : Game pw) (hs h) :=
+g.set_state (apply_A_move g.s (a₁.f g.s hs h).m)
 
 def play_A_move_at {pw : ℕ} (g : Game pw) :=
 if h : g.act ∧ A_has_valid_move pw g.s.board
