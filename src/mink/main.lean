@@ -74,9 +74,9 @@ lemma R_iff_of_term {a b}
   (h : term a) : a ==> b ↔ a = b :=
 R_iff_of_reduce_eq_self_iff (reduce_self_of_term h)
 
-lemma reduce_arg_app_R_term {t a b b'}
-  (h₁ : term t) (h₂ : b ==> b') :
-  a ~ b ==> t ↔ a ~ b' ==> t :=
+lemma reduce_arg_app_R_term {t f a a'}
+  (h₁ : term t) (h₂ : a ==> a') :
+  f ~ a ==> t ↔ f ~ a' ==> t :=
 begin
   sorry
 end
