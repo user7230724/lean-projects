@@ -15,10 +15,13 @@ def A_trapped (pw : ℕ) (s : State) :=
 def can_entrap_in {pw : ℕ} (a : A pw) (d : D) (N : ℕ) :=
 ∃ (n : ℕ), A_trapped_in pw (simulate a d n).s N
 
+def D_nice_cond (pw : ℕ) (s : State) (n : ℕ) : Prop :=
+A_trapped_in pw s n ∧ ∃ (md : Valid_D_move s.board) (p : Point),
+md.m = some p ∧ p ∈ Bounded n
+
 def D.nice (d : D) (pw : ℕ) :=
 ∀ (s : State) (hs : s.act) (N : ℕ),
-if A_trapped_in pw s N ∧ ∃ (md : Valid_D_move s.board) (p : Point),
-  md.m = some p ∧ p ∈ Bounded N
+if D_nice_cond pw s N
 then ∃ (p : Point),
   (d.f s hs).m = some p ∧
   p ∈ Bounded N
@@ -28,6 +31,27 @@ else ∀ (p : Point) (b : Board),
   pw < dist p b.A
 
 -----
+
+lemma A_trapped_in_ge {pw n k : ℕ} {s : State}
+  (h₁ : A_trapped_in pw s k)
+  (h₂ : k ≤ n) :
+  A_trapped_in pw s n :=
+λ a d m, mem_Bounded_ge (h₁ a d m) h₂
+
+lemma can_entrap_in_ge {pw n k : ℕ} {a : A pw} {d : D}
+  (h₁ : can_entrap_in a d k)
+  (h₂ : k ≤ n) :
+  can_entrap_in a d n :=
+⟨_, A_trapped_in_ge h₁.some_spec h₂⟩
+
+lemma D_nice_cond_ge {pw n k : ℕ} {s : State}
+  (h₁ : D_nice_cond pw s k)
+  (h₂ : k ≤ n) :
+  D_nice_cond pw s n :=
+begin
+  obtain ⟨md, p, h₃, h₄⟩ := h₁.2,
+  exact ⟨A_trapped_in_ge h₁.1 h₂, _, _, h₃, mem_Bounded_ge h₄ h₂⟩,
+end
 
 def mk_D_for_lem_2_3 (pw : ℕ) (d₀ : D) : D :=
 begin
@@ -41,7 +65,8 @@ begin
 end
 
 lemma mk_D_for_lem_2_3_nice_of_nice {pw : ℕ} {d₀ : D}
-  (h : d₀.nice pw) : (mk_D_for_lem_2_3 pw d₀).nice pw :=
+  (h : d₀.nice pw) :
+  (mk_D_for_lem_2_3 pw d₀).nice pw :=
 begin
   sorry
 end

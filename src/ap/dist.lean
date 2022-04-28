@@ -90,3 +90,9 @@ begin
   apply @set.finite.prod ℤ ℤ {x : ℤ | |x - c.x| ≤ ↑d} {y : ℤ | |y - c.y| ≤ ↑d};
   exact abs_sub_le_finite,
 end
+
+lemma mem_Bounded_ge {n k : ℕ} {p : Point}
+  (h₁ : p ∈ Bounded k)
+  (h₂ : k ≤ n) :
+  p ∈ Bounded n :=
+by { simp [Bounded] at h₂ ⊢, exact le_trans h₁ h₂ }
