@@ -24,7 +24,7 @@ def reduce : Expr → Expr
 | a := a
 
 def R (e₁ e₂ : Expr) : Prop :=
-∃ (n : ℕ), e₂ = (reduce^[n]) e₁
+∃ (n : ℕ), (reduce^[n]) e₁ = e₂
 
 infix ` ==> `:50 := R
 
@@ -41,7 +41,7 @@ begin
   rw function.iterate_add_apply, substs h₁ h₂,
 end
 
-lemma not_R {a b} : ¬a ==> b ↔ ∀ (n : ℕ), b ≠ (reduce^[n]) a :=
+lemma not_R {a b} : ¬a ==> b ↔ ∀ (n : ℕ), (reduce^[n]) a ≠ b :=
 by simp [R]
 
 -----

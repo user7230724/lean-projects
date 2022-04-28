@@ -17,7 +17,8 @@ def can_entrap_in {pw : ℕ} (a : A pw) (d : D) (N : ℕ) :=
 
 def D.nice (d : D) (pw : ℕ) :=
 ∀ (s : State) (hs : s.act) (N : ℕ),
-if A_trapped_in pw s N ∧ ∃ (md : Valid_D_move s.board), md.m.is_some
+if A_trapped_in pw s N ∧ ∃ (md : Valid_D_move s.board) (p : Point),
+  md.m = some p ∧ p ∈ Bounded N
 then ∃ (p : Point),
   (d.f s hs).m = some p ∧
   p ∈ Bounded N
@@ -28,32 +29,53 @@ else ∀ (p : Point) (b : Board),
 
 -----
 
+def mk_D_for_lem_2_3 (pw : ℕ) (d₀ : D) : D :=
+begin
+  refine ⟨λ s hs, _⟩,
+  apply dite (∃ (N : ℕ), A_trapped_in pw s N); intro h,
+  { apply dite (∃ (p : Point),
+      p ∈ s.board.squares ∧ p ∈ Bounded (nat.find h) ∧ p ≠ s.board.A); intro h₁,
+    { exact ⟨some h₁.some, h₁.some_spec.2.2, h₁.some_spec.1⟩ },
+    { exact default }},
+  { exact d₀.f s hs },
+end
+
+lemma mk_D_for_lem_2_3_nice_of_nice {pw : ℕ} {d₀ : D}
+  (h : d₀.nice pw) : (mk_D_for_lem_2_3 pw d₀).nice pw :=
+begin
+  sorry
+end
+
+#exit
+
 lemma lem_2_3 {pw : ℕ}
   (h : ∃ (N : ℕ) (d : D), d.nice pw ∧ ∀ (a : A pw), can_entrap_in a d N) :
   ∃ (d : D), d.nice pw ∧ ∀ (a : A pw), (init_game a d state₀).D_wins :=
 begin
   rcases h with ⟨N, d, h₁, h₂⟩,
-  use [d, h₁],
-  rintro a,
-  specialize h₂ a,
-  cases h₂ with n h₂,
-  let D := N ^ 2 + 8,
-  use n + D,
-  rw play_add,
-  rw ←simulate,
-  let g : Game pw := _,
-  change simulate a d n with g at h₂ ⊢,
 
-  -- have h₃ := h₂ a d,
-  -- have h₄ : init_game a d g.s = g,
-  -- { symmetry, ext, exact play_at_players_eq.1, exact play_at_players_eq.2, refl },
-  -- rw h₄ at h₃, clear h₄,
 
-  have h₃ : ∀ (k : ℕ), cardinal.mk {p : Point | p ∈ (g.play k).s.board.squares} = k,
-  {
-    sorry,
-  },
-  sorry
+  -- use [d, h₁],
+  -- rintro a,
+  -- specialize h₂ a,
+  -- cases h₂ with n h₂,
+  -- let D := N ^ 2 + 8,
+  -- use n + D,
+  -- rw play_add,
+  -- rw ←simulate,
+  -- let g : Game pw := _,
+  -- change simulate a d n with g at h₂ ⊢,
+  --
+  -- -- have h₃ := h₂ a d,
+  -- -- have h₄ : init_game a d g.s = g,
+  -- -- { symmetry, ext, exact play_at_players_eq.1, exact play_at_players_eq.2, refl },
+  -- -- rw h₄ at h₃, clear h₄,
+  --
+  -- have h₃ : ∀ (k : ℕ), cardinal.mk {p : Point | p ∈ (g.play k).s.board.squares} = k,
+  -- {
+  --   sorry,
+  -- },
+  -- sorry
 end
 
 #exit
