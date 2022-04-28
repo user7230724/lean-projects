@@ -87,14 +87,3 @@ def I := S ~ K ~ K
 
 lemma I_id {a} : I ~ a ==> a :=
 by use [2, rfl]
-
------
-
--- lemma not_reduces_of {α : Sort*} (f : α → Expr) {a b : Expr} {z : α}
---   (h₁ : f z = a)
---   (h₂ : ∀ (x : α), f x ≠ b → ???)
---   :
---   a /=> b :=
--- begin
---   sorry
--- end
