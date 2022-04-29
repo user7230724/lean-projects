@@ -70,37 +70,7 @@ lemma mk_D_for_lem_2_3_nice_of_nice {pw : ℕ} {d₀ : D}
   (h : d₀.nice pw) :
   (mk_D_for_lem_2_3 pw d₀).nice pw :=
 begin
-  rintro s hs N,
-  split_ifs with h₁,
-  {
-    rw mk_D_for_lem_2_3, dsimp,
-    split_ifs with h₂ h₃ h₄,
-    {
-      use [h₃.some, rfl],
-      apply mem_Bounded_ge h₃.some_spec.2.1,
-      rw nat.find_le_iff,
-      use [N, le_refl _, h₁.1],
-    },
-    {
-      contrapose! h₃, clear h₃,
-      have h₃ : ∃ (N : ℕ), D_nice_cond pw s N := ⟨_, h₁⟩,
-      have h₄ := nat.find_spec h₃,
-      obtain ⟨md, p, h₅, h₆⟩ := h₄.2,
-      use p,
-      have h₇ := md.h,
-      rw h₅ at h₇,
-      rw D_move_valid at h₇,
-      refine ⟨h₇.2, _, h₇.1⟩, clear h₇,
-      apply mem_Bounded_ge h₆, clear h₆,
-      change ∃ (N : ℕ), A_trapped_in pw s N at h₂,
-      have h₆ := nat.find_spec h₂,
-      apply nat_find_le_nat_find_of,
-      rintro n hn,
-      sorry
-    },
-    sorry,
-  },
-  sorry,
+  sorry
 end
 
 #exit

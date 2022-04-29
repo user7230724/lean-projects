@@ -125,11 +125,18 @@ begin
   { intro a, use a - c, simp },
 end
 
-lemma nat_find_le_nat_find_of {P Q : ℕ → Prop}
+lemma nat_find_le_nat_find_of_imp {P Q : ℕ → Prop}
   {hh₁ : ∃ (n : ℕ), P n}
   {hh₂ : ∃ (n : ℕ), Q n}
   (h : ∀ (n : ℕ), Q n → P n) :
   nat.find hh₁ ≤ nat.find hh₂ :=
 begin
-  sorry
+  let n := _, change n ≤ _, by_cases h₁ : Q n,
+  { apply le_of_eq, symmetry, rw nat.find_eq_iff, use h₁, rintro k h₂,
+    have h₃ : nat.find hh₁ = n := rfl, rw nat.find_eq_iff at h₃,
+    replace h₃ := h₃.2 k h₂, contrapose! h₃, exact h _ h₃ },
+  { have h₂ : ∀ (k : ℕ), Q k → n ≤ k,
+    { rintro k h₂, by_contra' hh, have h₃ : nat.find hh₁ = n := rfl,
+      rw nat.find_eq_iff at h₃, apply h₃.2 k hh, exact h _ h₂ },
+    apply h₂, apply nat.find_spec },
 end
