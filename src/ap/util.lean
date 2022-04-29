@@ -124,3 +124,12 @@ begin
   { simp, exact abs_le_finite },
   { intro a, use a - c, simp },
 end
+
+lemma nat_find_le_nat_find_of {P Q : ℕ → Prop}
+  {hh₁ : ∃ (n : ℕ), P n}
+  {hh₂ : ∃ (n : ℕ), Q n}
+  (h : ∀ (n : ℕ), Q n → P n) :
+  nat.find hh₁ ≤ nat.find hh₂ :=
+begin
+  sorry
+end
