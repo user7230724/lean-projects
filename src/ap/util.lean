@@ -125,7 +125,7 @@ begin
   { intro a, use a - c, simp },
 end
 
-lemma nat_find_le_nat_find_of_imp {P Q : ℕ → Prop}
+lemma nat_find_le_find_of_imp {P Q : ℕ → Prop}
   {hh₁ : ∃ (n : ℕ), P n}
   {hh₂ : ∃ (n : ℕ), Q n}
   (h : ∀ (n : ℕ), Q n → P n) :
@@ -139,4 +139,16 @@ begin
     { rintro k h₂, by_contra' hh, have h₃ : nat.find hh₁ = n := rfl,
       rw nat.find_eq_iff at h₃, apply h₃.2 k hh, exact h _ h₂ },
     apply h₂, apply nat.find_spec },
+end
+
+lemma nat_Inf_le_Inf_of_subset {P Q : set ℕ}
+  (h₁ : Q.nonempty)
+  (h₂ : Q ⊆ P) :
+  Inf P ≤ Inf Q :=
+begin
+  have h₃ : ∃ n, n ∈ Q,
+  { cases h₁ with n h₁, use [n, h₁] },
+  have h₄ : ∃ n, n ∈ P,
+  { cases h₃ with n h₃, use n, apply h₂, exact h₃ },
+  simp_rw Inf, split_ifs, exact nat_find_le_find_of_imp h₂,
 end
