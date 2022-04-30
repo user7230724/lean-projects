@@ -53,59 +53,46 @@ begin
   exact ⟨A_trapped_in_ge h₁.1 h₂, _, _, h₃, mem_Bounded_ge h₄ h₂⟩,
 end
 
------
-
-def mk_D_for_lem_2_3 (pw : ℕ) (d₀ : D) : D :=
-begin
-  refine ⟨λ s hs, _⟩,
-  apply dite (∃ (N : ℕ), A_trapped_in pw s N); intro h,
-  { apply dite (∃ (p : Point),
-      p ∈ s.board.squares ∧ p ∈ Bounded (nat.find h) ∧ p ≠ s.board.A); intro h₁,
-    { exact ⟨some h₁.some, h₁.some_spec.2.2, h₁.some_spec.1⟩ },
-    { exact default }},
-  { exact d₀.f s hs },
-end
-
-lemma mk_D_for_lem_2_3_nice_of_nice {pw : ℕ} {d₀ : D}
-  (h : d₀.nice pw) :
-  (mk_D_for_lem_2_3 pw d₀).nice pw :=
+lemma nice_D_wins_upper_bound_of_A_trapped_in {pw N : ℕ}
+  {a : A pw} {d : D} {s₀ : State}
+  (h₁ : d.nice pw)
+  (h₂ : A_trapped_in pw s₀ N) :
+  ¬((init_game a d s₀).play ((N * 2 + 1) ^ 2)).act :=
 begin
   sorry
 end
 
 #exit
 
+lemma nice_D_wins_of_can_entrap_in {pw N : ℕ} {a : A pw} {d : D}
+  (h₁ : d.nice pw)
+  (h₂ : can_entrap_in a d N) :
+  (init_game a d state₀).D_wins :=
+begin
+  cases h₂ with n h₂,
+  suffices h₃ : ∃ (k : ℕ), ¬(simulate a d (n + k)).act,
+  { exact ⟨_, h₃.some_spec⟩ },
+  simp_rw simulate_add,let g : Game pw := _,
+  change simulate a d n with g at h₂ ⊢,
+  split,
+  rw (_ : g = init_game a d g.s), swap,
+  { ext,
+    { exact play_at_players_eq.1 },
+    { exact play_at_players_eq.2 },
+    { refl }},
+  exact nice_D_wins_upper_bound_of_A_trapped_in h₁ h₂,
+end
+
 lemma lem_2_3 {pw : ℕ}
   (h : ∃ (N : ℕ) (d : D), d.nice pw ∧ ∀ (a : A pw), can_entrap_in a d N) :
   ∃ (d : D), d.nice pw ∧ ∀ (a : A pw), (init_game a d state₀).D_wins :=
 begin
   rcases h with ⟨N, d, h₁, h₂⟩,
-
-
-  -- use [d, h₁],
-  -- rintro a,
-  -- specialize h₂ a,
-  -- cases h₂ with n h₂,
-  -- let D := N ^ 2 + 8,
-  -- use n + D,
-  -- rw play_add,
-  -- rw ←simulate,
-  -- let g : Game pw := _,
-  -- change simulate a d n with g at h₂ ⊢,
-  --
-  -- -- have h₃ := h₂ a d,
-  -- -- have h₄ : init_game a d g.s = g,
-  -- -- { symmetry, ext, exact play_at_players_eq.1, exact play_at_players_eq.2, refl },
-  -- -- rw h₄ at h₃, clear h₄,
-  --
-  -- have h₃ : ∀ (k : ℕ), cardinal.mk {p : Point | p ∈ (g.play k).s.board.squares} = k,
-  -- {
-  --   sorry,
-  -- },
-  -- sorry
+  use [d, h₁],
+  intro a,
+  specialize h₂ a,
+  exact nice_D_wins_of_can_entrap_in h₁ h₂,
 end
-
-#exit
 
 lemma lem_2_3' {pw : ℕ}
   (h : ∃ (a : A pw), ∀ (d : D) (N : ℕ), d.nice pw →
