@@ -5,7 +5,7 @@ noncomputable theory
 open_locale classical
 
 @[to_additive]
-lemma finset.prod_congr_set
+lemma finset_prod_congr_set
   {α : Type*} [comm_monoid α] {β : Type*} [fintype β] (s : set β) (f : β → α) (g : s → α)
   (w : ∀ (x : β) (h : x ∈ s), f x = g ⟨x, h⟩) (w' : ∀ (x : β), x ∉ s → f x = 1) :
   finset.univ.prod f = finset.univ.prod g :=
