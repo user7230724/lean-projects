@@ -134,20 +134,20 @@ end
 
 -----
 
-lemma act_play_move_at_succ {pw : ℕ} {g : Game pw}
+lemma act_of_act_play_move {pw : ℕ} {g : Game pw}
   (h : g.play_move.act) : g.act :=
 by { rw Game.play_move at h, split_ifs at h with h₁; assumption }
 
-lemma act_play_at_succ {pw n : ℕ} {g : Game pw}
+lemma act_play_of_act_play_succ {pw n : ℕ} {g : Game pw}
   (h : (g.play n.succ).act) : (g.play n).act :=
-by { rw play_at_succ' at h, exact act_play_move_at_succ h }
+by { rw play_at_succ' at h, exact act_of_act_play_move h }
 
-lemma act_play_at_le {pw n m : ℕ} {g : Game pw}
+lemma act_play_le {pw n m : ℕ} {g : Game pw}
   (h₁ : n ≤ m) (h₂ : (g.play m).act) : (g.play n).act :=
 begin
   induction' h₁,
   { exact h₂ },
-  { rw play_at_succ' at h₂, exact ih (act_play_move_at_succ h₂) },
+  { rw play_at_succ' at h₂, exact ih (act_of_act_play_move h₂) },
 end
 
 lemma hist_len_play_A_move_at' {pw pw₁ : ℕ} {g : Game pw}
