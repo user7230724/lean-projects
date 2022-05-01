@@ -7,8 +7,11 @@ import .base .point
 noncomputable theory
 open_locale classical
 
-def Bounded (r : ℕ) : set Point :=
-{p : Point | dist p center ≤ r}
+def Bounded (N : ℕ) : set Point :=
+{p : Point | dist p center ≤ N}
+
+def area_of_Bounded (N : ℕ) : ℕ :=
+(N * 2 + 1) ^ 2
 
 -----
 

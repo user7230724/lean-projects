@@ -189,3 +189,33 @@ begin
   wlog h₃ : k ≤ n, obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h₃,
   rw play_add, exact play_eq_of_not_act' h₂,
 end
+
+lemma not_act_of_descend (f : State → ℕ) {P : State → Prop}
+  {pw n : ℕ} {a : A pw} {d : D} {s₀ : State}
+  (hp₀ : f s₀ < n)
+  (hp₁ : P s₀)
+  (hp₂ : ∀ (s : State) hs hvm, P s → P (apply_A_move s (a.f s hs hvm).m))
+  (hp₃ : ∀ (s : State) hs, P s → P (apply_D_move s (d.f s hs).m))
+  (hp₄ : ∀ (s : State) hs hvm, P s → f (apply_A_move s (a.f s hs hvm).m) ≤ f s)
+  (hp₅ : ∀ (s : State) hs, P s → f (apply_D_move s (d.f s hs).m) < f s) :
+  ¬((init_game a d s₀).play n).act :=
+begin
+  induction n with n ih,
+  { cases hp₀ },
+  {
+    rw play_at_succ',
+    let g : Game pw := _,
+    change (init_game a d s₀).play n  with g at ih ⊢,
+    rw Game.play_move,
+    split_ifs with h₁,
+    {
+      rw play_A_move_at,
+      split_ifs with h₂,
+      {
+        sorry
+      },
+      sorry,
+    },
+    sorry,
+  },
+end
