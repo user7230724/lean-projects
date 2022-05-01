@@ -51,7 +51,7 @@ lemma A_hvm_of_next_act {pw : ℕ} {g : Game pw}
   (h : g.play_move.act) :
   ∃ hs, A_has_valid_move pw (play_D_move_at g hs).s.board :=
 begin
-  have hs : g.act := act_play_move_at_succ h, use hs,
+  have hs : g.act := act_of_act_play_move h, use hs,
   rw Game.play_move at h, rw dif_pos hs at h,
   rw play_A_move_at at h, split_ifs at h with h₄,
   { cases h₄ with h₄ h₅, convert h₅, },
@@ -62,7 +62,7 @@ lemma play_move_hist_len_eq_of_act {pw : ℕ} {g : Game pw}
   (h : g.play_move.act) :
   g.play_move.s.len = g.s.len + 2 :=
 begin
-  have h₁ : g.act := act_play_move_at_succ h,
+  have h₁ : g.act := act_of_act_play_move h,
   rw [play_move_at_act h₁, play_A_move_at],
   rw dif_pos, { rw [hist_len_play_A_move_at', hist_len_play_D_move_at] },
   exact ⟨h₁, (A_hvm_of_next_act h).some_spec⟩,
@@ -74,7 +74,7 @@ lemma play_hist_len_eq_of_act {pw n : ℕ} {g : Game pw}
 begin
   induction n with n ih, { refl }, rw play_at_succ' at h ⊢,
   let g₁ : Game pw := _, change g.play n with g₁ at ih h ⊢,
-  have h₁ := act_play_move_at_succ h, specialize ih h₁,
+  have h₁ := act_of_act_play_move h, specialize ih h₁,
   rw [play_move_hist_len_eq_of_act h, ih, add_assoc, nat.succ_mul],
 end
 
@@ -82,7 +82,7 @@ lemma hist_len_ne_of_play_lt {pw n k : ℕ} {g : Game pw}
   (h₁ : k < n) (h₂ : (g.play n).act) :
   (g.play k).s.len ≠ (g.play n).s.len :=
 begin
-  have h₃ := act_play_at_le (nat.le_of_lt h₁) h₂,
+  have h₃ := act_play_le (nat.le_of_lt h₁) h₂,
   rw [play_hist_len_eq_of_act h₂, play_hist_len_eq_of_act h₃], intro h,
   replace h := nat.add_left_cancel h,
   rw nat.mul_left_inj at h, swap, { dec_trivial },
@@ -150,7 +150,7 @@ begin
         { rw ih, refl }},
       rw ih, clear ih,
       have hs₁ : ((init_game a₀ d₀ s₀).play k).act,
-      { apply act_play_at_le (nat.le_of_succ_le hk),
+      { apply act_play_le (nat.le_of_succ_le hk),
         change ((init_game a₀ d₀ s₀).play n).s.act,
         rw ←h₂, exact hs },
       repeat { rw play_move_at_act, swap, { exact hs₁ }},
@@ -177,7 +177,7 @@ begin
       rw hx, clear hx, have hx : A_has_valid_move pw sk'.board,
       { have h₃ : g₁.play_move.act,
         { change ((init_game a₀ d₀ s₀).play k).play_move.act,
-          rw ←play_at_succ', apply act_play_at_le hk,
+          rw ←play_at_succ', apply act_play_le hk,
           change ((init_game a₀ d₀ s₀).play n).s.act,
           rw ←h₂, exact hs },
         convert (A_hvm_of_next_act h₃).some_spec, rw ←hy, refl },

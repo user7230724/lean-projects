@@ -42,12 +42,12 @@ begin
     { rw [play_add', play_1], congr, symmetry, ext,
       { exact play_move_at_players_eq.1 },
       { exact play_move_at_players_eq.2 },
-      { have h₅ := act_of_play_act h₄, rw play_move_at_act h₅,
+      { have h₅ := act_of_act_play h₄, rw play_move_at_act h₅,
         have h₆ : play_D_move_at (init_game a d s) h₅ = init_game a d s',
         { ext; try { refl }, exact h₂.symm },
         rw [h₆, play_A_move_at, dif_pos], clear h₆, swap, { exact ⟨hs', hvm⟩ },
         change apply_A_move s' (a.f s' _ _).m = apply_A_move s' ma.m, congr' }},
-    exact act_play_at_le h₃ h₄ },
+    exact act_play_le h₃ h₄ },
 end
 
 lemma D_wins_n_of_D_hws {pw : ℕ}
@@ -60,7 +60,7 @@ begin
   push_neg, intro d, specialize h d,
   replace h : ∀ (n : ℕ), ∃ (a : A pw), ((init_game a d state₀).play n).act,
   { intro n, specialize h n, cases h with a h, use a, rcases h with ⟨k, h₁, h₂⟩,
-    obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le h₁, apply act_play_at_le h₁ h₂ },
+    obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le h₁, apply act_play_le h₁ h₂ },
   simp_rw Game.D_wins, push_neg, exact exi_A_forall_n_play_act_of_swap h,
 end
 
