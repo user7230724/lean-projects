@@ -37,10 +37,37 @@ by { simp [bounded] at h₂ ⊢, exact le_trans h₁ h₂ }
 lemma bounded_area_eq {n : ℕ} :
   bounded_area n = (n * 2 + 1) ^ 2 :=
 begin
-  sorry
+  rw bounded_area,
+  let s := {p : ℤ × ℤ | |p.1| ≤ n ∧ |p.2| ≤ n}, haveI : fintype s,
+  { apply fintype_subtype_of_set_finite, let s : set ℤ := {k : ℤ | |k| ≤ n},
+    have h : s.finite,
+    { rw (_ : s = finset.Icc (-(n : ℤ)) n), swap,
+      { ext, simp only [finset.coe_Icc, set.mem_set_of_eq,
+        set.mem_Icc, abs_le] },
+      exact (finset.Icc (-↑n) ↑n).finite_to_set },
+    exact set.finite.prod h h },
+  rw (_ : (bounded n).to_finset.card = s.to_finset.card), swap,
+  { simp_rw set.to_finset_card, apply fintype.card_congr,
+    fapply equiv.of_bijective,
+    { rintro p, use ⟨p.1.1, p.1.2⟩, cases p with p h, dsimp,
+      rw bounded at h, dsimp at h, simp [dist_le_iff, center] at h, exact h },
+    { fsplit,
+      { rintro p₁ p₂ h₁, dsimp at h₁, generalize_proofs h₂ h₃ at h₁,
+        simp at h₁, cases h₁, ext; assumption },
+      { rintro ⟨p, h⟩, fsplit,
+        { use ⟨p.1, p.2⟩, simp [bounded], change s with {p : _ | _} at h,
+          simp at h, simpa [dist_le_iff, center] },
+        { simp }}}},
+  let fs' := finset.Icc (-(n : ℤ)) n,
+  rw (_ : s.to_finset = fs'.product fs'), swap,
+  { ext p, rw set.mem_to_finset, change s with {p : _ | _}, dsimp,
+    simp_rw [finset.mem_product, finset.mem_Icc, abs_le] },
+  simp only [finset.card_product, int.card_Icc, sub_neg_eq_add],
+  rw (_ : (n + 1 + n : ℤ).to_nat = n * 2 + 1), swap,
+  { norm_cast, rw (by linarith : n + 1 + n = n * 2 + 1),
+    apply int.to_nat_coe_nat },
+  rw sq,
 end
-
-#exit
 
 lemma squares_in_bounded_le_area {n : ℕ} {b : Board} :
   squares_in_bounded b n ≤ bounded_area n :=
