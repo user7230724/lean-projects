@@ -190,7 +190,7 @@ begin
   rw play_add, exact play_eq_of_not_act' h₂,
 end
 
-lemma not_act_of_descend (f : State → ℕ) {P : State → Prop}
+lemma not_act_of_descend (f : State → ℕ) (P : State → Prop)
   {pw n : ℕ} {a : A pw} {d : D} {s₀ : State}
   (hp₀ : f s₀ < n)
   (hp₁ : P s₀)

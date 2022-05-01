@@ -1,7 +1,7 @@
 import tactic
 import tactic.induction
 
-import .base .determinacy .induct
+import .base .bounded .determinacy .induct
 
 noncomputable theory
 open_locale classical
@@ -66,7 +66,7 @@ end
 
 lemma A_bounded_n_pw {pw n k : ℕ} {a : A pw} {d : D}
   (h : k ≤ n) :
-  (simulate a d k).s.board.A ∈ Bounded (n * pw) :=
+  (simulate a d k).s.board.A ∈ bounded (n * pw) :=
 begin
   induction k with k ih generalizing n,
   { apply nat.zero_le },
@@ -92,7 +92,7 @@ end
 lemma lem_2_1 {pw : ℕ}
   (h : D_hws pw) :
   ∃ (N : ℕ) (d : D), ∀ (a : A pw),
-  A_trapped_in_for a d (Bounded N) :=
+  A_trapped_in_for a d (bounded N) :=
 begin
   obtain ⟨n, d, h₁⟩ := D_wins_n_of_D_hws h,
   use [n * pw, d], intro a, specialize h₁ a, intro k,
