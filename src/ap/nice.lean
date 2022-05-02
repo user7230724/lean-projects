@@ -74,7 +74,7 @@ begin
   apply not_act_of_descend_play_move
     (λ (s : State), squares_in_bounded_exc_A s.board N)
     (λ (s : State), A_trapped_in pw s N); try { dsimp },
-  sorry;{ have h₃ := mem_bounded_of_A_trapped_in h₂,
+  sorry { have h₃ := mem_bounded_of_A_trapped_in h₂,
     rw [squares_in_bounded_exc_A, bounded_area],
     apply finset.card_lt_card, rw finset.ssubset_iff,
     use s₀.board.A, fsplit,
@@ -83,7 +83,7 @@ begin
       rw set.mem_to_finset, cases hp,
       { subst p, exact h₃ },
       { rw [finset.mem_filter, set.mem_to_finset] at hp, exact hp.1 }}},
-  sorry;{
+  sorry {
     exact h₂,
   },
   {
