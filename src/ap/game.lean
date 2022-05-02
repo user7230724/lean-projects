@@ -344,3 +344,23 @@ by { rw add_comm, apply function.iterate_add_apply }
 lemma play_add' {pw n k} {g : Game pw} :
   g.play (n + k) = (g.play k).play n :=
 by { apply function.iterate_add_apply }
+
+lemma init_game_state_eq {pw : ℕ} {a : A pw} {d : D} {s : State} :
+  (init_game a d s).s = s := rfl
+
+lemma play_move_state_eq_of_act_play_move {pw : ℕ} {g : Game pw}
+  (h : g.play_move.act) :
+  ∃ s' hs hs' hvm, s' = apply_D_move g.s (g.d.f g.s hs).m ∧
+  g.play_move.s = apply_A_move s' (g.a.f s' hs' hvm).m :=
+begin
+  have hs := act_of_act_play_move h,
+  let s' := apply_D_move g.s (g.d.f g.s hs).m,
+  have hvm : A_has_valid_move pw s'.board,
+  { rw [play_move_at_act hs, play_A_move_at] at h,
+    split_ifs at h with h₁,
+    { exact h₁.2 },
+    { cases h }},
+  use [s', hs, hs, hvm, rfl],
+  rw [play_move_at_act hs, play_A_move_at, dif_pos],
+  swap, { exact ⟨hs, hvm⟩ }, refl,
+end

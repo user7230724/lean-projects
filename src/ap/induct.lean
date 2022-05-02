@@ -194,10 +194,10 @@ lemma not_act_of_descend (f : State → ℕ) (P : State → Prop)
   {pw n : ℕ} {a : A pw} {d : D} {s₀ : State}
   (hp₀ : f s₀ < n)
   (hp₁ : P s₀)
-  (hp₂ : ∀ (s : State) hs hvm, P s → P (apply_A_move s (a.f s hs hvm).m))
-  (hp₃ : ∀ (s : State) hs, P s → P (apply_D_move s (d.f s hs).m))
-  (hp₄ : ∀ (s : State) hs hvm, P s → f (apply_A_move s (a.f s hs hvm).m) ≤ f s)
-  (hp₅ : ∀ (s : State) hs, P s → f (apply_D_move s (d.f s hs).m) < f s) :
+  (hp₂ : ∀ (s s' : State) hs hs' hvm, P s → s' = apply_D_move s (d.f s hs).m →
+    P (apply_A_move s' (a.f s' hs' hvm).m))
+  (hp₃ : ∀ (s s' : State) hs hs' hvm, P s → s' = apply_D_move s (d.f s hs).m →
+    f (apply_A_move s' (a.f s' hs' hvm).m) < f s) :
   ¬((init_game a d s₀).play n).act :=
 begin
   have h₀ : ∀ (n : ℕ) (s : State), s = ((init_game a d s₀).play n).s →
@@ -207,45 +207,52 @@ begin
     { exact hp₁ },
     { rw play_at_succ' at hs₁ ⊢, let g : Game pw := _,
       change (init_game a d s₀).play n with g at ih hs₁ ⊢,
-      have hs := act_of_act_play_move hs₁, specialize ih hs,
-      revert hs₁, rw [play_move_at_act hs, Game.act],
-      have h₁ : P (play_D_move_at g hs).s,
-      { change P (apply_D_move _ _), rw (_ : g.d = d), swap,
-        { exact play_at_players_eq.2 },
-        apply hp₃, exact ih },
-      rw play_A_move_at, split_ifs, swap, { intro h₁, cases h₁ },
-      cases h with hs' hvm, generalize_proofs,
-      rw (_ : Game.a _ = a), swap,
-      { exact play_at_players_eq.1 },
-      rintro hs₁, apply hp₂, exact h₁ }},
+      obtain ⟨s', hs, hs', hvm, h₁, h₂⟩ :=
+        play_move_state_eq_of_act_play_move hs₁, rw h₂,
+      have ha : g.a = a := play_at_players_eq.1, rw ha at *, clear ha,
+      have hd : g.d = d := play_at_players_eq.2, rw hd at *, clear hd,
+      apply hp₂,
+      { exact ih hs },
+      { exact h₁ }}},
   suffices h : ∀ (n : ℕ) (s : State), s = ((init_game a d s₀).play n).s →
     s.act → f s + n ≤ f s₀,
   { apply mt (h n _ rfl), push_neg, apply nat.lt_add_left, exact hp₀ },
-  clear' n hp₀, rintro n _ rfl hs', induction n with n ih,
+  clear' n hp₀, rintro n _ rfl hs₁, induction n with n ih,
   { refl },
-  { rw play_at_succ' at hs' ⊢, let g : Game pw := _,
-    change (init_game a d s₀).play n with g at ih hs' ⊢,
-    change g.play_move.act at hs', have hs := act_of_act_play_move hs',
-    specialize ih hs, revert hs', rw [play_move_at_act hs, play_A_move_at],
-    split_ifs with h₁, swap, { intro hs', cases hs' },
-    cases h₁ with h₁ hvm, generalize_proofs, rw Game.act,
-    rw (_ : (play_A_move_at' _ _ _ _).s =
-      apply_A_move (play_D_move_at g hs).s
-      (a.f (play_D_move_at g hs).s hs hvm).m), swap,
-    { convert rfl, symmetry, change g.a = a, exact play_at_players_eq.1 },
-    let s' := apply_D_move g.s (d.f g.s hs).m, revert h₁ hvm,
-    have hd : (play_D_move_at g hs).s = s',
-    { change apply_D_move _ _ = apply_D_move _ _, congr,
-      exact play_at_players_eq.2 },
-    simp_rw hd, rintro hs' hh, generalize_proofs hvm, rintro h₂,
-    refine le_trans _ ih, apply nat.succ_le_of_lt, apply add_lt_add_right,
-    suffices h : ∀ (hvm : A_has_valid_move pw s'.board),
-      (apply_A_move s' (a.f s' hs hvm).m).act →
-      f (apply_A_move s' (a.f s' hs hvm).m) < f g.s,
-    { specialize h _, { convert hvm, exact hd.symm },
-      convert h _, convert h₂; exact hd.symm },
-    clear' hvm h₂, rw [Game.act, hd] at hs', rintro hvm hs₁,
-    let s₁ : State := apply_A_move s' (a.f s' hs hvm).m,
-    have hps : P g.s := h₀ _ _ rfl hs,
-    exact lt_of_le_of_lt (hp₄ s' hs hvm (hp₃ _ _ hps)) (hp₅ _ _ hps) },
+  { rw play_at_succ' at hs₁ ⊢, let g : Game pw := _,
+    change (init_game a d s₀).play n with g at ih hs₁ ⊢,
+    obtain ⟨s', hs, hs', hvm, h₁, h₂⟩ :=
+      play_move_state_eq_of_act_play_move hs₁, rw h₂,
+    have ha : g.a = a := play_at_players_eq.1, rw ha at *, clear ha,
+    have hd : g.d = d := play_at_players_eq.2, rw hd at *, clear hd,
+    specialize ih hs,
+    have h : f (apply_A_move s' (a.f s' hs' hvm).m) < f g.s,
+    { apply hp₃,
+      { apply h₀,
+        { refl },
+        { exact hs } },
+      { exact h₁ }},
+    replace h : f (apply_A_move s' (a.f s' hs' hvm).m) + n < f g.s + n,
+    { exact add_lt_add_right h n },
+    rw ←nat.succ_le_iff at h, rw nat.add_succ, exact h.trans ih },
+end
+
+lemma not_act_of_descend' (f : State → ℕ) (P : State → Prop)
+  {pw n : ℕ} {a : A pw} {d : D} {s₀ : State}
+  (hp₀ : f s₀ < n)
+  (hp₁ : P s₀)
+  (hp₂ : ∀ (s : State) hs hvm, P s → P (apply_A_move s (a.f s hs hvm).m))
+  (hp₃ : ∀ (s : State) hs, P s → P (apply_D_move s (d.f s hs).m))
+  (hp₄ : ∀ (s : State) hs hvm, P s → f (apply_A_move s (a.f s hs hvm).m) ≤ f s)
+  (hp₅ : ∀ (s : State) hs, P s → f (apply_D_move s (d.f s hs).m) < f s) :
+  ¬((init_game a d s₀).play n).act :=
+begin
+  apply not_act_of_descend f P hp₀ hp₁,
+  { rintro s s' hs hs' hvm h₁ rfl, apply hp₂, apply hp₃, exact h₁ },
+  { rintro s s' hs hs' hvm h₁ h₂, let s₁ : State := _, change f s₁ < _,
+    have h₃ : f s' < f s,
+    { subst s', apply hp₅, exact h₁ },
+    have h₄ : f s₁ ≤ f s',
+    { subst s', apply hp₄, apply hp₃, exact h₁ },
+    exact gt_of_gt_of_ge h₃ h₄ },
 end
