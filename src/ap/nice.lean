@@ -58,13 +58,20 @@ lemma mem_bounded_of_A_trapped_in {pw N : ℕ} {s : State}
   s.board.A ∈ bounded N :=
 h default default 0
 
+lemma A_trapped_in_play_move {pw N : ℕ} {g : Game pw}
+  (h : A_trapped_in pw g.s N) :
+  A_trapped_in pw g.play_move.s N :=
+begin
+  sorry
+end
+
 lemma nice_D_wins_upper_bound_of_A_trapped_in {pw N : ℕ}
   {a : A pw} {d : D} {s₀ : State}
   (h₁ : d.nice pw)
   (h₂ : A_trapped_in pw s₀ N) :
   ¬((init_game a d s₀).play (bounded_area N)).act :=
 begin
-  apply not_act_of_descend
+  apply not_act_of_descend_play_move
     (λ (s : State), squares_in_bounded_exc_A s.board N)
     (λ (s : State), A_trapped_in pw s N); try { dsimp },
   sorry;{ have h₃ := mem_bounded_of_A_trapped_in h₂,
@@ -80,13 +87,28 @@ begin
     exact h₂,
   },
   {
-    clear' s₀ h₂,
-    rintro s hs hvm h₂,
-    sorry
+    rintro g hs₁ h₃,
+    exact A_trapped_in_play_move h₃,
   },
-  sorry,
-  sorry,
-  sorry,
+  {
+    -- See notes in `not_act_of_descend_play_move` from `induct.lean`
+    rintro g hs₁ h₃,
+    have h₄ := A_trapped_in_play_move h₃,
+    apply finset.card_lt_card,
+    simp [finset.ssubset_iff],
+    obtain ⟨s, s', hs, hs', hvm, h₅⟩ :=
+      play_move_state_eq_of_act_play_move hs₁,
+    use option.iget (g.d.f g.s s').m,
+    clear' s₀ h₂,
+    sorry
+    -- have ha : g.a = a := play_at_players_eq.1, rw ha at *, clear ha,
+    -- have hd : g.d = d := play_at_players_eq.2, rw ha at *, clear ha,
+    -- split,
+    -- {
+    --   extract_goal,
+    -- },
+    -- sorry,
+  },
 end
 
 #exit

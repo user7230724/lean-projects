@@ -364,3 +364,8 @@ begin
   rw [play_move_at_act hs, play_A_move_at, dif_pos],
   swap, { exact ⟨hs, hvm⟩ }, refl,
 end
+
+lemma act_play_move_of_A_hvm {pw : ℕ} {g : Game pw} {hs}
+  (h : A_has_valid_move pw (apply_D_move g.s (g.d.f g.s hs).m).board) :
+  g.play_move.act :=
+by { rw [play_move_at_act hs, play_A_move_at], split_ifs with h₁; tauto }
