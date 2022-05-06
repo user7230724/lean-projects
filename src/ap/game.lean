@@ -425,9 +425,15 @@ begin
   refine ⟨a, d₁, n, _⟩,
   have h₂ : (simulate a d₁ n).s = g.s,
   {
+    revert hs,
+    rw ←h, clear h,
+    let s : State := _,
+    change (simulate a d n).s with s,
+    rintro hs d₁,
+    change s with (simulate a d n).s,
     sorry
   },
-  {
+  sorry {
     simp [h, h₂],
     use hs,
     generalize_proofs h₃,
@@ -442,12 +448,12 @@ begin
       rw h₂,
     },
     {
-      have := @Valid_D_move_heq_iff pw,
+      revert h₃,
+      rw h₂,
+      exact λ _, heq_of_eq D_set_move_eq,
     },
   },
 end
-
-#exit
 
 lemma valid_state_play_A_move {pw : ℕ} {g : Game pw}
   (h : valid_A_state pw g.s) :

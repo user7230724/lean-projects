@@ -78,14 +78,14 @@ begin
       change (apply_A_move_b s'.board (g₁.a.f _ _ _).m).A ∈ _,
       rw apply_A_move_b, dsimp, generalize_proofs h₃,
       let ma := g₁.a.f s' h₁ h₃, change ma.m ∈ _, have h₄ := ma.h.2.1,
-      have h₅ : s'.board.A = g₁.s.board.A := apply_D_move_b_A,
+      have h₅ : s'.board.A = g₁.s.board.A := apply_D_move_A_eq,
       rw h₅ at h₄, clear h₅, cases n, { cases h }, rw nat.succ_le_succ_iff at h,
       specialize ih h, change _ ≤ _ at ih, change _ ≤ _, rw nat.succ_mul,
       transitivity dist ma.m g₁.s.board.A + dist g₁.s.board.A center,
       { exact dist_triangle },
       { rw add_comm, exact add_le_add ih h₄ }},
     { have h₃ : (play_D_move_at g₁ h₁).finish.s.board.A = g₁.s.board.A,
-      { exact apply_D_move_b_A },
+      { exact apply_D_move_A_eq },
       rw h₃, exact ih (nat.le_of_succ_le h) }},
 end
 

@@ -69,7 +69,7 @@ begin
     ext; try {refl}, rw play_A_move_at', dsimp,
     simp_rw h₃, change (play_D_move_at (init_game a d s) hs).a with a,
     generalize_proofs h₄, convert_to _ = apply_A_move s' (a.f s' hs h₂).m,
-    { simp_rw Game.set_state, congr; try {exact h₃}, convert_to trivial == trivial,
+    { congr; try {exact h₃}, convert_to trivial == trivial,
       { exact eq_true_intro h₄ }, { exact eq_true_intro h₂ }, refl }, refl },
   let g : Game pw := _, change g.A_wins at h₃,
   let g₁ : Game pw := _, change g₁.A_wins,

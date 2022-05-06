@@ -386,32 +386,3 @@ lemma Valid_D_move_eq_iff {pw : ℕ} {b : Board}
   {md₁ md₂ : Valid_A_move pw b} :
   md₁ = md₂ ↔ md₁.m = md₂.m :=
 by { cases md₁, cases md₂, simp }
-
-lemma Valid_A_move_heq_iff {pw : ℕ} {b₁ b₂ : Board}
-  {ma₁ : Valid_A_move pw b₁} {ma₂ : Valid_A_move pw b₂} :
-  ma₁ == ma₂ ↔ ma₁.m = ma₂.m :=
-begin
-  cases ma₁ with m₁ hm₁,
-  cases ma₂ with m₂ hm₂,
-  split; intro h,
-  {
-    have h₁ : b₁ = b₂,
-    {
-      have := proof_irrel_heq hm₁ hm₂,
-      sorry
-    },
-    revert hm₁ hm₂,
-    rw h₁,
-    simp,
-  },
-  {
-    sorry
-  },
-end
-
-#exit
-
-lemma Valid_D_move_heq_iff {pw : ℕ} {b : Board}
-  {md₁ md₂ : Valid_A_move pw b} :
-  md₁ == md₂ ↔ md₁.m = md₂.m :=
-by { cases md₁, cases md₂, simp }
