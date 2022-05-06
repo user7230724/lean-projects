@@ -335,7 +335,7 @@ lemma apply_D_move_len {s : State} {ma : D_move} :
   (apply_D_move s ma).len = s.len.succ :=
 apply_move_len
 
-lemma apply_D_move_b_A {b : Board} {md : Valid_D_move b} :
+lemma apply_D_move_A_eq {b : Board} {md : Valid_D_move b} :
   (apply_D_move_b b md.m).A = b.A :=
 by { rcases md with ⟨_ | md, h⟩; refl }
 
@@ -374,3 +374,44 @@ end
 
 instance {pw : ℕ} {b : Board} : fintype (Valid_A_move pw b) :=
 fintype.of_equiv _ Valid_A_move_equiv_subtype.symm
+
+-----
+
+lemma Valid_A_move_eq_iff {pw : ℕ} {b : Board}
+  {ma₁ ma₂ : Valid_A_move pw b} :
+  ma₁ = ma₂ ↔ ma₁.m = ma₂.m :=
+by { cases ma₁, cases ma₂, simp }
+
+lemma Valid_D_move_eq_iff {pw : ℕ} {b : Board}
+  {md₁ md₂ : Valid_A_move pw b} :
+  md₁ = md₂ ↔ md₁.m = md₂.m :=
+by { cases md₁, cases md₂, simp }
+
+lemma Valid_A_move_heq_iff {pw : ℕ} {b₁ b₂ : Board}
+  {ma₁ : Valid_A_move pw b₁} {ma₂ : Valid_A_move pw b₂} :
+  ma₁ == ma₂ ↔ ma₁.m = ma₂.m :=
+begin
+  cases ma₁ with m₁ hm₁,
+  cases ma₂ with m₂ hm₂,
+  split; intro h,
+  {
+    have h₁ : b₁ = b₂,
+    {
+      have := proof_irrel_heq hm₁ hm₂,
+      sorry
+    },
+    revert hm₁ hm₂,
+    rw h₁,
+    simp,
+  },
+  {
+    sorry
+  },
+end
+
+#exit
+
+lemma Valid_D_move_heq_iff {pw : ℕ} {b : Board}
+  {md₁ md₂ : Valid_A_move pw b} :
+  md₁ == md₂ ↔ md₁.m = md₂.m :=
+by { cases md₁, cases md₂, simp }

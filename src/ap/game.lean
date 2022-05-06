@@ -35,6 +35,35 @@ def D_hws (pw : ℕ) := D_hws_at pw state₀
 
 -----
 
+def simulate {pw : ℕ} (a : A pw) (d : D) (n : ℕ) : Game pw :=
+(init_game a d state₀).play n
+
+def all_s {pw : ℕ} (a : A pw) (d : D) (P : State → Prop) :=
+∀ (n : ℕ), P (simulate a d n).s
+
+def all_b {pw : ℕ} (a : A pw) (d : D) (P : Board → Prop) :=
+all_s a d (λ s, P s.board)
+
+def any_s {pw : ℕ} (a : A pw) (d : D) (P : State → Prop) :=
+¬all_s a d (λ s, ¬P s)
+
+def any_b {pw : ℕ} (a : A pw) (d : D) (P : Board → Prop) :=
+any_s a d (λ s, P s.board)
+
+def D_wins_in {pw : ℕ} (a : A pw) (d : D) (n : ℕ) :=
+∀ (k : ℕ), n ≤ k → ¬(simulate a d k).act
+
+def valid_A_state (pw : ℕ) (s : State) :=
+∃ (a : A pw) (d : D) (n : ℕ) hs, (play_D_move_at (simulate a d n) hs).s = s
+
+def valid_D_state (pw : ℕ) (s : State) :=
+∃ (a : A pw) (d : D) (n : ℕ), (simulate a d n).s = s
+
+def valid_state (pw : ℕ) (s : State) :=
+valid_D_state pw s
+
+-----
+
 lemma not_A_wins_at {pw : ℕ} {g : Game pw} :
   ¬g.A_wins ↔ g.D_wins :=
 by simp [Game.A_wins, Game.D_wins]
@@ -369,3 +398,71 @@ lemma act_play_move_of_A_hvm {pw : ℕ} {g : Game pw} {hs}
   (h : A_has_valid_move pw (apply_D_move g.s (g.d.f g.s hs).m).board) :
   g.play_move.act :=
 by { rw [play_move_at_act hs, play_A_move_at], split_ifs with h₁; tauto }
+
+@[simp] lemma init_game_a_eq {pw : ℕ} {a : A pw} {d : D} {s : State} :
+  (init_game a d s).a = a := rfl
+
+@[simp] lemma init_game_d_eq {pw : ℕ} {a : A pw} {d : D} {s : State} :
+  (init_game a d s).d = d := rfl
+
+@[simp] lemma init_game_s_eq {pw : ℕ} {a : A pw} {d : D} {s : State} :
+  (init_game a d s).s = s := rfl
+
+@[simp] lemma set_state_s {pw : ℕ} {g : Game pw} {s : State} :
+  (g.set_state s).s = s := rfl
+
+-----
+
+lemma valid_state₀ {pw : ℕ} : valid_state pw state₀ :=
+⟨default, default, 0, rfl⟩
+
+lemma valid_A_state_play_D_move {pw : ℕ} {g : Game pw} {hs}
+  (h : valid_state pw g.s) :
+  valid_A_state pw (play_D_move_at g hs).s :=
+begin
+  rcases h with ⟨a, d, n, h⟩,
+  let d₁ := d.set_move g.s (g.d.f g.s hs),
+  refine ⟨a, d₁, n, _⟩,
+  have h₂ : (simulate a d₁ n).s = g.s,
+  {
+    sorry
+  },
+  {
+    simp [h, h₂],
+    use hs,
+    generalize_proofs h₃,
+    simp_rw [play_D_move_eq, set_state_s],
+    rw (_ : (simulate a d₁ n).d = d₁),
+    swap,
+    {
+      exact play_at_players_eq.2,
+    },
+    congr' 2,
+    {
+      rw h₂,
+    },
+    {
+      have := @Valid_D_move_heq_iff pw,
+    },
+  },
+end
+
+#exit
+
+lemma valid_state_play_A_move {pw : ℕ} {g : Game pw}
+  (h : valid_A_state pw g.s) :
+  valid_state pw (play_A_move_at g).s :=
+begin
+  sorry
+end
+
+-- #exit
+
+lemma valid_state_play_move {pw : ℕ} {g : Game pw}
+  (h : valid_state pw g.s) :
+  valid_state pw g.play_move.s :=
+begin
+  rw Game.play_move, split_ifs with h₁,
+  { exact valid_state_play_A_move (valid_A_state_play_D_move h) },
+  { exact h },
+end

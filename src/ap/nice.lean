@@ -104,13 +104,60 @@ begin
     rintro s hs₁ h₃,
     obtain ⟨s', hs, hs', hvm, h₄, h₅⟩ := play_move_state_eq_of_act_play_move hs₁,
     rw h₅, clear h₅,
+    simp at *,
     rw (_ : squares_in_bounded_exc_A (apply_A_move _ _).board N =
       squares_in_bounded_exc_A s'.board N), swap,
     {
       simp_rw squares_in_bounded_exc_A,
-      sorry
+      let ma : Valid_A_move pw s'.board := _,
+      change (a.f s' hs' hvm) with ma,
+      let t : finset Point := _,
+      change _ = t.card,
+      have h₅ : ma.m ∈ t,
+      sorry,
+      have h₆ : s'.board.A ∉ t,
+      sorry,
+      convert finset_card_insert_erase_eq h₅ h₆,
+      ext p,
+      simp_rw [finset.mem_filter, finset.mem_insert,
+        set.mem_to_finset, finset.mem_erase],
+      change (apply_A_move s' ma.m).board.A with ma.m,
+      change (apply_A_move s' ma.m).board.squares with s'.board.squares,
+      by_cases h₇ : p = ma.m,
+      sorry {
+        subst p,
+        simp,
+        exact ma.h.1,
+      },
+      {
+        simp [h₇],
+        split; intro h₈,
+        sorry {
+          tauto,
+        },
+        {
+          rcases h₈ with h₈ | h₈ | h₈,
+          {
+            subst h₈,
+            split,
+            sorry {
+              rw (_ : s'.board.A = s.board.A), swap,
+              {
+                subst h₄,
+                exact apply_D_move_A_eq,
+              },
+              exact mem_bounded_of_A_trapped_in h₃,
+            },
+            {
+              sorry
+            },
+          },
+          sorry,
+          sorry,
+        },
+      },
     },
-    sorry
+    sorry -- because nice D eats one non-A square from `Bounded N`
   },
 end
 

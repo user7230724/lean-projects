@@ -3,6 +3,7 @@ import data.nat.parity
 import data.int.interval
 import data.set.finite
 import data.list
+import data.finset
 import set_theory.cardinal.basic
 
 noncomputable theory
@@ -151,4 +152,17 @@ begin
   have h₄ : ∃ n, n ∈ P,
   { cases h₃ with n h₃, use n, apply h₂, exact h₃ },
   simp_rw Inf, split_ifs, exact nat_find_le_find_of_imp h₂,
+end
+
+lemma finset_card_insert_erase_eq {α : Type} {s : finset α} {x y : α}
+  (h₁ : x ∈ s)
+  (h₂ : y ∉ s) :
+  (insert y (s.erase x)).card = s.card :=
+begin
+  replace h₂ : y ∉ s.erase x,
+  { rw finset.mem_erase, tauto },
+  rw [finset.card_insert_of_not_mem h₂, finset.card_erase_of_mem h₁],
+  cases h₃ : s.card,
+  { rw finset.card_eq_zero at h₃, subst h₃, cases h₁ },
+  { refl },
 end

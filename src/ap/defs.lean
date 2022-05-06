@@ -24,8 +24,8 @@ def board₀ : Board := ⟨set.univ, center⟩
 
 -- Move
 
-def A_move : Type := Point
-def D_move : Type := option Point
+@[reducible] def A_move : Type := Point
+@[reducible] def D_move : Type := option Point
 
 def A_move_valid (pw : ℕ) (b : Board) (p : A_move) : Prop :=
 p ≠ b.A ∧ dist p b.A ≤ pw ∧ p ∈ b.squares
