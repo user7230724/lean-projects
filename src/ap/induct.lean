@@ -285,3 +285,59 @@ begin
   { exact h (λ (s₁ s₂ : State), P s₂) hp₂ },
   { exact h (λ (s₁ s₂ : State), f s₂ < f s₁) hp₃ },
 end
+
+lemma not_act_of_descend_play_move_valid (f : State → ℕ) (P : State → Prop)
+  {pw n : ℕ} {a : A pw} {d : D} {s₀ : State}
+  (h₀ : valid_state pw s₀)
+  (hp₀ : f s₀ < n)
+  (hp₁ : P s₀)
+  (hp₂ : ∀ (s : State), valid_state pw s →
+    (init_game a d s).play_move.act → P s →
+    P (init_game a d s).play_move.s)
+  (hp₃ : ∀ (s : State), valid_state pw s →
+    (init_game a d s).play_move.act → P s →
+    f (init_game a d s).play_move.s < f s) :
+  ¬((init_game a d s₀).play n).act :=
+begin
+  have h : ∀ (Q : State → State → Prop),
+    (∀ (s : State), valid_state pw s →
+      (init_game a d s).play_move.act → P s →
+      Q s (init_game a d s).play_move.s) →
+    ∀ (s s' : State) hs hs' hvm, valid_state pw s →
+      P s → s' = apply_D_move s (d.f s hs).m →
+    Q s (apply_A_move s' (a.f s' hs' hvm).m),
+  { rintro Q hQ, rintro s s' hs hs' hvm hh₀ h₁ h₂,
+    have hs₁ : (init_game a d s).play_move.act,
+    { subst s', exact act_play_move_of_A_hvm hvm },
+    specialize hQ s hh₀ hs₁ h₁,
+    obtain ⟨s', hs, hs', hvm, h₃, h₄⟩ := play_move_state_eq_of_act_play_move hs₁,
+    rw h₄ at hQ, subst_vars, exact hQ },
+  apply not_act_of_descend f (λ s, valid_state pw s ∧ P s) hp₀ ⟨h₀, hp₁⟩,
+  {
+    convert h (λ (s₁ s₂ : State), P s₂) _,
+    {
+      ext,
+      split; intro h₁,
+      {
+        rintro s s' hs hs' hvm hh hp hr,
+        exact (h₁ s s' hs hs' hvm ⟨hh, hp⟩ hr).2,
+      },
+      {
+        rintro s s' hs hs' hvm hh hp,
+        fsplit,
+        {
+          -- apply valid_state_apply_A_move,
+          sorry
+        },
+        {
+          exact h₁ s s' hs hs' hvm hh.1 hh.2 hp,
+        },
+      },
+    },
+    sorry
+  },
+  {
+    -- apply h (λ (s₁ s₂ : State), f s₂ < f s₁),
+    sorry
+  },
+end

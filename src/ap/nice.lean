@@ -83,6 +83,7 @@ end
 
 lemma nice_D_wins_upper_bound_of_A_trapped_in {pw N : ℕ}
   {a : A pw} {d : D} {s₀ : State}
+  (h₀ : valid_state pw s₀)
   (h₁ : d.nice pw)
   (h₂ : A_trapped_in pw s₀ N) :
   ¬((init_game a d s₀).play (bounded_area N)).act :=
