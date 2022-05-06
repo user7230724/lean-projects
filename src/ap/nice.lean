@@ -88,9 +88,12 @@ lemma nice_D_wins_upper_bound_of_A_trapped_in {pw N : ℕ}
   (h₂ : A_trapped_in pw s₀ N) :
   ¬((init_game a d s₀).play (bounded_area N)).act :=
 begin
-  apply not_act_of_descend_play_move
+  apply not_act_of_descend_play_move_valid
     (λ (s : State), squares_in_bounded_exc_A s.board N)
     (λ (s : State), A_trapped_in pw s N); try { dsimp },
+  sorry {
+    exact h₀,
+  },
   sorry {
     exact squares_in_bounded_exc_A_lt_bounded_area_of_A_trapped_in h₂,
   },
@@ -98,11 +101,11 @@ begin
     exact h₂,
   },
   sorry {
-    rintro s hs₁ h₃,
+    rintro s hv hs₁ h₃,
     exact A_trapped_in_play_move h₃,
   },
   {
-    rintro s hs₁ h₃,
+    rintro s hv hs₁ h₃,
     obtain ⟨s', hs, hs', hvm, h₄, h₅⟩ := play_move_state_eq_of_act_play_move hs₁,
     rw h₅, clear h₅,
     simp at *,
@@ -150,6 +153,9 @@ begin
               exact mem_bounded_of_A_trapped_in h₃,
             },
             {
+              suffices h : valid_state pw s',
+              { exact A_mem_squares_of_valid_state h },
+              subst s',
               sorry
             },
           },

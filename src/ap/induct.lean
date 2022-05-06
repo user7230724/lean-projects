@@ -341,3 +341,18 @@ begin
     sorry
   },
 end
+
+lemma A_mem_squares_of_valid_state {pw : ℕ} {s : State}
+  (h : valid_state pw s) :
+  s.board.A ∈ s.board.squares :=
+begin
+  rcases h with ⟨a, d, n, rfl⟩,
+  apply @induct_s (λ (s : State), s.board.A ∈ s.board.squares),
+  { triv },
+  { rintro s p h₁ h, exact h.2.2 },
+  { rintro s ⟨- | p⟩ h₁ h,
+    { exact h₁ },
+    { simp_rw [apply_D_move, apply_D_move_b, apply_move, set.mem_diff],
+      exact ⟨h₁, h.1.symm⟩ }},
+  { rintro s h, exact h },
+end
