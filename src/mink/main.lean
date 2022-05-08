@@ -9,10 +9,10 @@ inductive Expr : Type
 | K : Expr
 | S : Expr
 | M : Expr
-| App : Expr → Expr → Expr
+| app : Expr → Expr → Expr
 open Expr
 
-infixl ` ~ `:100 := App
+infixl ` ~ `:100 := app
 
 def step : Expr → Expr
 | (K ~ a ~ b) := a
@@ -26,39 +26,36 @@ def step : Expr → Expr
 def reduces (e₁ e₂ : Expr) : Prop :=
 ∃ (n : ℕ), (step^[n]) e₁ = e₂
 
-infix ` ⇝ `:50 := reduces
+local infix ` > `:50 := reduces
 
 -----
 
 @[refl]
-lemma reduces.refl {a} : a ⇝ a :=
+lemma reduces.refl {a} : a > a :=
 by use [0, rfl]
 
 @[trans]
-lemma reduces.trans {a b c} (h₁ : a ⇝ b) (h₂ : b ⇝ c) : a ⇝ c :=
+lemma reduces.trans {a b c} (h₁ : a > b) (h₂ : b > c) : a > c :=
 begin
   cases h₁ with n₁ h₁, cases h₂ with n₂ h₂, use n₂ + n₁,
   rw function.iterate_add_apply, substs h₁ h₂,
 end
 
-lemma not_reduces {a b} : ¬a ⇝ b ↔ ∀ (n : ℕ), (step^[n]) a ≠ b :=
+lemma not_reduces {a b} : ¬a > b ↔ ∀ (n : ℕ), (step^[n]) a ≠ b :=
 by simp [reduces]
 
 -----
 
-def term : Expr → Prop
+def Expr.comb : Expr → Prop
 | (_ ~ _) := false
 | _ := true
 
-def app (a : Expr) : Prop :=
-¬term a
-
-lemma term.induct {P : Expr → Prop} {a : Expr}
-  (h₁ : term a) (h₂ : P K) (h₃ : P S) (h₄ : P M) : P a :=
-by cases a; simp [*, term] at *
+lemma term_induct {P : Expr → Prop} {a : Expr}
+  (h₁ : a.comb) (h₂ : P K) (h₃ : P S) (h₄ : P M) : P a :=
+by cases a; simp [*, Expr.comb] at *
 
 lemma reduces_iff_eq_of_step_eq_self {a b}
-  (h : step a = a) : a ⇝ b ↔ a = b :=
+  (h : step a = a) : a > b ↔ a = b :=
 begin
   split; intro h₁,
   { contrapose h₁, rw not_reduces, intro n, induction n with n ih,
@@ -67,19 +64,19 @@ begin
   { subst h₁ },
 end
 
-lemma step_self_of_term {a} (h : term a) : step a = a :=
-by apply term.induct h; refl
+lemma step_self_of_term {a : Expr} (h : a.comb) : step a = a :=
+by apply term_induct h; refl
 
-lemma reduces_iff_of_term {a b}
-  (h : term a) : a ⇝ b ↔ a = b :=
+lemma reduces_iff_of_term {a b : Expr}
+  (h : a.comb) : a > b ↔ a = b :=
 reduces_iff_eq_of_step_eq_self (step_self_of_term h)
 
 -----
 
 lemma apps_reduce_iff_args_reduce {t f : Expr} {args : list (Expr × Expr)}
-  (h₁ : term t)
-  (h₂ : ∀ (p : Expr × Expr), p ∈ args → p.1 ⇝ p.2) :
-  function.uncurry (λ a b, a ⇝ t ↔ b ⇝ t)
+  (h₁ : t.comb)
+  (h₂ : ∀ (p : Expr × Expr), p ∈ args → p.1 > p.2) :
+  function.uncurry (λ a b, a > t ↔ b > t)
     (list.foldl (λ (a p : Expr × Expr), (a.1 ~ p.1, a.2 ~ p.2)) ⟨f, f⟩ args) :=
 begin
   let m : Expr × Expr := _,
@@ -89,10 +86,10 @@ begin
   sorry
 end
 
-lemma app_reduces_iff_arg_reduces {t f a b}
-  (h₁ : term t)
-  (h₂ : a ⇝ b) :
-  f ~ a ⇝ t ↔ f ~ b ⇝ t :=
+lemma app_reduces_iff_arg_reduces {t f a b : Expr}
+  (h₁ : t.comb)
+  (h₂ : a > b) :
+  f ~ a > t ↔ f ~ b > t :=
 begin
   apply @apps_reduce_iff_args_reduce t f [(a, b)] h₁,
   rintro p h₄, rw list.mem_singleton at h₄, subst p, exact h₂,
@@ -102,5 +99,7 @@ end
 
 def I := S ~ K ~ K
 
-lemma I_id {a} : I ~ a ⇝ a :=
+lemma I_id {a} : I ~ a > a :=
 ⟨2, rfl⟩
+
+-----
