@@ -86,13 +86,7 @@ begin
   change function.uncurry _ m,
   change _ ↔ _,
   simp_rw reduces,
-  split; intro h,
-  {
-    sorry
-  },
-  {
-    sorry
-  },
+  sorry
 end
 
 lemma app_reduces_iff_arg_reduces {t f a b}
