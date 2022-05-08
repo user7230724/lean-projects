@@ -132,11 +132,13 @@ lemma D_prev_moves_id_eq {d : D} {s : State} :
   d.prev_moves_id s = d :=
 by { rw Ds_eq_iff, rintro s₁ hs, change dite _ _ _ = _, split_ifs; refl }
 
+@[simp]
 lemma A_set_move_eq {pw : ℕ} {a : A pw}
   {s : State} {m : Valid_A_move pw s.board} {hs h} :
   (a.set_move s m).f s hs h = m :=
 by { change dite _ _ _ = _, split_ifs with h₁; refl }
 
+@[simp]
 lemma D_set_move_eq {d : D}
   {s : State} {m : Valid_D_move s.board} {hs} :
   (d.set_move s m).f s hs = m :=
@@ -335,9 +337,13 @@ lemma apply_D_move_len {s : State} {ma : D_move} :
   (apply_D_move s ma).len = s.len.succ :=
 apply_move_len
 
-lemma apply_D_move_A_eq {b : Board} {md : Valid_D_move b} :
-  (apply_D_move_b b md.m).A = b.A :=
-by { rcases md with ⟨_ | md, h⟩; refl }
+lemma apply_D_move_b_A_eq {b : Board} {md : D_move} :
+  (apply_D_move_b b md).A = b.A :=
+by { cases md; refl }
+
+lemma apply_D_move_A_eq {s : State} {md : D_move} :
+  (apply_D_move s md).board.A = s.board.A :=
+by { cases md; refl }
 
 -----
 

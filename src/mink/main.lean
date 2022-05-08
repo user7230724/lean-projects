@@ -57,7 +57,7 @@ lemma term.induct {P : Expr → Prop} {a : Expr}
   (h₁ : term a) (h₂ : P K) (h₃ : P S) (h₄ : P M) : P a :=
 by cases a; simp [*, term] at *
 
-lemma R_iff_of_reduce_eq_self_iff {a b}
+lemma R_iff_eq_of_reduce_eq_self {a b}
   (h : reduce a = a) : a ==> b ↔ a = b :=
 begin
   split; intro h₁,
@@ -72,7 +72,7 @@ by apply term.induct h; refl
 
 lemma R_iff_of_term {a b}
   (h : term a) : a ==> b ↔ a = b :=
-R_iff_of_reduce_eq_self_iff (reduce_self_of_term h)
+R_iff_eq_of_reduce_eq_self (reduce_self_of_term h)
 
 lemma reduce_arg_app_R_term {t f a a'}
   (h₁ : term t) (h₂ : a ==> a') :

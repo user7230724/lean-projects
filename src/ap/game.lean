@@ -334,16 +334,16 @@ lemma play_1 {pw : ℕ} {g : Game pw} : g.play 1 = g.play_move := rfl
 
 -----
 
+@[simp]
 lemma init_game_act {pw : ℕ}
-  {a : A pw} {d : D} {s : State}
-  (h : s.act) :
-  (init_game a d s).act := h
+  {a : A pw} {d : D} {s : State} :
+  (init_game a d s).act ↔ s.act := by refl
 
 lemma init_game_play_move {pw : ℕ}
   {a : A pw} {d : D} {s : State} (hs) :
   (init_game a d s).play_move =
   play_A_move_at (play_D_move_at (init_game a d s) hs) :=
-dif_pos (init_game_act hs)
+dif_pos (init_game_act.mp hs)
 
 lemma hist_len_game_finish {pw : ℕ} {g : Game pw} :
   g.finish.s.len = g.s.len := rfl
@@ -374,7 +374,8 @@ lemma play_add' {pw n k} {g : Game pw} :
   g.play (n + k) = (g.play k).play n :=
 by { apply function.iterate_add_apply }
 
-lemma init_game_state_eq {pw : ℕ} {a : A pw} {d : D} {s : State} :
+@[simp]
+lemma init_game_s {pw : ℕ} {a : A pw} {d : D} {s : State} :
   (init_game a d s).s = s := rfl
 
 lemma play_move_state_eq_of_act_play_move {pw : ℕ} {g : Game pw}
@@ -472,3 +473,11 @@ begin
   { exact valid_state_play_A_move (valid_A_state_play_D_move h) },
   { exact h },
 end
+
+@[simp]
+lemma play_D_move_act {pw : ℕ} {g : Game pw} {hs} :
+  (play_D_move_at g hs).act ↔ g.act := by refl
+
+@[simp]
+lemma play_D_move_s {pw : ℕ} {g : Game pw} {hs} :
+  (play_D_move_at g hs).s = apply_D_move g.s (g.d.f g.s hs).m := rfl

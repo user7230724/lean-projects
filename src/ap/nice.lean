@@ -58,6 +58,44 @@ lemma mem_bounded_of_A_trapped_in {pw N : ℕ} {s : State}
   s.board.A ∈ bounded N :=
 h default default 0
 
+lemma mem_bounded_apply_D_move_of_A_trapped_in {pw N : ℕ}
+  {s : State} {md : D_move}
+  (h : A_trapped_in pw s N) :
+  (apply_D_move s md).board.A ∈ bounded N :=
+by { rw apply_D_move_A_eq, exact mem_bounded_of_A_trapped_in h }
+
+lemma mem_bounded_apply_A_move_of_A_trapped_in {pw N : ℕ}
+  {s s' : State} {ma : Valid_A_move pw s'.board} {md : Valid_D_move s.board}
+  (h₁ : A_trapped_in pw s N)
+  (h₂ : s' = apply_D_move s md.m) :
+  (apply_A_move s' ma.m).board.A ∈ bounded N :=
+begin
+  specialize h₁ ((default : A pw).set_move s' ma) ((default : D).set_move s md) 1,
+  rw play_1 at h₁,
+  rw Game.play_move at h₁,
+  split_ifs at h₁ with h₃,
+  {
+    rw play_A_move_at at h₁,
+    rw dif_pos at h₁, swap,
+    {
+      clear h₁,
+      use h₃,
+      subst s',
+      use ma.m,
+      revert h₃,
+      simp,
+      intro h₃,
+      generalize_proofs,
+      sorry,
+      -- rw (_ : (init_game _ _ _).s = s),
+    },
+    sorry,
+  },
+  sorry,
+end
+
+#exit
+
 lemma squares_in_bounded_exc_A_lt_bounded_area_of_A_trapped_in
   {pw N : ℕ} {s : State}
   (h : A_trapped_in pw s N) :
@@ -108,7 +146,7 @@ begin
     rintro s hv hs₁ h₃,
     obtain ⟨s', hs, hs', hvm, h₄, h₅⟩ := play_move_state_eq_of_act_play_move hs₁,
     rw h₅, clear h₅,
-    simp at *,
+    simp only [init_game_a_eq, init_game_d_eq, init_game_s_eq] at *,
     rw (_ : squares_in_bounded_exc_A (apply_A_move _ _).board N =
       squares_in_bounded_exc_A s'.board N), swap,
     {
@@ -117,10 +155,24 @@ begin
       change (a.f s' hs' hvm) with ma,
       let t : finset Point := _,
       change _ = t.card,
+      have hma₁ : ma.m ∈ bounded N,
+      {
+        sorry
+      },
+      have hma₂ : ma.m ∈ s'.board.squares,
+      sorry,
+      have hma₃ : ma.m ≠ s'.board.A,
+      sorry,
       have h₅ : ma.m ∈ t,
-      sorry,
+      sorry {
+        rw [finset.mem_filter, set.mem_to_finset],
+        exact ⟨hma₁, hma₂, hma₃⟩,
+      },
       have h₆ : s'.board.A ∉ t,
-      sorry,
+      sorry {
+        rw finset.mem_filter,
+        simp,
+      },
       convert finset_card_insert_erase_eq h₅ h₆,
       ext p,
       simp_rw [finset.mem_filter, finset.mem_insert,
@@ -134,33 +186,30 @@ begin
         exact ma.h.1,
       },
       {
-        simp [h₇],
+        simp only [true_and, and_true, set.mem_to_finset, ne.def, not_false_iff,
+          finset.mem_filter, h₇],
         split; intro h₈,
         sorry {
           tauto,
         },
         {
-          rcases h₈ with h₈ | h₈ | h₈,
+          change _ ≠ _ at h₇,
+          cases h₈,
           {
+            clear h₇,
             subst h₈,
-            split,
+            fsplit,
             sorry {
-              rw (_ : s'.board.A = s.board.A), swap,
-              {
-                subst h₄,
-                exact apply_D_move_A_eq,
-              },
-              exact mem_bounded_of_A_trapped_in h₃,
+              subst s',
+              exact mem_bounded_apply_D_move_of_A_trapped_in h₃,
             },
             {
-              suffices h : valid_state pw s',
-              { exact A_mem_squares_of_valid_state h },
-              subst s',
-              sorry
+              sorry -- valid_state pw s
             },
           },
-          sorry,
-          sorry,
+          sorry {
+            tauto,
+          },
         },
       },
     },
