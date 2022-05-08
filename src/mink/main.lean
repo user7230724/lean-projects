@@ -94,8 +94,8 @@ lemma app_reduces_iff_arg_reduces {t f a b}
   (h₂ : a ⇝ b) :
   f ~ a ⇝ t ↔ f ~ b ⇝ t :=
 begin
-  apply @apps_reduce_iff_args_reduce t f [(a, b)] h₁ _, rintro p h₄,
-  rw list.mem_singleton at h₄, subst p, exact h₂,
+  apply @apps_reduce_iff_args_reduce t f [(a, b)] h₁,
+  rintro p h₄, rw list.mem_singleton at h₄, subst p, exact h₂,
 end
 
 -----
@@ -103,4 +103,4 @@ end
 def I := S ~ K ~ K
 
 lemma I_id {a} : I ~ a ⇝ a :=
-by use [2, rfl]
+⟨2, rfl⟩
