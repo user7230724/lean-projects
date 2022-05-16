@@ -9,7 +9,7 @@ def mem_loop {α : Type} (f : α → α) (x : α) (l : list α) : Prop :=
 ∀ (n : ℕ), l.nth (n % l.length) = some ((f^[n]) x)
 
 def mem_shortest_loop {α : Type} (f : α → α) (x : α) (l : list α) : Prop :=
-mem_loop f x l ∧ ∀ (l' : list α), mem_loop f x l' → l'.length ≤ l.length
+mem_loop f x l ∧ ∀ (l' : list α), mem_loop f x l' → l.length ≤ l'.length
 
 -- #exit
 
@@ -111,15 +111,6 @@ lemma nat_find_spec_lt {P : ℕ → Prop}
   ∀ (n : ℕ), n < nat.find h → ¬P n :=
 λ n h₁, (nat.lt_find_iff h _).mp h₁ n (le_refl _)
 
-lemma nat_exi_mul (x y : ℕ) : ∃ (a b : ℕ), x = y * a + b :=
-by { use [x / y, x % y], rw nat.div_add_mod }
-
-lemma nat_exi_mul' {x y : ℕ}
-  (h₁ : 0 < y) (h₂ : y < x) : ∃ (a b : ℕ), b < y ∧ x = y * a + b :=
-by { use [x / y, x % y, nat.mod_lt _ h₁], rw nat.div_add_mod }
-
--- #exit
-
 lemma nat_mul_add_mod {a b c : ℕ} : (a * b + c) % b = c % b :=
 by rw [nat.add_mod, nat.mul_mod, nat.mod_self, nat.mul_zero, nat.zero_mod,
   nat.zero_add, nat.mod_mod]
@@ -127,7 +118,9 @@ by rw [nat.add_mod, nat.mul_mod, nat.mod_self, nat.mul_zero, nat.zero_mod,
 lemma nat_mul_add_mod_of_lt {a b c : ℕ} (h : c < b) : (a * b + c) % b = c :=
 by rw [nat_mul_add_mod, nat.mod_eq_of_lt h]
 
--- #exit
+lemma nat_exi_mul (x y : ℕ) :
+  ∃ (a b : ℕ), x / y = a ∧ x % y = b ∧ x = y * a + b :=
+⟨_, _, rfl, rfl, (nat.div_add_mod _ _).symm⟩
 
 lemma shortest_loop_nodup {α : Type}
   {f : α → α} {x : α} {l : list α}
@@ -141,7 +134,6 @@ begin
   by_contra h₁,
   rw list_nodup_iff at h₁,
   push_neg at h₁,
-  -- rcases h₁ with ⟨i, j, hi, hj, h₁⟩,
   let i := nat.find h₁,
   have hi := nat.find_spec h₁,
   change nat.find h₁ with i at hi,
@@ -157,7 +149,7 @@ begin
   have h₆ := h₂.trans h₃,
   have h₇ := le_of_lt h₆,
   have hi0 : i = 0,
-  sorry { by_contra hi₁,
+  { by_contra hi₁,
     have h₅ : l.nth 0 = l.nth d,
     { calc l.nth 0 = l.nth ((i + (k - i)) % k) :
           by rw [nat_sub_cancel' h₇, nat.mod_self]
@@ -179,46 +171,72 @@ begin
   have hx0 : l.nth 0 = x' := by { rw [←nat.zero_mod k, hh], refl },
   have hxd : l.nth d = x' := by rw [←hx0, ←hjd, ←hi0, h₄],
   have hmd : ∀ (m : ℕ), l.nth ((d * m) % k) = l.nth 0,
-  sorry { intro m,
+  { intro m,
     rw [hh, hx0],
     apply iter_mul_eq_of_eq,
     rwa [←hh, nat.mod_eq_of_lt hd₂] },
   let l' := l.take d,
   have hlen : l'.length = d,
-  sorry { rw list.length_take, exact min_eq_left (le_of_lt hd₂) },
+  { rw list.length_take, exact min_eq_left (le_of_lt hd₂) },
   specialize hh₂ l' _,
-  {
-    intro m,
-    sorry
-    -- obtain ⟨a, b, hb₁, hb₂⟩ := nat_exi_mul' hd₁ hd₂,
-    -- rw hlen,
-    -- rw nat_mul_add_mod_of_lt
-  },
-  sorry
+  { intro m,
+    obtain ⟨a, b, ha, hb, hab⟩ := nat_exi_mul m d,
+    have hbd : b < d := by { rw ←hb, exact nat.mod_lt _ hd₁ },
+    have hbk := hbd.trans hd₂,
+    rw [hlen, hb, list.nth_take hbd, ←nat.mod_eq_of_lt hbk, ←hh₁, hab],
+    symmetry,
+    change l.length with k,
+    rw [hh, iter_add, ←hh, hmd, hh, hx0] },
+  contrapose! hh₂,
+  rwa hlen,
 end
 
-#exit
+lemma exi_mem_shortest_loop_of_mem_loop {α : Type}
+  {f : α → α} {x : α} {l : list α}
+  (h : mem_loop f x l) :
+  ∃ (l' : list α), mem_shortest_loop f x l' :=
+begin
+  have h₁ : ∃ (n : ℕ) (l : list α), l.length = n ∧ mem_loop f x l,
+  { exact ⟨_, _, rfl, h⟩ },
+  let n := nat.find h₁,
+  obtain ⟨l, h₂, h₃⟩ := nat.find_spec h₁,
+  use [l, h₃],
+  rintro l' h₄,
+  rw h₂,
+  by_contra' h₅,
+  have h₆ := nat_find_spec_lt h₁ _ h₅,
+  push_neg at h₆,
+  exact h₆ _ rfl h₄,
+end
 
-lemma mem_loop_nodup_of_mem_loop {α : Type}
+lemma exi_mem_loop_nodup_of_mem_loop {α : Type}
   {f : α → α} {x : α} {l : list α}
   (h : mem_loop f x l) :
   ∃ (l' : list α), l'.nodup ∧ mem_loop f x l' :=
 begin
-  sorry
+  obtain ⟨l', h₁⟩ := exi_mem_shortest_loop_of_mem_loop h,
+  exact ⟨_, shortest_loop_nodup h₁, h₁.1⟩,
 end
 
-#exit
+lemma list_length_eq_card_to_finset_of_nodup {α : Type} {l : list α}
+  (h : l.nodup) : l.length = l.to_finset.card :=
+by rw [list.card_to_finset, list.dedup_eq_self.mpr h]
+
+lemma list_length_le_fintype_card_of_nodup {α : Type} [fintype α] {l : list α}
+  (h : l.nodup) : l.length ≤ fintype.card α :=
+begin
+  rw [fintype.card, list_length_eq_card_to_finset_of_nodup h],
+  apply finset.card_le_univ,
+end
 
 lemma mem_loop_length_le_of_mem_loop {α : Type} [fintype α]
   {f : α → α} {x : α} {l : list α} {n : ℕ}
-  (h₁ : n = fintype.card α)
-  (h₂ : mem_loop f x l) :
-  ∃ (l' : list α), l'.length ≤ n ∧ mem_loop f x l' :=
+  (h : mem_loop f x l) :
+  ∃ (l' : list α), l'.length ≤ fintype.card α ∧ mem_loop f x l' :=
 begin
-  sorry
+  obtain ⟨l', h₁, h₂⟩ := exi_mem_loop_nodup_of_mem_loop h,
+  exact ⟨_, list_length_le_fintype_card_of_nodup h₁, h₂⟩,
 end
-
-#exit
 
 lemma exi_loop_iter_card {α : Type} [fintype α]
   {f : α → α} {x : α} {n : ℕ}
@@ -228,7 +246,7 @@ begin
   sorry
 end
 
-#exit
+-- #exit
 
 lemma exi_iter_eq {α : Type} [fintype α] :
   ∃ (a b : ℕ), a < b ∧ ∀ {f : α → α}, (f^[a]) = (f^[b]) :=
