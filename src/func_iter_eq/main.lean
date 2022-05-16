@@ -11,6 +11,44 @@ def mem_loop {α : Type} (f : α → α) (x : α) (l : list α) : Prop :=
 def mem_shortest_loop {α : Type} (f : α → α) (x : α) (l : list α) : Prop :=
 mem_loop f x l ∧ ∀ (l' : list α), mem_loop f x l' → l.length ≤ l'.length
 
+noncomputable
+def mk_finset {α : Type} (f : ℕ → α) : ℕ → finset α
+| 0 := ∅
+| (n+1) := insert (f n) (mk_finset n)
+
+-----
+
+lemma mk_finset_zero {α : Type} {f : ℕ → α} : mk_finset f 0 = ∅ :=
+rfl
+
+lemma mk_finset_succ {α : Type} {f : ℕ → α} {n : ℕ} :
+  mk_finset f n.succ = insert (f n) (mk_finset f n) :=
+mk_finset.equations._eqn_2 _ _
+
+lemma mem_mk_finset {α : Type} {f : ℕ → α} {n : ℕ} {x : α} :
+  x ∈ mk_finset f n ↔ ∃ (i : ℕ), i < n ∧ f i = x :=
+begin
+  induction n with n ih,
+  { rw mk_finset_zero,
+    apply iff_of_false (finset.not_mem_empty _),
+    push_neg,
+    rintro i h,
+    cases h },
+  { rw [mk_finset_succ, finset.mem_insert],
+    split; intro h,
+    { cases h,
+      { subst h,
+        exact ⟨_, lt_add_one _, rfl⟩ },
+      { rw ih at h,
+        rcases h with ⟨i, h, rfl⟩,
+        exact ⟨_, nat.lt_succ_of_lt h, rfl⟩ }},
+    { rcases h with ⟨i, h, rfl⟩,
+      rw [nat.lt_succ_iff, le_iff_eq_or_lt] at h,
+      cases h,
+      { left, subst h },
+      { right, rw ih, exact ⟨_, h, rfl⟩ }}},
+end
+
 -- #exit
 
 lemma iter_add {α : Type} {f : α → α} {x : α} {m n : ℕ} :
@@ -238,15 +276,67 @@ begin
   exact ⟨_, list_length_le_fintype_card_of_nodup h₁, h₂⟩,
 end
 
-lemma exi_loop_iter_card {α : Type} [fintype α]
+lemma a {α : Type}
+  {f : α → α} {x : α} {n : ℕ} :
+  (mk_finset (λ (i : ℕ), (f^[i]) x) n).card = n ↔
+  ∀ (i j : ℕ), i < j → j < n → (f^[i]) x ≠ (f^[j]) x :=
+begin
+  symmetry,
+  induction n with n ih,
+  sorry { rw [mk_finset_zero, finset.card_empty, iff_of_true rfl],
+    rintro i j h₁ h₂,
+    cases h₂ },
+  {
+    rw mk_finset_succ,
+    let s : finset α := _,
+    change _ ↔ s.card = _ at ih,
+    change _ ↔ (insert _ s).card = _,
+    by_cases hh : ((f^[n]) x) ∈ s,
+    {
+      sorry
+      -- have h₁ := hh,
+      -- rw mem_mk_finset at h₁,
+      -- rcases h₁ with ⟨i, h₁, h₂⟩,
+      -- apply iff_of_false,
+      -- {
+      --   push_neg,
+      --   exact ⟨_, _, h₁, lt_add_one _, h₂⟩,
+      -- },
+      -- rw finset.card_insert_of_mem hh,
+    },
+    sorry {
+      split; intro h,
+      { rw [finset.card_insert_of_not_mem hh, nat.succ_inj', ←ih],
+        rintro i j hi hj,
+        exact h i j hi (nat.lt_succ_of_lt hj) },
+      {
+        sorry
+      },
+    },
+  },
+end
+
+#exit
+
+lemma mk_finset_card_eq_of_iter_add_ne {α : Type}
   {f : α → α} {x : α} {n : ℕ}
-  (h : n = fintype.card α) :
-  ∃ (m : ℕ), 0 < m ∧ m ≤ n ∧ (f^[n+m]) x = (f^[n]) x :=
+  (h : ∀ (m : ℕ), (f^[n + m]) x ≠ (f^[n]) x) :
+  (mk_finset (λ (i : ℕ), (f^[i]) x) n).card = n :=
 begin
   sorry
 end
 
--- #exit
+#exit
+
+lemma exi_iter_add_eq {α : Type} [fintype α]
+  {f : α → α} {x : α} {n : ℕ}
+  (h : n = fintype.card α) :
+  ∃ (m : ℕ), 0 < m ∧ m ≤ n ∧ (f^[n + m]) x = (f^[n]) x :=
+begin
+  by_contra h₁,
+end
+
+#exit
 
 lemma exi_iter_eq {α : Type} [fintype α] :
   ∃ (a b : ℕ), a < b ∧ ∀ {f : α → α}, (f^[a]) = (f^[b]) :=
@@ -258,7 +348,7 @@ begin
   { intro f,
     funext x,
     symmetry,
-    obtain ⟨m, hm₁, hm₂, h₁⟩ := @exi_loop_iter_card α _ f x n rfl,
+    obtain ⟨m, hm₁, hm₂, h₁⟩ := @exi_iter_add_eq α _ f x n rfl,
     obtain ⟨a, ha⟩ := nat.dvd_factorial hm₁ hm₂,
     rw [ha, iter_add_mul_eq_of_add_eq h₁] },
 end
