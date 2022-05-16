@@ -49,8 +49,6 @@ begin
       { right, rw ih, exact ⟨_, h, rfl⟩ }}},
 end
 
--- #exit
-
 lemma iter_add {α : Type} {f : α → α} {x : α} {m n : ℕ} :
   (f^[m + n]) x = (f^[n]) ((f^[m]) x) :=
 by rw [add_comm, function.iterate_add_apply]
@@ -141,7 +139,7 @@ begin
       rw [function.iterate_succ_apply', h₁] }},
 end
 
-lemma nat_sub_cancel' {a b : ℕ} (h : a ≤ b) : a + (b - a) = b :=
+lemma nat_add_sub {a b : ℕ} (h : a ≤ b) : a + (b - a) = b :=
 by rw [←nat.add_sub_assoc h, add_tsub_cancel_left]
 
 lemma nat_find_spec_lt {P : ℕ → Prop}
@@ -190,7 +188,7 @@ begin
   { by_contra hi₁,
     have h₅ : l.nth 0 = l.nth d,
     { calc l.nth 0 = l.nth ((i + (k - i)) % k) :
-          by rw [nat_sub_cancel' h₇, nat.mod_self]
+          by rw [nat_add_sub h₇, nat.mod_self]
         ... = (g^[i + (k - i)]) x' : by rw hh
         ... = (g^[k - i]) ((g^[i]) x') : by rw iter_add
         ... = (g^[k - i]) (l.nth i) : by rw [←hh, nat.mod_eq_of_lt h₆]
@@ -276,67 +274,52 @@ begin
   exact ⟨_, list_length_le_fintype_card_of_nodup h₁, h₂⟩,
 end
 
-lemma a {α : Type}
+lemma card_mk_finset_eq_iff {α : Type}
   {f : α → α} {x : α} {n : ℕ} :
   (mk_finset (λ (i : ℕ), (f^[i]) x) n).card = n ↔
   ∀ (i j : ℕ), i < j → j < n → (f^[i]) x ≠ (f^[j]) x :=
 begin
-  symmetry,
-  induction n with n ih,
-  sorry { rw [mk_finset_zero, finset.card_empty, iff_of_true rfl],
-    rintro i j h₁ h₂,
-    cases h₂ },
-  {
-    rw mk_finset_succ,
-    let s : finset α := _,
-    change _ ↔ s.card = _ at ih,
-    change _ ↔ (insert _ s).card = _,
-    by_cases hh : ((f^[n]) x) ∈ s,
-    {
-      sorry
-      -- have h₁ := hh,
-      -- rw mem_mk_finset at h₁,
-      -- rcases h₁ with ⟨i, h₁, h₂⟩,
-      -- apply iff_of_false,
-      -- {
-      --   push_neg,
-      --   exact ⟨_, _, h₁, lt_add_one _, h₂⟩,
-      -- },
-      -- rw finset.card_insert_of_mem hh,
-    },
-    sorry {
-      split; intro h,
-      { rw [finset.card_insert_of_not_mem hh, nat.succ_inj', ←ih],
-        rintro i j hi hj,
-        exact h i j hi (nat.lt_succ_of_lt hj) },
-      {
-        sorry
-      },
-    },
-  },
-end
-
-#exit
-
-lemma mk_finset_card_eq_of_iter_add_ne {α : Type}
-  {f : α → α} {x : α} {n : ℕ}
-  (h : ∀ (m : ℕ), (f^[n + m]) x ≠ (f^[n]) x) :
-  (mk_finset (λ (i : ℕ), (f^[i]) x) n).card = n :=
-begin
   sorry
 end
 
-#exit
+-- #exit
+
+lemma card_mk_finset_eq_of_iter_add_ne {α : Type}
+  {f : α → α} {x : α} {n : ℕ}
+  (h : ∀ (m : ℕ), 0 < m → (f^[n + m]) x ≠ (f^[n]) x) :
+  (mk_finset (λ (i : ℕ), (f^[i]) x) n).card = n :=
+begin
+  rw card_mk_finset_eq_iff,
+  rintro i j hi hj,
+  by_contra' h₁,
+  let d := j - i,
+  have h₁ : ∀ (m : ℕ), (f^[i + d * m]) x = (f^[i]) x,
+  { intro m,
+    apply iter_add_mul_eq_of_add_eq,
+    change d with j - i,
+    rw [nat_add_sub (le_of_lt hi), h₁] },
+  have hh := le_of_lt (hi.trans hj),
+  obtain ⟨k, hn⟩ := nat.exists_eq_add_of_le hh,
+  obtain ⟨a, b, ha, hb, rfl⟩ := nat_exi_mul k d,
+  have h₃ : (f^[n]) x = (f^[i + b]) x,
+  { rw [hn, ←add_assoc, iter_add, h₁, ←iter_add] },
+  have h₄ : (f^[n + d]) x = (f^[i + b]) x,
+  { rw [hn, (by linarith : i + (d * a + b) + d = i + d * (a + 1) + b),
+    iter_add, h₁, ←iter_add] },
+  specialize h d,
+  rw [h₃, h₄] at h,
+  exact h (tsub_pos_of_lt hi) rfl,
+end
 
 lemma exi_iter_add_eq {α : Type} [fintype α]
   {f : α → α} {x : α} {n : ℕ}
   (h : n = fintype.card α) :
   ∃ (m : ℕ), 0 < m ∧ m ≤ n ∧ (f^[n + m]) x = (f^[n]) x :=
 begin
-  by_contra h₁,
+  sorry
 end
 
-#exit
+-- #exit
 
 lemma exi_iter_eq {α : Type} [fintype α] :
   ∃ (a b : ℕ), a < b ∧ ∀ {f : α → α}, (f^[a]) = (f^[b]) :=
