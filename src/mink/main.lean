@@ -14,6 +14,8 @@ open Expr
 
 infixl ` ~ `:100 := app
 
+instance : inhabited Expr := ⟨K⟩
+
 def step : Expr → Expr
 | (K ~ a ~ b) := a
 | (S ~ a ~ b ~ c) := a ~ c ~ (b ~ c)
@@ -101,5 +103,80 @@ def I := S ~ K ~ K
 
 lemma I_id {a} : I ~ a > a :=
 ⟨2, rfl⟩
+
+-----
+
+def Expr.mk_diff (a : Expr) : Expr :=
+K ~ a
+
+lemma mk_diff_ne {a : Expr} : a.mk_diff ≠ a :=
+by { rw Expr.mk_diff, induction' a; simp, rintro rfl, assumption }
+
+-----
+
+-- def func_coe_raw
+
+-- inductive Func : (Expr → Expr) → Expr → Prop
+-- | id : Func id I
+-- | comb {a : Expr} : a.comb → Func (λ _, a) (K ~ a)
+-- | app {f₁ f₂ : Expr → Expr} {e₁ e₂ : Expr} :
+--   Func f₁ e₁ → Func f₂ e₂ → Func (λ a, f₁ a ~ f₂ a) (S ~ e₁ ~ e₂)
+
+-- def func_coe_raw (f : Expr → Expr) : Expr :=
+-- if h : ∃ (e : Expr), Func f e then h.some else default
+
+-- lemma exi_func_coe : ∃ (f : (Expr → Expr) → Expr),
+--   (f id = I) ∧
+--   (∀ (a : Expr), a.comb → f (λ _, a) = K ~ a) ∧
+--   (∀ (g₁ g₂ : Expr → Expr), f (λ a, g₁ a ~ g₂ a) = S ~ f g₁ ~ f g₂) :=
+-- begin
+--   refine ⟨func_coe_raw, _, _, _⟩; simp_rw func_coe_raw,
+--   sorry {
+--     rw dif_pos, swap,
+--     {
+--       use I,
+--       exact Func.id,
+--     },
+--     generalize_proofs h,
+--     have h₁ := h.some_spec,
+--     induction' h₁,
+--     {
+--       refl,
+--     },
+--     {
+--       cases mk_diff_ne (congr_fun induction_eq h.some.mk_diff).symm,
+--     },
+--     {
+--       cases congr_fun induction_eq K,
+--     },
+--   },
+--   sorry {
+--     rintro a h,
+--     rw dif_pos, swap,
+--     {
+--       use K ~ a,
+--       exact Func.comb h,
+--     },
+--     generalize_proofs h₁,
+--     have h₂ := h₁.some_spec,
+--     induction' h₂,
+--     {
+--       cases congr_fun induction_eq (K ~ K),
+--       cases h,
+--     },
+--     {
+--       cases congr_fun induction_eq K,
+--       refl,
+--     },
+--     {
+--       cases congr_fun induction_eq K,
+--       cases h,
+--     },
+--   },
+--   {
+--     rintro g₁ g₂,
+--     rw dif_pos,
+--   },
+-- end
 
 -----
