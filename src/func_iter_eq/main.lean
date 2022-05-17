@@ -303,20 +303,110 @@ by rw [list.length_append, list.length_singleton]
 
 lemma list_dedup_singleton {α : Type} {x : α} : [x].dedup = [x] := rfl
 
-lemma list_length_lt_of_dup {α : Type} {l : list α}
-  (h : ¬l.nodup) : l.dedup.length < l.length :=
+lemma list_length_dedup_le {α : Type} {l : list α} :
+  l.dedup.length ≤ l.length :=
 begin
-  sorry
+  induction' l,
+  { refl },
+  { by_cases h : hd ∈ l,
+    { rw list.dedup_cons_of_mem h,
+      exact ih.trans (le_of_lt (lt_add_one _)) },
+    { simp_rw [list.dedup_cons_of_not_mem h, list.length_cons,
+      nat.succ_le_succ_iff, ih] }},
 end
 
--- #exit
+lemma list_length_dedup_eq_card_to_finset {α : Type} {l : list α} :
+  l.dedup.length = l.to_finset.card :=
+begin
+  induction' l,
+  { refl },
+  { rw list.to_finset_cons,
+    by_cases h : hd ∈ l,
+    { rwa [list.dedup_cons_of_mem h,
+      finset.insert_eq_of_mem (list.mem_to_finset.mpr h)] },
+    { rw [list.dedup_cons_of_not_mem h, list.length_cons,
+      finset.card_insert_of_not_mem _, ih],
+      contrapose! h,
+      exact list.mem_to_finset.mp h }},
+end
+
+lemma list_length_dedup_append_le {α : Type} {l₁ l₂ : list α} :
+  ((l₁ ++ l₂).dedup).length ≤ l₁.dedup.length + l₂.dedup.length :=
+begin
+  simp_rw [list_length_dedup_eq_card_to_finset, list.to_finset_append],
+  apply finset.card_union_le,
+end
+
+lemma list_dedup_dup_cons {α : Type} {l : list α} {x : α} :
+  (x :: x :: l).dedup = (x :: l).dedup :=
+begin
+  rw [list.dedup, list.pw_filter_cons_of_neg],
+  push_neg,
+  refine ⟨_, _, rfl⟩,
+  rw [←list.dedup, list.mem_dedup],
+  apply list.mem_cons_self,
+end
+
+lemma list_length_dedup_cons_le_of_mem {α : Type} {l : list α} {x : α}
+  (h : x ∈ l) : (x :: l).dedup.length ≤ l.length :=
+begin
+  rw [list_length_dedup_eq_card_to_finset, list.to_finset_cons,
+    finset.card_insert_of_mem (list.mem_to_finset.mpr h)],
+  apply list.to_finset_card_le,
+end
+
+lemma list_eq_append {α : Type} {l : list α} {i : ℕ}
+  (h : i < l.length) : l = l.take i ++ l.drop i :=
+by rw list.take_append_drop
+
+lemma list_eq_tail_of_cons_eq {α : Type} {l₁ l₂ : list α} {x : α}
+  (h : x :: l₁ = l₂) : l₁ = l₂.tail :=
+begin
+  cases l₂ with y l₂,
+  { cases h },
+  { rw list.cons.inj_eq at h, exact h.2 },
+end
+
+lemma list_length_dedup_lt_of_dup {α : Type} {l : list α}
+  (h : ¬l.nodup) : l.dedup.length < l.length :=
+begin
+  rw list_nodup_iff at h,
+  push_neg at h,
+  rcases h with ⟨i, j, hi, hj, h⟩,
+  have hh := hi.trans hj,
+  rw [list_eq_append hh, list.length_append],
+  apply lt_of_le_of_lt list_length_dedup_append_le,
+  apply add_lt_add_of_le_of_lt list_length_dedup_le,
+  cases h₁ : l.drop i with x l',
+  { rw list.drop_eq_nil_iff_le at h₁,
+    contrapose! h₁,
+    exact hh },
+  { symmetry' at h₁,
+    have h₂ : l.nth i = some x,
+    { change i with i + 0,
+      rw [←list.nth_drop, ←h₁],
+      refl },
+    rw [list.length_cons, nat.lt_succ_iff],
+    apply list_length_dedup_cons_le_of_mem,
+    rw list.mem_iff_nth,
+    use j - i - 1,
+    obtain ⟨j, rfl⟩ := nat.exists_eq_add_of_lt hi,
+    rw (_ : _ - _ = j), swap,
+    { rw [add_assoc, add_comm], simp_rw nat.add_sub_cancel },
+    replace h₁ := list_eq_tail_of_cons_eq h₁,
+    rw list.tail_drop at h₁,
+    subst h₁,
+    rw [←h₂, h, list.nth_drop],
+    congr' 1,
+    linarith },
+end
 
 lemma list_dedup_length_eq_length_iff {α : Type} {l : list α} :
   l.dedup.length = l.length ↔ l.nodup :=
 begin
   split; intro h,
   { contrapose! h,
-    exact ne_of_lt (list_length_lt_of_dup h) },
+    exact ne_of_lt (list_length_dedup_lt_of_dup h) },
   { rw list.dedup_eq_self.mpr h },
 end
 
