@@ -286,7 +286,7 @@ end
 
 lemma card_mk_finset_eq_of_iter_add_ne {α : Type}
   {f : α → α} {x : α} {n : ℕ}
-  (h : ∀ (m : ℕ), 0 < m → (f^[n + m]) x ≠ (f^[n]) x) :
+  (h : ∀ (m : ℕ), 0 < m → m ≤ n → (f^[n + m]) x ≠ (f^[n]) x) :
   (mk_finset (λ (i : ℕ), (f^[i]) x) n).card = n :=
 begin
   rw card_mk_finset_eq_iff,
@@ -308,7 +308,7 @@ begin
     iter_add, h₁, ←iter_add] },
   specialize h d,
   rw [h₃, h₄] at h,
-  exact h (tsub_pos_of_lt hi) rfl,
+  exact h (tsub_pos_of_lt hi) (le_of_lt (nat_sub_lt_of_lt hj)) rfl,
 end
 
 lemma exi_iter_add_eq {α : Type} [fintype α]
@@ -316,10 +316,18 @@ lemma exi_iter_add_eq {α : Type} [fintype α]
   (h : n = fintype.card α) :
   ∃ (m : ℕ), 0 < m ∧ m ≤ n ∧ (f^[n + m]) x = (f^[n]) x :=
 begin
-  sorry
+  by_contra' h₁,
+  have h₂ := card_mk_finset_eq_of_iter_add_ne h₁,
+  rw [h, finset.card_eq_iff_eq_univ] at h₂,
+  symmetry' at h,
+  have h₃ := finset.mem_univ (f^[n] x),
+  rw [←h₂, mem_mk_finset, h] at h₃,
+  rcases h₃ with ⟨k, h₃, h₄⟩,
+  symmetry' at h₄,
+  contrapose! h₁, clear h₁,
+  use [n - k, tsub_pos_of_lt h₃, nat.sub_le n k],
+  rwa [iter_add, h₄, ←iter_add, nat_add_sub (le_of_lt h₃)],
 end
-
--- #exit
 
 lemma exi_iter_eq {α : Type} [fintype α] :
   ∃ (a b : ℕ), a < b ∧ ∀ {f : α → α}, (f^[a]) = (f^[b]) :=
