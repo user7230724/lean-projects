@@ -40,8 +40,6 @@ begin
   nth_rewrite 0 finset_union_singleton,
 end
 
--- #exit
-
 lemma mem_mk_finset {α : Type} {f : ℕ → α} {n : ℕ} {x : α} :
   x ∈ mk_finset f n ↔ ∃ (i : ℕ), i < n ∧ f i = x :=
 begin
@@ -291,11 +289,6 @@ begin
   exact ⟨_, list_length_le_fintype_card_of_nodup h₁, h₂⟩,
 end
 
--- lemma list_nodup_iff {α : Type} {l : list α} :
---   l.nodup ↔ ∀ (i j : ℕ), i < j → j < l.length → l.nth i ≠ l.nth j :=
--- begin
--- end
-
 lemma list_nth_cons_of_pos {α : Type} {l : list α} {x : α} {n : ℕ}
   (h : 0 < n) : (x :: l).nth n = l.nth (n - 1) :=
 begin
@@ -308,63 +301,15 @@ lemma list_length_snoc {α : Type} {l : list α} {x : α} :
   (l ++ [x]).length = l.length + 1 :=
 by rw [list.length_append, list.length_singleton]
 
-lemma list_dedup_singleton {α : Type} {x : α} : [x].dedup = [x] :=
-rfl
+lemma list_dedup_singleton {α : Type} {x : α} : [x].dedup = [x] := rfl
 
 lemma list_length_lt_of_dup {α : Type} {l : list α}
   (h : ¬l.nodup) : l.dedup.length < l.length :=
 begin
-  rw list_nodup_iff at h,
-  push_neg at h,
-  rcases h with ⟨i, j, hi, hj, h⟩,
-  induction' l,
-  {
-    cases hj,
-  },
-  {
-    rw list.length_cons,
-    by_cases h₁ : hd ∈ l,
-    {
-      rw list.dedup_cons_of_mem h₁,
-      apply nat.lt_succ_of_lt,
-      rw list.length_cons at hj,
-      rw nat.lt_succ_iff at hj,
-      rw le_iff_eq_or_lt at hj,
-      cases hj,
-      {
-        subst hj,
-        rw list_nth_cons_of_pos (pos_of_gt hi) at h,
-        cases i,
-        {
-          rw list.nth at h,
-          rw list.mem_iff_nth at h₁,
-          cases h₁ with k h₁,
-          rw h at h₁,
-          apply ih k (l.length - 1),
-          {
-            cases hl : l.length,
-            { rw hl at hi, cases hi },
-            {
-              rw ←h at h₁,
-              rw list.nth_eq_some at h₁,
-              rcases h₁ with ⟨h₁, -⟩,
-              rw hl at h₁,
-              sorry
-            },
-          },
-          sorry,
-          sorry,
-        },
-        sorry,
-      },
-      sorry,
-    },
-    sorry,
-    -- rw list.dedup_cons
-  },
+  sorry
 end
 
-#exit
+-- #exit
 
 lemma list_dedup_length_eq_length_iff {α : Type} {l : list α} :
   l.dedup.length = l.length ↔ l.nodup :=
@@ -372,31 +317,49 @@ begin
   split; intro h,
   { contrapose! h,
     exact ne_of_lt (list_length_lt_of_dup h) },
-  {
-    sorry
-  },
+  { rw list.dedup_eq_self.mpr h },
 end
 
-#exit
+lemma mk_list_length {α : Type} {f : ℕ → α} {n : ℕ} :
+  (mk_list f n).length = n :=
+begin
+  induction n with n ih,
+  { refl },
+  { rw [mk_list, list_length_snoc, ih] },
+end
+
+lemma list_nth_snoc_right {α : Type} {l : list α} {x : α} :
+  (l ++ [x]).nth l.length = some x :=
+by { rw [list.nth_append_right (le_refl _), nat.sub_self], refl }
+
+lemma mk_list_nth {α : Type} {f : ℕ → α} {n i : ℕ}
+  (h : i < n) : (mk_list f n).nth i = some (f i) :=
+begin
+  induction n with n ih generalizing i,
+  { cases h },
+  { have hn := (@mk_list_length _ f n).symm,
+    rw mk_list,
+    rw [nat.lt_succ_iff, le_iff_eq_or_lt] at h,
+    cases h,
+    { subst i,
+      nth_rewrite 2 hn,
+      rw list_nth_snoc_right },
+    { have h₁ := h,
+      rw hn at h₁,
+      rw list.nth_append h₁,
+      exact ih h }},
+end
 
 lemma card_mk_finset_eq_iff {α : Type} {f : ℕ → α} {n : ℕ} :
   (mk_finset f n).card = n ↔ ∀ (i j : ℕ), i < j → j < n → f i ≠ f j :=
 begin
   rw [mk_finset, list.card_to_finset],
+  nth_rewrite 1 ←@mk_list_length _ f n,
+  simp_rw [list_dedup_length_eq_length_iff, list_nodup_iff, mk_list_length],
+  rw forall_congr, intro i, rw forall_congr, intro j,
+  rw forall_congr, intro hi, rw forall_congr, intro hj,
+  rw [mk_list_nth (hi.trans hj), mk_list_nth hj, not_iff_not, option.some.inj_eq],
 end
-
-#exit
-
--- lemma card_mk_finset_id {n : ℕ} : (mk_finset id n).card = n :=
--- begin
---   induction n with n ih,
---   { refl },
---   { rw [mk_finset_succ, finset.card_insert_of_not_mem, ih],
---     rw mem_mk_finset,
---     push_neg,
---     rintro i h,
---     exact ne_of_lt h },
--- end
 
 lemma card_mk_finset_eq_of_iter_add_ne {α : Type}
   {f : α → α} {x : α} {n : ℕ}
