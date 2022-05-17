@@ -1,5 +1,6 @@
 import tactic
 import tactic.induction
+import data.list.basic
 import logic.function.iterate
 
 noncomputable theory
@@ -11,19 +12,35 @@ def mem_loop {α : Type} (f : α → α) (x : α) (l : list α) : Prop :=
 def mem_shortest_loop {α : Type} (f : α → α) (x : α) (l : list α) : Prop :=
 mem_loop f x l ∧ ∀ (l' : list α), mem_loop f x l' → l.length ≤ l'.length
 
-noncomputable
-def mk_finset {α : Type} (f : ℕ → α) : ℕ → finset α
-| 0 := ∅
-| (n+1) := insert (f n) (mk_finset n)
+def mk_list {α : Type} (f : ℕ → α) : ℕ → list α
+| 0 := []
+| (n+1) := mk_list n ++ [f n]
+
+def mk_finset {α : Type} (f : ℕ → α) (n : ℕ) : finset α :=
+(mk_list f n).to_finset
 
 -----
+
+lemma finset_union_singleton {α : Type} {s : finset α} {x : α} :
+  s ∪ {x} = insert x s :=
+begin
+  ext y,
+  rw [finset.mem_union, finset.mem_singleton, finset.mem_insert],
+  tauto,
+end
 
 lemma mk_finset_zero {α : Type} {f : ℕ → α} : mk_finset f 0 = ∅ :=
 rfl
 
 lemma mk_finset_succ {α : Type} {f : ℕ → α} {n : ℕ} :
   mk_finset f n.succ = insert (f n) (mk_finset f n) :=
-mk_finset.equations._eqn_2 _ _
+begin
+  simp_rw mk_finset,
+  rw [mk_list, list.to_finset_append, list.to_finset_cons, list.to_finset_nil],
+  nth_rewrite 0 finset_union_singleton,
+end
+
+-- #exit
 
 lemma mem_mk_finset {α : Type} {f : ℕ → α} {n : ℕ} {x : α} :
   x ∈ mk_finset f n ↔ ∃ (i : ℕ), i < n ∧ f i = x :=
@@ -274,15 +291,112 @@ begin
   exact ⟨_, list_length_le_fintype_card_of_nodup h₁, h₂⟩,
 end
 
-lemma card_mk_finset_eq_iff {α : Type}
-  {f : α → α} {x : α} {n : ℕ} :
-  (mk_finset (λ (i : ℕ), (f^[i]) x) n).card = n ↔
-  ∀ (i j : ℕ), i < j → j < n → (f^[i]) x ≠ (f^[j]) x :=
+-- lemma list_nodup_iff {α : Type} {l : list α} :
+--   l.nodup ↔ ∀ (i j : ℕ), i < j → j < l.length → l.nth i ≠ l.nth j :=
+-- begin
+-- end
+
+lemma list_nth_cons_of_pos {α : Type} {l : list α} {x : α} {n : ℕ}
+  (h : 0 < n) : (x :: l).nth n = l.nth (n - 1) :=
 begin
-  sorry
+  cases n,
+  { cases h },
+  { rw list.nth, refl },
 end
 
--- #exit
+lemma list_length_snoc {α : Type} {l : list α} {x : α} :
+  (l ++ [x]).length = l.length + 1 :=
+by rw [list.length_append, list.length_singleton]
+
+lemma list_dedup_singleton {α : Type} {x : α} : [x].dedup = [x] :=
+rfl
+
+lemma list_length_lt_of_dup {α : Type} {l : list α}
+  (h : ¬l.nodup) : l.dedup.length < l.length :=
+begin
+  rw list_nodup_iff at h,
+  push_neg at h,
+  rcases h with ⟨i, j, hi, hj, h⟩,
+  induction' l,
+  {
+    cases hj,
+  },
+  {
+    rw list.length_cons,
+    by_cases h₁ : hd ∈ l,
+    {
+      rw list.dedup_cons_of_mem h₁,
+      apply nat.lt_succ_of_lt,
+      rw list.length_cons at hj,
+      rw nat.lt_succ_iff at hj,
+      rw le_iff_eq_or_lt at hj,
+      cases hj,
+      {
+        subst hj,
+        rw list_nth_cons_of_pos (pos_of_gt hi) at h,
+        cases i,
+        {
+          rw list.nth at h,
+          rw list.mem_iff_nth at h₁,
+          cases h₁ with k h₁,
+          rw h at h₁,
+          apply ih k (l.length - 1),
+          {
+            cases hl : l.length,
+            { rw hl at hi, cases hi },
+            {
+              rw ←h at h₁,
+              rw list.nth_eq_some at h₁,
+              rcases h₁ with ⟨h₁, -⟩,
+              rw hl at h₁,
+              sorry
+            },
+          },
+          sorry,
+          sorry,
+        },
+        sorry,
+      },
+      sorry,
+    },
+    sorry,
+    -- rw list.dedup_cons
+  },
+end
+
+#exit
+
+lemma list_dedup_length_eq_length_iff {α : Type} {l : list α} :
+  l.dedup.length = l.length ↔ l.nodup :=
+begin
+  split; intro h,
+  { contrapose! h,
+    exact ne_of_lt (list_length_lt_of_dup h) },
+  {
+    sorry
+  },
+end
+
+#exit
+
+lemma card_mk_finset_eq_iff {α : Type} {f : ℕ → α} {n : ℕ} :
+  (mk_finset f n).card = n ↔ ∀ (i j : ℕ), i < j → j < n → f i ≠ f j :=
+begin
+  rw [mk_finset, list.card_to_finset],
+end
+
+#exit
+
+-- lemma card_mk_finset_id {n : ℕ} : (mk_finset id n).card = n :=
+-- begin
+--   induction n with n ih,
+--   { refl },
+--   { rw [mk_finset_succ, finset.card_insert_of_not_mem, ih],
+--     rw mem_mk_finset,
+--     push_neg,
+--     rintro i h,
+--     exact ne_of_lt h },
+-- end
 
 lemma card_mk_finset_eq_of_iter_add_ne {α : Type}
   {f : α → α} {x : α} {n : ℕ}
