@@ -57,23 +57,21 @@ begin
   },
 end
 
-#exit
+-- #exit
 
 instance : setoid Expr' := ⟨_, Eq.equivalence⟩
 
-def Expr := quot Eq
+def Expr := quotient Expr'.setoid
 
-def K : Expr := quot.mk _ K'
-def S : Expr := quot.mk _ K'
-
-def app (a b : Expr) : Expr :=
-quot.mk _ (app' a.out b.out)
-
+def K : Expr := ⟦K'⟧
+def S : Expr := ⟦S'⟧
+def app (a b : Expr) : Expr := ⟦app' a.out b.out⟧
 infixl ` ~ `:100 := app
 
 def I := S ~ K ~ K
 
 example {a b} : K ~ a ~ b = a :=
 begin
+  rw ←quotient.out_equiv_out,
   sorry
 end
