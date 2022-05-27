@@ -22,10 +22,10 @@ def rec {t : Type} (z : t) (f : Nat → t → t) : Nat → t
 constant Pf : Nat → Prop
 
 axiom triv : Pf 1
-axiom elim : ∀ (P : Nat), Pf 0 → Pf P
-axiom psub : ∀ (P : Nat → Nat) (n : Nat), Pf n → Pf (P 1) → Pf (P n)
-axiom ind : ∀ (P : Nat → Nat), Pf (P 0) → (∀ (n : Nat), Pf (P n) → Pf (P (succ n))) →
-  ∀ (n : Nat), Pf (P n)
+axiom elim : ∀ (P : Prop), Pf 0 → P
+axiom psub : ∀ (P : Nat → Prop) (n : Nat), Pf n → P 1 → P n
+axiom ind : ∀ (P : Nat → Prop), P 0 → (∀ (n : Nat), P n → P (succ n)) →
+  ∀ (n : Nat), P n
 
 -----
 
@@ -35,7 +35,7 @@ def const {t s : Type} (a : t) (b : s) : t := a
 def cases {t : Type} (z : t) (f : Nat → t) (n : Nat) : t :=
 rec z (λ k _, f k) n
 
-def pred (n : Nat) : Nat :=
+def pred' (n : Nat) : Nat :=
 cases 0 id n
 
 def Prop' (p : Nat) : Nat :=
@@ -64,9 +64,12 @@ ite' p q (not' q)
 
 -----
 
-lemma elim' : ∀ (P : Nat) (n : Nat), Pf (succ (succ n)) → Pf P :=
-λ P n h, elim P (psub (λ n, not' (pred n)) (succ (succ n)) h triv)
+lemma elim' : ∀ (P : Prop) (n : Nat), Pf (succ (succ n)) → P :=
+λ P n h, elim P (id psub (λ x, Pf (not' (pred' x))) _ h triv)
 
-lemma cs : ∀ (P : Nat → Nat), Pf (P 0) → (∀ (n : Nat), Pf (P (succ n))) →
-  ∀ (n : Nat), Pf (P n) :=
-λ P h1 h2, ind P h1 (λ n h3, h2 n)
+lemma cs : ∀ (P : Nat → Prop), P 0 → (∀ (n : Nat), P (succ n)) →
+  ∀ (n : Nat), P n :=
+λ P h₁ h₂, ind P h₁ (λ n h₃, h₂ n)
+
+example : ∀ (p q : Nat), Pf p → Pf q → Pf (imp p q) :=
+λ p q h₁ h₂, id psub (λ x, Pf (imp x q)) _ h₁ h₂
