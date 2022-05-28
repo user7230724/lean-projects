@@ -19,13 +19,23 @@ def rec {t : Type} (z : t) (f : Nat → t → t) : Nat → t
 
 -----
 
-constant Pf : Nat → Prop
+def Pf (n : Nat) : Prop := n = 1
 
-axiom triv : Pf 1
-axiom elim : ∀ (P : Prop), Pf 0 → P
-axiom psub : ∀ (P : Nat → Prop) (n : Nat), Pf n → P 1 → P n
-axiom ind : ∀ (P : Nat → Prop), P 0 → (∀ (n : Nat), P n → P (succ n)) →
-  ∀ (n : Nat), P n
+lemma triv : Pf 1 :=
+@rfl _ 1
+
+lemma elim (P : Prop) (h : Pf 0) : P :=
+by cases h
+
+lemma psub (P : Nat → Prop) (n : Nat) (h₁ : Pf n) (h₂ : P 1) : P n :=
+by { cases h₁, exact h₂ }
+
+lemma ind (P : Nat → Prop) (h₁ : P 0) (h₂ : ∀ (n : Nat), P n → P (succ n)) (n : Nat) : P n :=
+begin
+  induction n with n ih,
+  { exact h₁ },
+  { exact h₂ n ih },
+end
 
 -----
 
@@ -67,9 +77,8 @@ ite' p q (not' q)
 lemma elim' : ∀ (P : Prop) (n : Nat), Pf (succ (succ n)) → P :=
 λ P n h, elim P (id psub (λ x, Pf (not' (pred' x))) _ h triv)
 
-lemma cs : ∀ (P : Nat → Prop), P 0 → (∀ (n : Nat), P (succ n)) →
-  ∀ (n : Nat), P n :=
+lemma cases' : ∀ (P : Nat → Prop), P 0 → (∀ (n : Nat), P (succ n)) → ∀ (n : Nat), P n :=
 λ P h₁ h₂, ind P h₁ (λ n h₃, h₂ n)
 
-example : ∀ (p q : Nat), Pf p → Pf q → Pf (imp p q) :=
+lemma imp_intro' : ∀ (p q : Nat), Pf p → Pf q → Pf (imp p q) :=
 λ p q h₁ h₂, id psub (λ x, Pf (imp x q)) _ h₁ h₂
