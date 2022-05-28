@@ -185,6 +185,31 @@ lemma imp_tran : ∀ {P Q R : nat}, prop P → prop Q → prop R → imp P Q →
 λ P Q R hp hq hr h₁ h₂, imp_intro hp hr
 (λ h₃, imp_elim hq hr h₂ (imp_elim hp hq h₁ h₃))
 
+lemma not_zero_eq_succ {n : nat} : not (nat_eq 0 (succ n)) := triv
+
+lemma not_succ_eq_zero {n : nat} : not (nat_eq (succ n) 0) :=
+@ind (λ x, not (nat_eq (succ x) 0)) triv (λ n ih, ih) n
+
+lemma eq_of_succ_eq_succ {a b : nat} : nat_eq (succ a) (succ b) → nat_eq a b := id
+
+lemma eq_sub {a b : nat} (P : nat → Prop) (h₁ : nat_eq a b) (h₂ : P a) : P b :=
+begin
+  induction a using test.ind with a ih generalizing P b,
+  { induction b using test.cs with b,
+    { exact h₂ },
+    { exact elim h₁ }},
+  { specialize @ih (λ x, P (succ x)) (pred b),
+    induction b using test.cs with b,
+    { exact elim h₁ },
+    { exact ih h₁ h₂ }},
+end
+
+lemma eq_symm {a b : nat} (h : nat_eq a b) : nat_eq b a :=
+by apply eq_sub (λ x, nat_eq x a) h eq_refl
+
+lemma eq_tran {a b c : nat} (h₁ : nat_eq a b) (h₂ : nat_eq b c) : nat_eq a c :=
+by apply eq_sub _ (eq_symm h₁) h₂
+
 -----
 
 end test
