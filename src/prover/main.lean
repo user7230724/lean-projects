@@ -21,8 +21,7 @@ instance : has_one nat := ⟨succ 0⟩
 
 -----
 
-def PP (n : nat) : Prop := n = 1
-instance : has_coe_to_sort nat Prop := ⟨PP⟩
+instance : has_coe_to_sort nat Prop := ⟨λ n, n = 1⟩
 
 lemma triv : (1 : nat) :=
 @rfl _ 1
