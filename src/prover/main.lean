@@ -89,37 +89,102 @@ lemma psub' : ∀ (P : nat → Prop) (n : nat), n → P n → P 1 :=
 λ P, cs (λ x, x → P x → P 1) (λ h, elim _ h)
 (cs (λ x, succ x → P (succ x) → P 1) (λ h₁ h₂, h₂) (λ n h₁, elim' _ _ h₁))
 
-lemma prop_cases : ∀ (P : nat → Prop), P true → P false → ∀ (n : nat), prop n → P n :=
+lemma prop_cs : ∀ (P : nat → Prop), P true → P false → ∀ (n : nat), prop n → P n :=
 λ P h₁ h₂, cs (λ x, prop x → P x) (λ _, h₂)
 (cs (λ x, prop (succ x) → P (succ x)) (λ _, h₁) (λ n h₃, elim _ h₃))
 
-lemma imp_elim : ∀ (P Q : nat), imp P Q → P → Q :=
-λ P Q h₁ h₂, id psub' (λ x, imp x Q) _ h₂ h₁
+lemma imp_intro : ∀ (P Q : nat), prop P → prop Q → (P → Q) → imp P Q :=
+λ P Q hp hq, id prop_cs (λ x, (x → Q) → imp x Q) (λ h, h triv) (λ h, triv) _ hp
 
-lemma imp_intro : ∀ (P Q : nat), prop P → prop Q →
-  (P → Q) → imp P Q :=
-λ P Q hp hq, id prop_cases (λ x, (x → Q) → imp x Q) (λ h, h triv) (λ h, triv) _ hp
+lemma imp_elim : ∀ (P Q : nat), prop P → prop Q → imp P Q → P → Q :=
+λ P Q _ _ h₁ h₂, id psub' (λ x, imp x Q) _ h₂ h₁
 
 lemma eq_refl : ∀ (a : nat), nat_eq a a :=
 ind (λ x, nat_eq x x) triv (λ n ih, ih)
 
-lemma prop_not : ∀ (a : nat), prop (not a) :=
-cs (λ x, prop (not x)) triv (λ a, triv)
-
-lemma prop_nat_eq : ∀ (a b : nat), prop (nat_eq a b) :=
-ind (λ x, ∀ b, prop (nat_eq x b)) prop_not
-(λ a ih, cs (λ x, prop (nat_eq (succ a) x)) triv (λ b, ih b))
-
 lemma prop_prop : ∀ (a : nat), prop (prop a) :=
 cs (λ x, prop (prop x)) triv (cs (λ x, prop (prop (succ x))) triv (λ n, triv))
 
-lemma prop_imp : ∀ (P Q : nat), prop Q → prop (imp P Q) :=
-λ P Q h, id cs (λ x, prop (imp x Q)) triv (λ n, h) P
+lemma prop_not : ∀ (a : nat), prop (not a) :=
+cs (λ x, prop (not x)) triv (λ a, triv)
 
-lemma prop_and : ∀ (P Q : nat), prop Q → prop (and P Q) :=
-λ P Q h, id cs (λ x, prop (and x Q)) triv (λ n, h) P
+lemma nat_eq_type : ∀ (a b : nat), prop (nat_eq a b) :=
+ind (λ x, ∀ b, prop (nat_eq x b)) prop_not
+(λ a ih, cs (λ x, prop (nat_eq (succ a) x)) triv (λ b, ih b))
 
-lemma prop_or : ∀ (P Q : nat), prop Q → prop (or P Q) :=
-λ P Q h, id cs (λ x, prop (or x Q)) h (λ n, triv) P
+lemma not_type : ∀ (a : nat), prop a → prop (not a) :=
+λ a _, prop_not a
+
+lemma imp_type : ∀ (P Q : nat), prop P → prop Q → prop (imp P Q) :=
+λ P Q _ h, id cs (λ x, prop (imp x Q)) triv (λ n, h) P
+
+lemma and_type : ∀ (P Q : nat), prop P → prop Q → prop (and P Q) :=
+λ P Q _ h, id cs (λ x, prop (and x Q)) triv (λ n, h) P
+
+lemma or_type : ∀ (P Q : nat), prop P → prop Q → prop (or P Q) :=
+λ P Q _ h, id cs (λ x, prop (or x Q)) h (λ n, triv) P
+
+lemma iff_type : ∀ (P Q : nat), prop P → prop Q → prop (iff P Q) :=
+λ P Q h₁ h₂, id prop_cs (λ x, prop (iff x Q)) h₂ (not_type _ h₂) _ h₁
+
+lemma and_intro : ∀ (P Q : nat), P → Q → and P Q :=
+λ P Q h₁ h₂, id psub (λ x, and x Q) _ h₁ (id psub (λ x, and 1 x) _ h₂ triv)
+
+lemma and_elim₁ : ∀ (P Q : nat), prop P → prop Q → and P Q → P :=
+λ P Q h₁ h₂, id prop_cs (λ x, and x Q → x) (λ _, triv) (λ h, elim _ h) _ h₁
+
+lemma and_elim₂ : ∀ (P Q : nat), prop P → prop Q → and P Q → Q :=
+λ P Q h₁ h₂, id prop_cs (λ x, and x Q → Q) (λ h, h) (λ h, elim _ h) _ h₁
+
+lemma or_intro₁ : ∀ (P Q : nat), P → prop Q → or P Q :=
+λ P Q h₁ h₂, id psub (λ x, or x Q) _ h₁ triv
+
+lemma or_intro₂ : ∀ (P Q : nat), prop P → Q → or P Q :=
+λ P Q h₁ h₂, id prop_cs (λ x, or x Q) triv h₂ _ h₁
+
+lemma or_elim : ∀ (F : Prop) (P Q : nat), prop P → prop Q → or P Q → (P → F) → (Q → F) → F :=
+λ F P Q hp hq, prop_cs (λ x, or x Q → (x → F) → (Q → F) → F)
+(λ h₁ h₂ h₃, h₂ triv) (λ h₁ h₂ h₃, h₃ h₁) _ hp
+
+lemma iff_intro : ∀ (P Q : nat), prop P → prop Q → imp P Q → imp Q P → iff P Q :=
+λ P Q hp hq, prop_cs (λ x, imp x Q → imp Q x → iff x Q) (λ h₁ h₂, h₁)
+(λ h₁, prop_cs (λ x, imp x false → iff false x) (λ h₂, elim _ h₂) (λ _, triv) _ hq) _ hp
+
+lemma iff_elim₁ : ∀ (P Q : nat), prop P → prop Q → iff P Q → imp P Q :=
+λ P Q hp hq, prop_cs (λ x, iff x Q → imp x Q) (λ h, h) (λ _, triv) _ hp
+
+lemma iff_elim₂ : ∀ (P Q : nat), prop P → prop Q → iff P Q → imp Q P :=
+λ P Q hp hq, prop_cs (λ x, iff x Q → imp Q x)
+(λ _, id prop_cs (λ x, imp x true) triv triv _ hq)
+(id prop_cs (λ x, iff false x → imp x false) (λ h, h) (λ h, triv) _ hq) _ hp
+
+lemma not_not : ∀ (P : nat), prop P → iff (not (not P)) P :=
+prop_cs (λ x, iff (not (not x)) x) triv triv
+
+lemma iff_sub : ∀ (F : nat → Prop) (P Q : nat), prop P → prop Q → iff P Q → F P → F Q :=
+λ F P Q hp hq, prop_cs (λ x, iff x Q → F x → F Q)
+(λ h₁ h₂, psub F Q (imp_elim true Q triv hq (iff_elim₁ true Q triv hq h₁) triv) h₂)
+(id prop_cs (λ x, iff false x → F false → F x) (λ h, elim _ h) (λ _ h, h) _ hq) _ hp
+
+lemma imp_refl : ∀ (P : nat), prop P → imp P P :=
+λ P hp, imp_intro P P hp hp (λ h, h)
+
+lemma iff_refl : ∀ (P : nat), prop P → iff P P :=
+λ P hp, iff_intro P P hp hp (imp_refl P hp) (imp_refl P hp)
+
+lemma and_symm : ∀ (P Q : nat), prop P → prop Q → and P Q → and Q P :=
+λ P Q hp hq h, and_intro Q P (and_elim₂ _ _ hp hq h) (and_elim₁ _ _ hp hq h)
+
+lemma or_symm : ∀ (P Q : nat), prop P → prop Q → or P Q → or Q P :=
+λ P Q hp hq h, or_elim _ _ _ hp hq h (λ h₁, or_intro₂ _ _ hq h₁) (λ h₁, or_intro₁ _ _ h₁ hp)
+
+lemma iff_symm : ∀ (P Q : nat), prop P → prop Q → iff P Q → iff Q P :=
+λ P Q hp hq h, iff_intro _ _ hq hp (iff_elim₂ _ _ hp hq h) (iff_elim₁ _ _ hp hq h)
+
+lemma imp_tran : ∀ (P Q R : nat), prop P → prop Q → prop R → imp P Q → imp Q R → imp P R :=
+λ P Q R hp hq hr h₁ h₂, imp_intro _ _ hp hr
+(λ h₃, imp_elim _ _ hq hr h₂ (imp_elim _ _ hp hq h₁ h₃))
+
+-----
 
 end test
