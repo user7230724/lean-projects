@@ -72,6 +72,9 @@ ite' p q true'
 def iff' (p q : Nat) : Nat :=
 ite' p q (not' q)
 
+def nat_eq (a b : Nat) : Nat :=
+rec not' (λ n f k, ite' k (f (pred' k)) 0) a b
+
 -----
 
 lemma elim' : ∀ (P : Prop) (n : Nat), Pf (succ (succ n)) → P :=
@@ -82,3 +85,30 @@ lemma cases' : ∀ (P : Nat → Prop), P 0 → (∀ (n : Nat), P (succ n)) → �
 
 lemma imp_intro' : ∀ (p q : Nat), Pf p → Pf q → Pf (imp p q) :=
 λ p q h₁ h₂, id psub (λ x, Pf (imp x q)) _ h₁ h₂
+
+-- lemma eq_of_nat_eq : ∀ (a b : Nat), Pf (nat_eq a b) → a = b :=
+-- begin
+--   apply ind (λ x, ∀ b, Pf (nat_eq x b) → x = b),
+--   sorry {
+--     apply cases' (λ x, Pf (nat_eq 0 x) → 0 = x),
+--     {
+--       intro h,
+--       refl,
+--     },
+--     {
+--       rintro n h,
+--       apply elim _ h,
+--     },
+--   },
+--   {
+--     rintro a ih,
+--     apply cases' (λ x, Pf (nat_eq (succ a) x) → succ a = x),
+--     {
+--       intro h,
+--       apply elim _ h,
+--     },
+--     sorry,
+--     -- b h,
+--     -- specialize ih (pred' b),
+--   },
+-- end
