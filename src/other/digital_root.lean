@@ -12,9 +12,12 @@ if h : ∃ (x : α), P x then h.some else default
 def repeated {α : Type} [inhabited α] (f : α → α) (z : α) : α :=
 get_some (λ (x : α), ∃ (n : ℕ), (f^[n]) z = x ∧ (f^[n + 1]) z = x)
 
+def is_digit (n : ℕ) : Prop := n ≤ 9
+
+def is_digit_list (l : list ℕ) : Prop := ∀ (n ∈ l), is_digit n
+
 def get_digits (n : ℕ) : list ℕ :=
-get_some (λ (l : list ℕ), l.all (λ (n : ℕ), n ≤ 9) ∧
-  l.foldl (λ (a b : ℕ), a * 10 + b) 0 = n)
+get_some (λ (l : list ℕ), is_digit_list l ∧ l.foldl (λ (a b : ℕ), a * 10 + b) 0 = n)
 
 def sum_digits (n : ℕ) : ℕ := (get_digits n).sum
 
@@ -92,8 +95,54 @@ begin
       list.repeat, list.append_nil] }},
 end
 
+lemma is_digit_list_nil : is_digit_list [] :=
+by { rintro x h, cases h }
+
+lemma is_digit_list_cons {l : list ℕ} {n : ℕ} :
+  is_digit_list (n :: l) ↔ is_digit n ∧ is_digit_list l :=
+begin
+  split; intro h,
+  { split,
+    { exact h _ (list.mem_cons_self _ _) },
+    { rintro m h₁, exact h m (list.mem_cons_of_mem _ h₁) }},
+  { cases h with h₁ h₂, rintro m h₃, rw list.mem_cons_iff at h₃, cases h₃,
+    { subst m, exact h₁ },
+    { exact h₂ m h₃ }},
+end
+
+lemma is_digit_list_append {l₁ l₂ : list ℕ} :
+  is_digit_list (l₁ ++ l₂) ↔ is_digit_list l₁ ∧ is_digit_list l₂ :=
+begin
+  split; intro h,
+  { split; rintro n h₁; apply h n,
+    { exact list.mem_append_left _ h₁ },
+    { exact list.mem_append_right _ h₁ }},
+  { cases h with h₁ h₂, rintro n h₃, rw list.mem_append_eq at h₃, cases h₃,
+    { exact h₁ _ h₃ },
+    { exact h₂ _ h₃ }},
+end
+
+lemma is_digit_list_singleton {n : ℕ} : is_digit_list [n] ↔ is_digit n :=
+begin
+  split; intro h,
+  { exact h _ (list.mem_singleton_self _) },
+  { rintro m h₁, rw list.mem_singleton at h₁, subst m, exact h },
+end
+
+lemma is_digit_list_snoc {l : list ℕ} {n : ℕ} :
+  is_digit_list (l ++ [n]) ↔ is_digit_list l ∧ is_digit n :=
+by rw [is_digit_list_append, is_digit_list_singleton]
+
+lemma is_digit_list_reverse {l : list ℕ} : is_digit_list l.reverse ↔ is_digit_list l :=
+begin
+  induction l with n l ih,
+  { refl },
+  { rw [list.reverse_cons, is_digit_list_snoc, is_digit_list_cons], tauto },
+end
+
 lemma exi_eq_append_zeros_of_foldr_eq_foldr {l₁ l₂ : list ℕ}
-  (h : l₁.foldr (λ (a b : ℕ), a + b * 10) 0 = l₂.foldr (λ (a b : ℕ), a + b * 10) 0) :
+  (h₁ : is_digit_list l₁) (h₂ : is_digit_list l₂)
+  (h₃ : l₁.foldr (λ (a b : ℕ), a + b * 10) 0 = l₂.foldr (λ (a b : ℕ), a + b * 10) 0) :
   ∃ (l : list ℕ) (n₁ n₂ : ℕ), l₁ = l ++ list.repeat 0 n₁ ∧ l₂ = l ++ list.repeat 0 n₂ :=
 begin
   let l := trim_end l₁,
@@ -109,31 +158,35 @@ lemma sum_append_repeat_zero {l : list ℕ} {n : ℕ} :
 by { rw [list.sum_append, list.sum_repeat], refl }
 
 lemma sum_eq_sum_of_foldr_eq_foldr {l₁ l₂ : list ℕ}
-  (h : l₁.foldr (λ (a b : ℕ), a + b * 10) 0 = l₂.foldr (λ (a b : ℕ), a + b * 10) 0) :
+  (h₁ : is_digit_list l₁) (h₂ : is_digit_list l₂)
+  (h₃ : l₁.foldr (λ (a b : ℕ), a + b * 10) 0 = l₂.foldr (λ (a b : ℕ), a + b * 10) 0) :
   l₁.sum = l₂.sum :=
 begin
-  obtain ⟨l, n₁, n₂, rfl, rfl⟩ := exi_eq_append_zeros_of_foldr_eq_foldr h,
+  obtain ⟨l, n₁, n₂, rfl, rfl⟩ := exi_eq_append_zeros_of_foldr_eq_foldr h₁ h₂ h₃,
   simp_rw sum_append_repeat_zero,
 end
 
 lemma sum_eq_sum_of_foldl_eq_foldr {l₁ l₂ : list ℕ}
-  (h : l₁.foldl (λ (a b : ℕ), a * 10 + b) 0 = l₂.foldr (λ (a b : ℕ), a + b * 10) 0) :
+  (h₁ : is_digit_list l₁) (h₂ : is_digit_list l₂)
+  (h₃ : l₁.foldl (λ (a b : ℕ), a * 10 + b) 0 = l₂.foldr (λ (a b : ℕ), a + b * 10) 0) :
   l₁.sum = l₂.sum :=
 begin
   rw ←list.sum_reverse l₁,
-  rw ←list.foldr_reverse _ _ l₁ at h,
+  rw ←list.foldr_reverse _ _ l₁ at h₃,
   rename l₁ l,
-  revert h,
+  rw ←is_digit_list_reverse at h₁,
+  revert h₁ h₃,
   generalize : l.reverse = l₁,
-  intro h,
+  rintro h₁ h₃,
   clear l,
-  replace h : list.foldr (λ a b, a + b * 10) 0 l₁ = list.foldr (λ a b, a + b * 10) 0 l₂,
-  { convert h; ext a b; rw add_comm },
-  exact sum_eq_sum_of_foldr_eq_foldr h,
+  replace h₃ : list.foldr (λ a b, a + b * 10) 0 l₁ = list.foldr (λ a b, a + b * 10) 0 l₂,
+  { convert h₃; ext a b; rw add_comm },
+  exact sum_eq_sum_of_foldr_eq_foldr h₁ h₂ h₃,
 end
 
 lemma sum_digits_def {n : ℕ} :
-  sum_digits n = (get_some (λ (l : list ℕ), l.foldr (λ (a b : ℕ), a + b * 10) 0 = n)).sum :=
+  sum_digits n = (get_some (λ (l : list ℕ), is_digit_list l ∧
+    l.foldr (λ (a b : ℕ), a + b * 10) 0 = n)).sum :=
 begin
   sorry
   -- apply get_some_eq_get_some_of_exists_iff,
@@ -160,8 +213,8 @@ end
 lemma sum_digits_zero : sum_digits 0 = 0 :=
 begin
   rw [sum_digits_def, get_some_pos], swap,
-  { exact ⟨[], rfl⟩ },
-  generalize_proofs h, exact sum_eq_zero_of_foldr_eq_zero h.some_spec,
+  { exact ⟨[], is_digit_list_nil, rfl⟩ },
+  generalize_proofs h, exact sum_eq_zero_of_foldr_eq_zero h.some_spec.2,
 end
 
 lemma iter_sum_digits_zero {n : ℕ} : (sum_digits^[n]) 0 = 0 :=
