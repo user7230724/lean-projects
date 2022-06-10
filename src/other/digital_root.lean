@@ -13,7 +13,8 @@ def repeated {α : Type} [inhabited α] (f : α → α) (z : α) : α :=
 get_some (λ (x : α), ∃ (n : ℕ), (f^[n]) z = x ∧ (f^[n + 1]) z = x)
 
 def get_digits (n : ℕ) : list ℕ :=
-get_some (λ (l : list ℕ), l.foldl (λ (a b : ℕ), a * 10 + b) 0 = n)
+get_some (λ (l : list ℕ), l.all (λ (n : ℕ), n ≤ 9) ∧
+  l.foldl (λ (a b : ℕ), a * 10 + b) 0 = n)
 
 def sum_digits (n : ℕ) : ℕ := (get_digits n).sum
 
@@ -40,25 +41,68 @@ def reversed {α : Type} (f : list α → list α) (l : list α) : list α :=
 (f l.reverse).reverse
 
 def trim_start : list ℕ → list ℕ
-| (0::l) := l
+| (0::l) := trim_start l
 | l := l
 
 def trim_end : list ℕ → list ℕ :=
 reversed trim_start
+
+lemma list_reverse_snoc {α : Type} {l : list α} {x : α} :
+  (l ++ [x]).reverse = x :: l.reverse := list.reverse_append _ _
+
+lemma trim_start_zero_cons {l : list ℕ} : trim_start (0 :: l) = trim_start l := rfl
+
+lemma trim_start_succ_cons {l : list ℕ} {n : ℕ} :
+  trim_start (n.succ :: l) = n.succ :: l := rfl
+
+lemma trim_end_snoc_zero {l : list ℕ} : trim_end (l ++ [0]) = trim_end l :=
+by { rw [trim_end, reversed, list_reverse_snoc, trim_start_zero_cons], refl }
+
+lemma list_length_snoc {α : Type} {l : list α} {x : α} :
+  (l ++ [x]).length = l.length + 1 := list.length_append _ _
+
+lemma trim_end_snoc_succ {l : list ℕ} {n : ℕ} :
+  trim_end (l ++ [n.succ]) = l ++ [n.succ] :=
+by rw [trim_end, reversed, list_reverse_snoc, trim_start_succ_cons,
+  list.reverse_cons, list.reverse_reverse]
+
+lemma length_trim_end_le {l : list ℕ} : (trim_end l).length ≤ l.length :=
+begin
+  induction l using list.reverse_rec_on with l n ih,
+  { refl },
+  { cases n,
+    { rw [trim_end_snoc_zero, list_length_snoc],
+      exact nat.le_succ_of_le ih },
+    { rw [trim_end_snoc_succ] }},
+end
+
+lemma list_repeat_succ_snoc {α : Type} {x : α} {n : ℕ} :
+  list.repeat x n.succ = list.repeat x n ++ [x] :=
+by { rw list.repeat_add x n 1, refl }
+
+lemma trim_end_append_repeat_zero {l : list ℕ} :
+  trim_end l ++ list.repeat 0 (l.length - (trim_end l).length) = l :=
+begin
+  induction l using list.reverse_rec_on with l n ih,
+  { refl },
+  { cases n,
+    { rw [trim_end_snoc_zero, list_length_snoc, nat.sub_add_comm length_trim_end_le,
+        list_repeat_succ_snoc, ←list.append_assoc, ih] },
+    { rw [trim_end_snoc_succ, list_length_snoc, nat.sub_self,
+      list.repeat, list.append_nil] }},
+end
 
 lemma exi_eq_append_zeros_of_foldr_eq_foldr {l₁ l₂ : list ℕ}
   (h : l₁.foldr (λ (a b : ℕ), a + b * 10) 0 = l₂.foldr (λ (a b : ℕ), a + b * 10) 0) :
   ∃ (l : list ℕ) (n₁ n₂ : ℕ), l₁ = l ++ list.repeat 0 n₁ ∧ l₂ = l ++ list.repeat 0 n₂ :=
 begin
   let l := trim_end l₁,
-  refine ⟨l, l₁.length - l.length, l₂.length - l.length, _, _⟩; symmetry,
-  {
-    sorry
-  },
-  {
-    sorry
-  },
+  use [l, l₁.length - l.length, l₂.length - l.length, trim_end_append_repeat_zero.symm],
+  symmetry,
+  sorry
 end
+
+-- #exit
 
 lemma sum_append_repeat_zero {l : list ℕ} {n : ℕ} :
   (l ++ list.repeat 0 n).sum = l.sum :=
@@ -91,13 +135,14 @@ end
 lemma sum_digits_def {n : ℕ} :
   sum_digits n = (get_some (λ (l : list ℕ), l.foldr (λ (a b : ℕ), a + b * 10) 0 = n)).sum :=
 begin
-  apply get_some_eq_get_some_of_exists_iff,
-  { split; rintro ⟨l, rfl⟩; use l.reverse;
-    { rw list.foldl_reverse <|> rw list.foldr_reverse, simp_rw add_comm }},
-  { rintro h₁ h₂, have h₃ := h₁.some_spec, have h₄ := h₂.some_spec,
-    have h₅ : list.foldl (λ (a b : ℕ), a * 10 + b) 0 h₁.some =
-      list.foldr (λ (a b : ℕ), a + b * 10) 0 h₂.some := by rw [h₃, h₄],
-    exact sum_eq_sum_of_foldl_eq_foldr h₅ },
+  sorry
+  -- apply get_some_eq_get_some_of_exists_iff,
+  -- { split; rintro ⟨l, rfl⟩; use l.reverse;
+  --   { rw list.foldl_reverse <|> rw list.foldr_reverse, simp_rw add_comm }},
+  -- { rintro h₁ h₂, have h₃ := h₁.some_spec, have h₄ := h₂.some_spec,
+  --   have h₅ : list.foldl (λ (a b : ℕ), a * 10 + b) 0 h₁.some =
+  --     list.foldr (λ (a b : ℕ), a + b * 10) 0 h₂.some := by rw [h₃, h₄],
+  --   exact sum_eq_sum_of_foldl_eq_foldr h₅ },
 end
 
 lemma sum_eq_zero_of_foldr_eq_zero {l : list ℕ}
@@ -134,16 +179,16 @@ begin
   rw iter_sum_digits_zero at h₂, exact h₂.symm,
 end
 
+def mod' (n : ℕ) : ℕ := if n.mod 9 = 0 then 9 else n.mod 9
+
 -- #exit
 
 lemma digital_root_eq {n : ℕ} :
   digital_root n = if n = 0 then 0 else if n.mod 9 = 0 then 9 else n.mod 9 :=
 begin
+  rw ←mod',
   split_ifs with h h₁,
   sorry { cases h, exact digital_root_zero },
-  {
-    sorry
-  },
   {
     sorry
   },
