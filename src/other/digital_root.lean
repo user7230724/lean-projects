@@ -188,19 +188,35 @@ lemma sum_digits_def {n : ℕ} :
   sum_digits n = (get_some (λ (l : list ℕ), is_digit_list l ∧
     l.foldr (λ (a b : ℕ), a + b * 10) 0 = n)).sum :=
 begin
-  sorry
-  -- apply get_some_eq_get_some_of_exists_iff,
-  -- { split; rintro ⟨l, rfl⟩; use l.reverse;
-  --   { rw list.foldl_reverse <|> rw list.foldr_reverse, simp_rw add_comm }},
-  -- { rintro h₁ h₂, have h₃ := h₁.some_spec, have h₄ := h₂.some_spec,
-  --   have h₅ : list.foldl (λ (a b : ℕ), a * 10 + b) 0 h₁.some =
-  --     list.foldr (λ (a b : ℕ), a + b * 10) 0 h₂.some := by rw [h₃, h₄],
-  --   exact sum_eq_sum_of_foldl_eq_foldr h₅ },
+  apply get_some_eq_get_some_of_exists_iff,
+  { split; rintro ⟨l, hl, rfl⟩; use l.reverse;
+    { rw list.foldl_reverse <|> rw list.foldr_reverse,
+      simp_rw [add_comm, is_digit_list_reverse], use hl }},
+  { rintro h₁ h₂, have h₃ := h₁.some_spec, have h₄ := h₂.some_spec,
+    have h₅ : list.foldl (λ (a b : ℕ), a * 10 + b) 0 h₁.some =
+      list.foldr (λ (a b : ℕ), a + b * 10) 0 h₂.some := by rw [h₃.2, h₄.2],
+    exact sum_eq_sum_of_foldl_eq_foldr h₃.1 h₄.1 h₅ },
+end
+
+lemma is_digit_of_is_digit_sum {d₁ d₂ : ℕ} (h : is_digit (d₁ + d₂)) :
+  is_digit d₁ ∧ is_digit d₂ := ⟨nat.le_of_add_le_left h, nat.le_of_add_le_right h⟩
+
+instance {n : ℕ} : decidable (is_digit n) :=
+by { rw is_digit, apply_instance }
+
+lemma not_is_digit_add_10 {n : ℕ} : ¬is_digit (n + 10) := dec_trivial
+
+lemma is_digit_mul_10 {n : ℕ} : is_digit (n * 10) ↔ n = 0 :=
+begin
+  split; intro h,
+  { cases n,
+    { refl },
+    { revert h, rw nat.succ_mul, dec_trivial }},
+  { subst n, dec_trivial },
 end
 
 lemma sum_eq_zero_of_foldr_eq_zero {l : list ℕ}
-  (h : l.foldr (λ (a b : ℕ), a + b * 10) 0 = 0) :
-  l.sum = 0 :=
+  (h : l.foldr (λ (a b : ℕ), a + b * 10) 0 = 0) : l.sum = 0 :=
 begin
   induction' l with hd l ih,
   { refl },
@@ -208,6 +224,17 @@ begin
     apply ih, rw mul_eq_zero at h, cases h,
     { exact h },
     { cases h }},
+end
+
+lemma sum_eq_of_foldr_eq_digit {l : list ℕ} {d : ℕ}
+  (h₁ : is_digit_list l) (h₂ : is_digit d)
+  (h₃ : l.foldr (λ (a b : ℕ), a + b * 10) 0 = d) : l.sum = d :=
+begin
+  cases l with d₁ l,
+  { exact h₃ },
+  { rw list.sum_cons, rw list.foldr_cons at h₃, rw is_digit_list_cons at h₁,
+    cases h₁ with h₁ h₄, subst d, congr, have h₃ := (is_digit_of_is_digit_sum h₂).2,
+    rw is_digit_mul_10 at h₃, rw h₃, exact sum_eq_zero_of_foldr_eq_zero h₃ },
 end
 
 lemma sum_digits_zero : sum_digits 0 = 0 :=
@@ -232,14 +259,100 @@ begin
   rw iter_sum_digits_zero at h₂, exact h₂.symm,
 end
 
-def mod' (n : ℕ) : ℕ := if n.mod 9 = 0 then 9 else n.mod 9
+def modp (n k : ℕ) : ℕ := if n.mod k = 0 then k else n.mod k
+
+lemma is_digit_succ {n : ℕ} : is_digit n.succ ↔ n < 9 :=
+begin
+  rw [is_digit, le_iff_lt_or_eq], split; intro h,
+  { cases h,
+    { exact nat.lt_of_succ_lt h },
+    { cases h, dec_trivial }},
+  { rwa [←nat.succ_le_iff, le_iff_lt_or_eq] at h },
+end
+
+lemma nat_exi_mul (x y : ℕ) :
+  ∃ (a b : ℕ), a = x / y ∧ b = x % y ∧ x = a * y + b :=
+by { simp_rw mul_comm, exact ⟨_, _, rfl, rfl, (nat.div_add_mod _ _).symm⟩ }
+
+lemma is_digit_mod_10 {n : ℕ} : is_digit (n % 10) :=
+by { rw [is_digit, ←nat.lt_succ_iff], apply nat.mod_lt, dec_trivial }
+
+lemma nat_digit_induction {P : ℕ → Prop} {n : ℕ}
+  (h₁ : P 0) (h₂ : ∀ (n d : ℕ), is_digit d → P n → P (n * 10 + d)) : P n :=
+begin
+  induction n using nat.strong_induction_on with n ih, dsimp at ih,
+  obtain ⟨a, b, ha, hb, h₃⟩ := nat_exi_mul n 10, rw h₃, apply h₂,
+  { rw hb, exact is_digit_mod_10 },
+  { rw ha, cases n,
+    { exact h₁ },
+    { apply ih, apply nat.div_lt_self; dec_trivial }},
+end
+
+lemma modp_pos_digit {d : ℕ} (h₁ : is_digit d) (h₂ : 0 < d) : modp d 9 = d :=
+begin
+  rw modp, split_ifs,
+  { change d % 9 = 0 at h, rw [is_digit, le_iff_lt_or_eq] at h₁, cases h₁,
+    { rw nat.mod_eq_of_lt h₁ at h, rw h at h₂, cases h₂ },
+    { exact h₁.symm }},
+  { rw [is_digit, le_iff_lt_or_eq] at h₁, cases h₁,
+    { exact nat.mod_eq_of_lt h₁ },
+    { subst d, contradiction }},
+end
+
+lemma sum_digits_digit {d : ℕ} (h : is_digit d) : sum_digits d = d :=
+begin
+  rw [sum_digits_def, get_some_pos], swap,
+  { exact ⟨[d], is_digit_list_singleton.mpr h, rfl⟩ },
+  generalize_proofs h₁, obtain ⟨h₂, h₃⟩ := h₁.some_spec,
+  exact sum_eq_of_foldr_eq_digit h₂ h h₃,
+end
+
+lemma iterate_eq_self {α : Type} {f : α → α} {x : α} {n : ℕ}
+  (h : f x = x) : (f^[n] x) = x :=
+begin
+  induction n with n ih,
+  { refl },
+  { rw [function.iterate_succ_apply', ih, h] },
+end
+
+lemma repeated_eq_self {α : Type} [inhabited α] {f : α → α} {x : α}
+  (h : f x = x) : repeated f x = x :=
+begin
+  rw [repeated, get_some_pos], swap,
+  { exact ⟨x, 0, rfl, h⟩ },
+  generalize_proofs h₁, obtain ⟨n, h₂, h₃⟩ := h₁.some_spec,
+  rw [←h₂, iterate_eq_self h],
+end
+
+lemma digital_root_pos_digit_eq_self {d : ℕ} (h₁ : is_digit d) (h₂ : 0 < d) :
+  digital_root d = d := repeated_eq_self (sum_digits_digit h₁)
 
 -- #exit
+
+lemma digital_root_pos_eq_modp {n : ℕ} (h : 0 < n) : digital_root n = modp n 9 :=
+begin
+  induction n using nat_digit_induction with n d hd ih,
+  {
+    cases h,
+  },
+  {
+    cases n,
+    sorry { simp_rw [zero_mul, zero_add] at h ⊢,
+      rw [modp_pos_digit hd h, digital_root_pos_digit_eq_self hd h] },
+    {
+      clear h,
+      specialize ih (nat.zero_lt_succ _),
+      sorry
+    },
+  },
+end
+
+#exit
 
 lemma digital_root_eq {n : ℕ} :
   digital_root n = if n = 0 then 0 else if n.mod 9 = 0 then 9 else n.mod 9 :=
 begin
-  rw ←mod',
+  rw ←modp,
   split_ifs with h h₁,
   sorry { cases h, exact digital_root_zero },
   {
