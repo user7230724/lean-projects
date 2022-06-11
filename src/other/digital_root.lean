@@ -447,7 +447,7 @@ begin
   { rw [function.iterate_succ_apply', ih, h] },
 end
 
-lemma repeated_eq_self {α : Type} [inhabited α] {f : α → α} {x : α}
+lemma repeated_eq_self_of {α : Type} [inhabited α] {f : α → α} {x : α}
   (h : f x = x) : repeated f x = x :=
 begin
   rw [repeated, get_some_pos], swap,
@@ -457,7 +457,7 @@ begin
 end
 
 lemma digital_root_pos_digit_eq_self {d : ℕ} (h₁ : is_digit d) (h₂ : 0 < d) :
-  digital_root d = d := repeated_eq_self (sum_digits_digit h₁)
+  digital_root d = d := repeated_eq_self_of (sum_digits_digit h₁)
 
 lemma is_digit_modp_9 {n : ℕ} : is_digit (modp n 9) :=
 begin
@@ -566,6 +566,9 @@ begin
   { exact h₁ },
   { rwa pos_iff_ne_zero },
 end
+
+lemma digital_root_eq_self_of {n : ℕ} (h : sum_digits n = n) :
+  digital_root n = n := repeated_eq_self_of h
 
 -- #exit
 
