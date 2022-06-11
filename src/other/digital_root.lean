@@ -141,7 +141,7 @@ begin
   { rw [list.reverse_cons, all_snoc, all_cons], tauto },
 end
 
-lemma is_digit_of_is_digit_sum {d₁ d₂ : ℕ} (h : is_digit (d₁ + d₂)) :
+lemma is_digit_of_is_digit_add {d₁ d₂ : ℕ} (h : is_digit (d₁ + d₂)) :
   is_digit d₁ ∧ is_digit d₂ := ⟨nat.le_of_add_le_left h, nat.le_of_add_le_right h⟩
 
 lemma not_is_digit_add_10 {n : ℕ} : ¬is_digit (n + 10) := dec_trivial
@@ -173,7 +173,7 @@ begin
   cases l with d₁ l,
   { exact h₃ },
   { rw list.sum_cons, rw list.foldr_cons at h₃, rw [is_digit_list, all_cons] at h₁,
-    cases h₁ with h₁ h₄, subst d, congr, have h₃ := (is_digit_of_is_digit_sum h₂).2,
+    cases h₁ with h₁ h₄, subst d, congr, have h₃ := (is_digit_of_is_digit_add h₂).2,
     rw is_digit_mul_10 at h₃, rw h₃, exact sum_eq_zero_of_foldr_eq_zero h₃ },
 end
 
@@ -194,10 +194,10 @@ lemma is_digit_mod_10 {n : ℕ} : is_digit (n % 10) :=
 by { rw [is_digit, ←nat.lt_succ_iff], apply nat.mod_lt, dec_trivial }
 
 lemma nat_digit_induction {P : ℕ → Prop} {n : ℕ}
-  (h₁ : P 0) (h₂ : ∀ (n d : ℕ), is_digit d → P n → P (n * 10 + d)) : P n :=
+  (h₁ : P 0) (h₂ : ∀ (n d : ℕ), is_digit d → P n → P (d + n * 10)) : P n :=
 begin
   induction n using nat.strong_induction_on with n ih, dsimp at ih,
-  obtain ⟨a, b, ha, hb, h₃⟩ := nat_exi_mul n 10, rw h₃, apply h₂,
+  obtain ⟨a, b, ha, hb, h₃⟩ := nat_exi_mul n 10, rw [h₃, add_comm], apply h₂,
   { rw hb, exact is_digit_mod_10 },
   { rw ha, cases n,
     { exact h₁ },
@@ -459,22 +459,160 @@ end
 lemma digital_root_pos_digit_eq_self {d : ℕ} (h₁ : is_digit d) (h₂ : 0 < d) :
   digital_root d = d := repeated_eq_self (sum_digits_digit h₁)
 
+lemma is_digit_modp_9 {n : ℕ} : is_digit (modp n 9) :=
+begin
+  rw [is_digit, modp], split_ifs,
+  { refl },
+  { apply le_of_lt, apply nat.mod_lt, dec_trivial },
+end
+
+lemma is_digit_digit_add_digit_sub {d₁ d₂ n : ℕ} (h₁ : is_digit d₁) (h₂ : is_digit d₂)
+  (h₃ : 9 ≤ n) : is_digit (d₁ + d₂ - n) :=
+begin
+  rw is_digit at h₁ h₂ ⊢,
+  have h₄ := (add_le_add h₁ h₂).trans (add_le_add (le_refl _) h₃),
+  rwa tsub_le_iff_right,
+end
+
+lemma exi_digit_add_10_of_not_is_digit_add {d₁ d₂ : ℕ}
+  (h₁ : is_digit d₁) (h₂ : is_digit d₂) (h₃ : ¬is_digit (d₁ + d₂)) :
+  ∃ (d : ℕ), is_digit d ∧ d₁ + d₂ = d + 10 :=
+begin
+  refine ⟨d₁ + d₂ - 10, _, _⟩,
+  { apply is_digit_digit_add_digit_sub h₁ h₂, dec_trivial },
+  { rw [is_digit, not_le] at h₃, obtain ⟨k, h₄⟩ := nat.exists_eq_add_of_lt h₃,
+    rw h₄, refine (nat.sub_eq_iff_eq_add _).mp rfl, rw add_right_comm, exact le_self_add },
+end
+
+lemma exi_digit_add_9_of_not_is_digit_add {d₁ d₂ : ℕ}
+  (h₁ : is_digit d₁) (h₂ : is_digit d₂) (h₃ : ¬is_digit (d₁ + d₂)) :
+  ∃ (d : ℕ), is_digit d ∧ d₁ + d₂ = d + 9 :=
+begin
+  refine ⟨d₁ + d₂ - 9, _, _⟩,
+  { apply is_digit_digit_add_digit_sub h₁ h₂, dec_trivial },
+  { rw [is_digit, not_le] at h₃, obtain ⟨k, h₄⟩ := nat.exists_eq_add_of_lt h₃,
+    rw h₄, refine (nat.sub_eq_iff_eq_add _).mp rfl, apply nat.le_succ_of_le,
+    exact le_self_add },
+end
+
+lemma is_digit_of_is_digit_succ {d : ℕ} (h : is_digit d.succ) : is_digit d :=
+(@is_digit_of_is_digit_add d 1 h).1
+
+lemma sum_eq_of_foldr_eq_digit_add_10 {l : list ℕ} {d : ℕ}
+  (h₁ : is_digit_list l) (h₂ : is_digit d)
+  (h₃ : l.foldr (λ (a b : ℕ), a + b * 10) 0 = d + 10) : l.sum = d.succ :=
+begin
+  cases l with d₁ l,
+  { cases h₃ },
+  { rw list.foldr_cons at h₃, rw [is_digit_list, all_cons, ←is_digit_list] at h₁,
+    cases h₁ with h₁ h₄, nth_rewrite 1 ←one_mul 10 at h₃,
+    rw digit_add_mul_10_eq_digit_add_mul_10_iff h₁ h₂ at h₃, rcases h₃ with ⟨rfl, h₃⟩,
+    rw [list.sum_cons, sum_eq_of_foldr_eq_digit h₄ dec_trivial h₃] },
+end
+
+lemma sum_digits_pos_digit_add_9 {d : ℕ} (h₁ : is_digit d) (h₂ : 0 < d) :
+  sum_digits (d + 9) = d :=
+begin
+  cases d,
+  { cases h₂ },
+  { rw [sum_digits_def, get_some_pos], swap,
+    { refine ⟨[d, 1], _, _⟩,
+      { simp_rw [is_digit_list, all_cons, all_nil],
+        exact ⟨is_digit_of_is_digit_succ h₁, dec_trivial, trivial⟩ },
+      { refl }},
+    generalize_proofs h₃, obtain ⟨h₄, h₅⟩ := h₃.some_spec, change _ = d + 10 at h₅,
+    exact sum_eq_of_foldr_eq_digit_add_10 h₄ (is_digit_of_is_digit_succ h₁) h₅ },
+end
+
+lemma pos_left_of_not_is_digit_digit_add_digit {d₁ d₂ : ℕ}
+  (h₁ : is_digit d₁) (h₂ : is_digit d₂) (h₃ : ¬is_digit (d₁ + d₂)) : 0 < d₁ :=
+by { rw is_digit at h₁ h₂ h₃, linarith }
+
+lemma pos_right_of_not_is_digit_digit_add_digit {d₁ d₂ : ℕ}
+  (h₁ : is_digit d₁) (h₂ : is_digit d₂) (h₃ : ¬is_digit (d₁ + d₂)) : 0 < d₂ :=
+by { rw add_comm at h₃, exact pos_left_of_not_is_digit_digit_add_digit h₂ h₁ h₃ }
+
+lemma sum_digits_digit_add_digit {d₁ d₂ : ℕ} (h₁ : is_digit d₁) (h₂ : is_digit d₂) :
+  sum_digits (d₁ + d₂) = if d₁ + d₂ ≤ 9 then d₁ + d₂ else d₁ + d₂ - 9 :=
+begin
+  split_ifs,
+  { exact sum_digits_digit h },
+  { obtain ⟨d, h₃, h₄⟩ := exi_digit_add_9_of_not_is_digit_add h₁ h₂ h, have h₅ : 0 < d,
+    { rw h₄ at h, push_neg at h, rwa lt_add_iff_pos_left at h },
+    rw [h₄, sum_digits_pos_digit_add_9 h₃ h₅], refl },
+end
+
+lemma modp_of_le_of_pos {k d : ℕ} (h₁ : 0 < d) (h₂ : d ≤ k) : modp d k = d :=
+begin
+  rw modp, change d.mod k with d % k, cases k,
+  { rw nat.le_zero_iff at h₂, subst d, refl },
+  { split_ifs with h₃,
+    { rw le_iff_lt_or_eq at h₂, cases h₂,
+      { rw nat.mod_eq_of_lt h₂ at h₃, subst d, cases h₁ },
+      { subst d }},
+    { rw le_iff_lt_or_eq at h₂, cases h₂,
+      { exact nat.mod_eq_of_lt h₂ },
+      { subst d, cases h₃ (nat.mod_self _) }}},
+end
+
+lemma add_self_mod_eq_zero {a : ℕ} : (a + a) % a = 0 := by simp
+
+lemma modp_add {k a b : ℕ} : modp (a + b) k = modp (modp a k + modp b k) k :=
+by { simp_rw modp, change nat.mod with (%), split_ifs; simp [*, nat.add_mod] at * }
+
+lemma pos_modp_of_pos {k a : ℕ} (h₁ : 0 < k) (h₂ : 0 < a) : 0 < modp a k :=
+begin
+  rw modp, split_ifs,
+  { exact h₁ },
+  { rwa pos_iff_ne_zero },
+end
+
+-- #exit
+
+lemma digital_root_digit_add_mul_10 {d n : ℕ} (h : is_digit d) :
+  digital_root (d + n * 10) = sum_digits (d + digital_root n) :=
+begin
+  sorry
+end
+
+-- #exit
+
+lemma modp_digit_add_mul_10 {d n : ℕ} (h : is_digit d) :
+  modp (d + n * 10) 9 = modp (d + n) 9 :=
+begin
+  sorry
+end
+
 -- #exit
 
 lemma digital_root_pos_eq_modp {n : ℕ} (h : 0 < n) : digital_root n = modp n 9 :=
 begin
-  induction n using nat_digit_induction with n d hd ih,
+  induction n using nat_digit_induction with n d h₁ ih,
   {
     cases h,
   },
   {
     cases n,
     sorry { simp_rw [zero_mul, zero_add] at h ⊢,
-      rw [modp_pos_digit hd h, digital_root_pos_digit_eq_self hd h] },
+      rw [modp_pos_digit h₁ h, digital_root_pos_digit_eq_self h₁ h] },
     {
       clear h,
       specialize ih (nat.zero_lt_succ _),
-      sorry
+      rw [digital_root_digit_add_mul_10 h₁, modp_digit_add_mul_10 h₁, ih],
+      clear ih,
+      rw sum_digits_digit_add_digit h₁ is_digit_modp_9,
+      split_ifs,
+      {
+        cases d,
+        sorry {
+          simp,
+        },
+        {
+          rw [modp_add, modp_pos_digit h₁ (nat.zero_lt_succ _)],
+          sorry
+        },
+      },
+      sorry,
     },
   },
 end
