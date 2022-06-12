@@ -9,7 +9,7 @@ open_locale classical
 def get_some {α : Type} [inhabited α] (P : α → Prop) : α :=
 if h : ∃ (x : α), P x then h.some else default
 
-def repeated {α : Type} [inhabited α] (f : α → α) (z : α) : α :=
+def fixed {α : Type} [inhabited α] (f : α → α) (z : α) : α :=
 get_some (λ (x : α), ∃ (n : ℕ), (f^[n]) z = x ∧ (f^[n + 1]) z = x)
 
 def all {α : Type} (P : α → Prop) (l : list α) : Prop := l.all (λ (x : α), P x)
@@ -23,7 +23,7 @@ get_some (λ (l : list ℕ), is_digit_list l ∧ l.foldl (λ (a b : ℕ), a * 10
 
 def sum_digits (n : ℕ) : ℕ := (get_digits n).sum
 
-def digital_root (n : ℕ) : ℕ := repeated sum_digits n
+def digital_root (n : ℕ) : ℕ := fixed sum_digits n
 
 -----
 
@@ -412,7 +412,7 @@ end
 
 lemma digital_root_zero : digital_root 0 = 0 :=
 begin
-  rw [digital_root, repeated, get_some_pos], swap,
+  rw [digital_root, fixed, get_some_pos], swap,
   { exact ⟨0, 0, rfl, sum_digits_zero⟩ },
   generalize_proofs h₁, obtain ⟨n, h₂, h₃⟩ := h₁.some_spec,
   rw iter_sum_digits_zero at h₂, exact h₂.symm,
@@ -447,17 +447,17 @@ begin
   { rw [function.iterate_succ_apply', ih, h] },
 end
 
-lemma repeated_eq_self_of {α : Type} [inhabited α] {f : α → α} {x : α}
-  (h : f x = x) : repeated f x = x :=
+lemma fixed_eq_self_of {α : Type} [inhabited α] {f : α → α} {x : α}
+  (h : f x = x) : fixed f x = x :=
 begin
-  rw [repeated, get_some_pos], swap,
+  rw [fixed, get_some_pos], swap,
   { exact ⟨x, 0, rfl, h⟩ },
   generalize_proofs h₁, obtain ⟨n, h₂, h₃⟩ := h₁.some_spec,
   rw [←h₂, iterate_eq_self h],
 end
 
 lemma digital_root_pos_digit_eq_self {d : ℕ} (h₁ : is_digit d) (h₂ : 0 < d) :
-  digital_root d = d := repeated_eq_self_of (sum_digits_digit h₁)
+  digital_root d = d := fixed_eq_self_of (sum_digits_digit h₁)
 
 lemma is_digit_modp_9 {n : ℕ} : is_digit (modp n 9) :=
 begin
@@ -568,7 +568,7 @@ begin
 end
 
 lemma digital_root_eq_self_of {n : ℕ} (h : sum_digits n = n) :
-  digital_root n = n := repeated_eq_self_of h
+  digital_root n = n := fixed_eq_self_of h
 
 -- #exit
 
