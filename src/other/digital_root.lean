@@ -418,12 +418,12 @@ begin
   rw iter_sum_digits_zero at h₂, exact h₂.symm,
 end
 
-def modp (n k : ℕ) : ℕ := if n.mod k = 0 then k else n.mod k
+def modp (n k : ℕ) : ℕ := if n % k = 0 then k else n % k
 
-lemma modp_pos_digit {d : ℕ} (h₁ : is_digit d) (h₂ : 0 < d) : modp d 9 = d :=
+lemma modp_digit_of_pos {d : ℕ} (h₁ : is_digit d) (h₂ : 0 < d) : modp d 9 = d :=
 begin
   rw modp, split_ifs,
-  { change d % 9 = 0 at h, rw [is_digit, le_iff_lt_or_eq] at h₁, cases h₁,
+  { rw [is_digit, le_iff_lt_or_eq] at h₁, cases h₁,
     { rw nat.mod_eq_of_lt h₁ at h, rw h at h₂, cases h₂ },
     { exact h₁.symm }},
   { rw [is_digit, le_iff_lt_or_eq] at h₁, cases h₁,
@@ -544,7 +544,7 @@ end
 
 lemma modp_of_le_of_pos {k d : ℕ} (h₁ : 0 < d) (h₂ : d ≤ k) : modp d k = d :=
 begin
-  rw modp, change d.mod k with d % k, cases k,
+  rw modp, cases k,
   { rw nat.le_zero_iff at h₂, subst d, refl },
   { split_ifs with h₃,
     { rw le_iff_lt_or_eq at h₂, cases h₂,
@@ -558,17 +558,126 @@ end
 lemma add_self_mod_eq_zero {a : ℕ} : (a + a) % a = 0 := by simp
 
 lemma modp_add {k a b : ℕ} : modp (a + b) k = modp (modp a k + modp b k) k :=
-by { simp_rw modp, change nat.mod with (%), split_ifs; simp [*, nat.add_mod] at * }
+by { simp_rw modp, split_ifs; simp [*, nat.add_mod] at * }
 
-lemma pos_modp_of_pos {k a : ℕ} (h₁ : 0 < k) (h₂ : 0 < a) : 0 < modp a k :=
+lemma modp_pos_of_pos {k d : ℕ} (h : 0 < d) : 0 < modp d k :=
 begin
-  rw modp, split_ifs,
-  { exact h₁ },
+  rw modp, split_ifs with h₁,
+  { by_contra' h₂, rw nat.le_zero_iff at h₂, subst k,
+    rw nat.mod_zero at h₁, subst d, cases h },
   { rwa pos_iff_ne_zero },
 end
 
 lemma digital_root_eq_self_of {n : ℕ} (h : sum_digits n = n) :
   digital_root n = n := fixed_eq_self_of h
+
+lemma modp_zero {d : ℕ} : modp d 0 = d :=
+begin
+  rw [modp, nat.mod_zero], split_ifs,
+  { exact h.symm },
+  { refl },
+end
+
+lemma modp_of_lt {k d : ℕ} (h₁ : 0 < d) (h₂ : d < k) : modp d k = d :=
+begin
+  rw modp, split_ifs,
+  { rw nat.mod_eq_of_lt h₂ at h, subst d, cases h₁ },
+  { rw nat.mod_eq_of_lt h₂ },
+end
+
+lemma modp_self {k : ℕ} : modp k k = k :=
+by { rw [modp, nat.mod_self], refl }
+
+lemma modp_of_le {k d : ℕ} (h₁ : 0 < d) (h₂ : d ≤ k) : modp d k = d :=
+begin
+  rw le_iff_lt_or_eq at h₂, cases h₂,
+  { exact modp_of_lt h₁ h₂ },
+  { subst d, rw modp_self },
+end
+
+lemma modp_add_self {k d : ℕ} : modp (d + k) k = modp d k :=
+begin
+  simp_rw modp, split_ifs with h₁ h₂ h₂;
+  try { rw nat.add_mod_right at h₁, contradiction },
+  { refl },
+  { rw nat.add_mod_right },
+end
+
+lemma modp_of_gt_of_lt_mul_2 {k d : ℕ} (h₁ : k < d) (h₂ : d < k * 2) : modp d k = d - k :=
+begin
+  obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_lt h₁, clear h₁,
+  replace h₂ : n + 1 < k := by linarith,
+  rw [add_rotate k n 1, nat.add_sub_cancel, modp_add_self],
+  exact modp_of_lt (nat.succ_pos _) h₂,
+end
+
+lemma modp_add_lt {k d₁ d₂ : ℕ} (h₁ : 0 < d₁) (h₂ : 0 < d₂) (h₃ : d₁ < k) (h₄ : d₂ < k) :
+  modp (d₁ + d₂) k = if d₁ + d₂ ≤ k then d₁ + d₂ else d₁ + d₂ - k :=
+begin
+  split_ifs with h₅,
+  { exact modp_of_le (add_pos h₁ h₂) h₅ },
+  { push_neg at h₅, apply modp_of_gt_of_lt_mul_2 h₅, rw mul_two, exact add_lt_add h₃ h₄ },
+end
+
+lemma modp_add_le_aux {k d : ℕ} (h₁ : 0 < d) (h₂ : d < k) :
+  modp (d + k) k = if d + k ≤ k then d + k else d + k - k :=
+begin
+  rw [modp_add_self, if_neg, nat.add_sub_cancel, modp_of_lt h₁ h₂],
+  push_neg, exact lt_add_of_pos_left k h₁,
+end
+
+lemma modp_add_le {k d₁ d₂ : ℕ} (h₁ : 0 < d₁) (h₂ : 0 < d₂) (h₃ : d₁ ≤ k) (h₄ : d₂ ≤ k) :
+  modp (d₁ + d₂) k = if d₁ + d₂ ≤ k then d₁ + d₂ else d₁ + d₂ - k :=
+begin
+  rw le_iff_lt_or_eq at h₃, cases h₃,
+  { rw le_iff_lt_or_eq at h₄, cases h₄,
+    { exact modp_add_lt h₁ h₂ h₃ h₄ },
+    { subst d₂, exact modp_add_le_aux h₁ h₃ }},
+  { subst d₁, rw add_comm k d₂, rw le_iff_lt_or_eq at h₄, cases h₄,
+    { exact modp_add_le_aux h₂ h₄ },
+    { subst d₂, rw [modp_add_self, modp_self, if_neg, nat.add_sub_cancel],
+      push_neg, exact lt_add_of_pos_left k h₁ }},
+end
+
+lemma modp_digit_add_digit {d₁ d₂ : ℕ} (h₁ : is_digit d₁) (h₂ : is_digit d₂)
+  (h₃ : 0 < d₁) (h₄ : 0 < d₂) :
+  modp (d₁ + d₂) 9 = if d₁ + d₂ ≤ 9 then d₁ + d₂ else d₁ + d₂ - 9 :=
+modp_add_le h₃ h₄ h₁ h₂
+
+lemma modp_le {k d : ℕ} (h : 0 < k) : modp d k ≤ k :=
+begin
+  rw modp, split_ifs with h₁,
+  { refl },
+  { exact le_of_lt (nat.mod_lt _ h) },
+end
+
+lemma modp_self_mul {k n : ℕ} : modp (k * n) k = k :=
+by { rw modp, split_ifs; simp * at * }
+
+lemma zero_modp {k : ℕ} : modp 0 k = k :=
+by { rw modp, split_ifs; simp * at * }
+
+lemma modp_modp {k d : ℕ} : modp (modp d k) k = modp d k :=
+begin
+  cases k,
+  { simp_rw modp_zero },
+  { cases d,
+    { simp_rw [zero_modp, modp_self] },
+    { exact modp_of_le (modp_pos_of_pos (nat.succ_pos _)) (modp_le (nat.succ_pos _)) }},
+end
+
+lemma modp_add_self_mul {k d n : ℕ} : modp (d + k * n) k = modp d k :=
+by { rw [modp_add, modp_self_mul, modp_add_self, modp_modp] }
+
+lemma modp_digit_add_mul_10 {d n : ℕ} (h : is_digit d) :
+  modp (d + n * 10) 9 = modp (d + n) 9 :=
+begin
+  change 10 with 9 + 1, rw [mul_add, mul_one], cases d,
+  { simp_rw zero_add, rw [add_comm, mul_comm, modp_add_self_mul] },
+  { rw [modp_add, modp_digit_of_pos h (nat.succ_pos _),
+    add_comm (n * 9), mul_comm, modp_add_self_mul, eq_comm,
+    modp_add, modp_digit_of_pos h (nat.succ_pos _)] },
+end
 
 -- #exit
 
@@ -580,55 +689,37 @@ end
 
 -- #exit
 
-lemma modp_digit_add_mul_10 {d n : ℕ} (h : is_digit d) :
-  modp (d + n * 10) 9 = modp (d + n) 9 :=
-begin
-  sorry
-end
-
--- #exit
-
-lemma digital_root_pos_eq_modp {n : ℕ} (h : 0 < n) : digital_root n = modp n 9 :=
+lemma digital_root_eq_modp_of_pos {n : ℕ} (h : 0 < n) : digital_root n = modp n 9 :=
 begin
   induction n using nat_digit_induction with n d h₁ ih,
-  {
-    cases h,
-  },
-  {
-    cases n,
-    sorry { simp_rw [zero_mul, zero_add] at h ⊢,
-      rw [modp_pos_digit h₁ h, digital_root_pos_digit_eq_self h₁ h] },
-    {
-      clear h,
-      specialize ih (nat.zero_lt_succ _),
-      rw [digital_root_digit_add_mul_10 h₁, modp_digit_add_mul_10 h₁, ih],
-      clear ih,
-      rw sum_digits_digit_add_digit h₁ is_digit_modp_9,
-      split_ifs,
-      {
-        cases d,
-        sorry {
-          simp,
-        },
-        {
-          rw [modp_add, modp_pos_digit h₁ (nat.zero_lt_succ _)],
-          sorry
-        },
-      },
-      sorry,
-    },
-  },
+  { cases h },
+  { cases n,
+    { simp_rw [zero_mul, add_zero] at h ⊢,
+      rw [modp_digit_of_pos h₁ h, digital_root_pos_digit_eq_self h₁ h] },
+    { specialize ih (nat.succ_pos _),
+      rw [digital_root_digit_add_mul_10 h₁, modp_digit_add_mul_10 h₁, ih,
+      sum_digits_digit_add_digit h₁ is_digit_modp_9],
+      split_ifs with h,
+      { cases d,
+        { simp },
+        { rw [modp_add, modp_digit_of_pos h₁ (nat.succ_pos _),
+          modp_digit_add_digit h₁ is_digit_modp_9 (nat.succ_pos _)
+          (modp_pos_of_pos (nat.succ_pos _)), if_pos h] }},
+      { have h₂ : 0 < d,
+        { contrapose! h, rw nat.le_zero_iff at h, subst d,
+          rw zero_add, apply modp_le, dec_trivial },
+        rw [modp_add, modp_digit_of_pos h₁ h₂], revert h,
+        generalize h₃ : modp n.succ 9 = d₂, intro h, have h₄ : 0 < d₂,
+        { subst d₂, exact modp_pos_of_pos (nat.succ_pos _) },
+        have h₅ : is_digit d₂,
+        { subst d₂, exact is_digit_modp_9 },
+        rw [modp_digit_add_digit h₁ h₅ h₂ h₄, if_neg h] }}},
 end
 
-#exit
-
 lemma digital_root_eq {n : ℕ} :
-  digital_root n = if n = 0 then 0 else if n.mod 9 = 0 then 9 else n.mod 9 :=
+  digital_root n = if n = 0 then 0 else if n % 9 = 0 then 9 else n % 9 :=
 begin
-  rw ←modp,
-  split_ifs with h h₁,
-  sorry { cases h, exact digital_root_zero },
-  {
-    sorry
-  },
+  rw ←modp, split_ifs with h h₁,
+  { cases h, exact digital_root_zero },
+  { exact digital_root_eq_modp_of_pos (pos_iff_ne_zero.mpr h) },
 end
