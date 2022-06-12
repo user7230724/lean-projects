@@ -1119,6 +1119,14 @@ end
 
 -- #exit
 
+lemma sum_digits_digit_succ {d : ℕ} (h : is_digit d) : sum_digits d.succ = modp d.succ 9 :=
+begin
+  rw modp,
+  sorry
+end
+
+-- #exit
+
 lemma digital_root_add {m n : ℕ} :
   digital_root (m + n) = sum_digits (digital_root m + digital_root n) :=
 begin
