@@ -462,8 +462,8 @@ begin
   rw [←h₂, iterate_eq_self h],
 end
 
-lemma digital_root_pos_digit_eq_self {d : ℕ} (h₁ : is_digit d) (h₂ : 0 < d) :
-  digital_root d = d := fixed_eq_self_of (sum_digits_digit h₁)
+lemma digital_root_digit_eq_self {d : ℕ} (h : is_digit d) :
+  digital_root d = d := fixed_eq_self_of (sum_digits_digit h)
 
 lemma is_digit_modp_9 {n : ℕ} : is_digit (modp n 9) :=
 begin
@@ -800,55 +800,94 @@ begin
     exact sum_eq_sum_of_foldr_eq_foldr h₅ h₃ h₂ },
 end
 
--- #exit
-
-lemma is_digit_of_iter_sum_digits_eq_self {n k : ℕ} (h₁ : 0 < k)
-  (h₂ : sum_digits^[k] n = n) : is_digit n :=
+lemma sum_digits_le {n : ℕ} : sum_digits n ≤ n :=
 begin
-  cases k,
+  induction n using nat_digit_induction with d n h ih,
+  { rw sum_digits_zero },
+  { rw sum_digits_digit_add_mul_10 h, apply add_le_add_left,
+    exact le_trans ih (le_mul_of_le (le_refl _) dec_trivial) },
+end
+
+lemma sum_digits_eq_self_of_sum_digits_sum_digits_eq_self {n : ℕ}
+  (h : sum_digits (sum_digits n) = n) : sum_digits n = n :=
+begin
+  apply le_antisymm,
+  { exact sum_digits_le },
+  { have h₁ := @sum_digits_le (sum_digits n), rwa h at h₁ },
+end
+
+lemma iter_le_of_le {f : ℕ → ℕ} {z n : ℕ}
+  (h : ∀ (z : ℕ), f z ≤ z) : (f^[n] z) ≤ z :=
+begin
+  induction n with n ih,
+  { refl },
+  { rw function.iterate_succ_apply', exact le_trans (h _) ih },
+end
+
+lemma iter_le_iter_of_le {f : ℕ → ℕ} {z m n : ℕ}
+  (h₁ : ∀ (z : ℕ), f z ≤ z) (h₂ : m ≤ n) : (f^[n] z) ≤ (f^[m] z) :=
+begin
+  obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h₂,
+  rw [add_comm, function.iterate_add_apply], exact iter_le_of_le h₁,
+end
+
+lemma iter_sum_digits_le_iter_sum_digits_of_le {n k₁ k₂ : ℕ} (h : k₁ ≤ k₂) :
+  (sum_digits^[k₂] n) ≤ (sum_digits^[k₁] n) := iter_le_iter_of_le (λ _, sum_digits_le) h
+
+lemma sum_digits_digital_root {n : ℕ} : sum_digits (digital_root n) = digital_root n :=
+by { rw sum_digits_eq_self_iff_is_digit, exact is_digit_digital_root }
+
+lemma digital_root_digit {d : ℕ} (h : is_digit d) : digital_root d = d :=
+digital_root_eq_self_of (sum_digits_digit h)
+
+lemma digital_root_one : digital_root 1 = 1 := digital_root_digit dec_trivial
+
+lemma is_digit_sum_digits_digit_add_digit {d₁ d₂ : ℕ}
+  (h₁ : is_digit d₁) (h₂ : is_digit d₂) : is_digit (sum_digits (d₁ + d₂)) :=
+begin
+  rw sum_digits_digit_add_digit h₁ h₂, split_ifs,
+  { exact h },
+  { rw is_digit at *, exact nat.sub_le_sub_right (add_le_add h₁ h₂) 9 },
+end
+
+lemma iter_sum_digits_digit {d n : ℕ} (h : is_digit d) : (sum_digits^[n]) d = d :=
+function.iterate_fixed (sum_digits_digit h) _
+
+lemma digital_root_digit_add_digit {d₁ d₂ : ℕ} (h₁ : is_digit d₁) (h₂ : is_digit d₂) :
+  digital_root (d₁ + d₂) = sum_digits (d₁ + d₂) :=
+begin
+  rw [digital_root, fixed, get_some_pos], swap,
+  { use [sum_digits (d₁ + d₂), 1], split,
+    { refl },
+    { exact sum_digits_digit (is_digit_sum_digits_digit_add_digit h₁ h₂) }},
+  generalize_proofs h₃, obtain ⟨n, -, h₄⟩ := h₃.some_spec,
+  symmetry, rwa [function.iterate_succ_apply,
+  iter_sum_digits_digit (is_digit_sum_digits_digit_add_digit h₁ h₂)] at h₄,
+end
+
+lemma digital_root_succ {n : ℕ} : digital_root n.succ = sum_digits (digital_root n).succ :=
+begin
+  change _ = sum_digits (_ + 1),
+  rw sum_digits_digit_add_digit is_digit_digital_root (dec_trivial : is_digit 1),
+  split_ifs,
   {
-    cases h₁,
+    sorry
   },
-  {
-    clear h₁,
-    rw function.iterate_succ_apply at h₂,
-    induction n using nat_digit_induction with d n h₁ ih,
-    sorry {
-      dec_trivial,
-    },
-    {
-      rw sum_digits_digit_add_mul_10 h₁ at h₂,
-      sorry
-    },
-  },
+  sorry,
 end
 
 #exit
 
-lemma is_digit_of_sum_digit_iter_eq {z n k₁ k₂ : ℕ}
-  (h₁ : k₁ ≠ k₂) (h₂ : (sum_digits^[k₁]) z = n) (h₃ : (sum_digits^[k₂]) z = n) :
-  is_digit n :=
+lemma digital_root_add_eq_sum_digits {m n : ℕ} :
+  digital_root (m + n) = sum_digits (digital_root m + digital_root n) :=
 begin
-  wlog h₄ : k₁ ≤ k₂,
-  replace h₄ : k₁ < k₂ := ne.lt_of_le h₁ h₄,
-  obtain ⟨k₂, rfl⟩ := nat.exists_eq_add_of_lt h₄, clear h₄,
-  rw [add_assoc, add_comm, function.iterate_add_apply, h₂] at h₃,
-end
-
-#exit
-
-lemma digital_root_sum_digits {n : ℕ} : digital_root (sum_digits n) = digital_root n :=
-begin
-  simp_rw [digital_root, fixed, get_some], split_ifs with h₁ h₂ h₂,
-  {
-    obtain ⟨k₁, h₃, h₄⟩ := h₁.some_spec,
-    obtain ⟨k₂, h₅, h₆⟩ := h₂.some_spec,
-    rw function.iterate_succ_apply' at h₄ h₆,
-    
+  induction n with n ih generalizing m,
+  sorry {
+    simp_rw [digital_root_zero, add_zero, sum_digits_digital_root],
   },
-  sorry,
-  sorry,
-  sorry,
+  {
+    rw [nat.add_succ, ←nat.succ_add, ih, ←nat.one_add n, ih],
+  },
 end
 
 #exit
@@ -856,7 +895,20 @@ end
 lemma digital_root_digit_add_mul_10 {d n : ℕ} (h : is_digit d) :
   digital_root (d + n * 10) = sum_digits (d + digital_root n) :=
 begin
-  sorry
+  rw sum_digits_digit_add_digit h is_digit_digital_root,
+end
+
+#exit
+
+lemma digital_root_sum_digits {n : ℕ} : digital_root (sum_digits n) = digital_root n :=
+begin
+  induction n using nat_digit_induction with d n h ih,
+  sorry {
+    rw sum_digits_zero,
+  },
+  {
+    rw sum_digits_digit_add_mul_10 h,
+  },
 end
 
 #exit
@@ -867,7 +919,7 @@ begin
   { cases h },
   { cases n,
     { simp_rw [zero_mul, add_zero] at h ⊢,
-      rw [modp_digit_of_pos h₁ h, digital_root_pos_digit_eq_self h₁ h] },
+      rw [modp_digit_of_pos h₁ h, digital_root_digit_eq_self h₁ h] },
     { specialize ih (nat.succ_pos _),
       rw [digital_root_digit_add_mul_10 h₁, modp_digit_add_mul_10 h₁, ih,
       sum_digits_digit_add_digit h₁ is_digit_modp_9],
