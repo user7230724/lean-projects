@@ -391,7 +391,7 @@ begin
     simp_rw add_comm, rw [is_digit_list, all_reverse, ←is_digit_list], use hl },
 end
 
-lemma sum_digits_def {n : ℕ} :
+lemma sum_digits_eq_get_some {n : ℕ} :
   sum_digits n = (get_some (λ (l : list ℕ), is_digit_list l ∧
     l.foldr (λ (a b : ℕ), a + b * 10) 0 = n)).sum :=
 begin
@@ -404,7 +404,7 @@ end
 
 lemma sum_digits_zero : sum_digits 0 = 0 :=
 begin
-  rw [sum_digits_def, get_some_pos], swap,
+  rw [sum_digits_eq_get_some, get_some_pos], swap,
   { exact ⟨[], all_nil, rfl⟩ },
   generalize_proofs h, exact sum_eq_zero_of_foldr_eq_zero h.some_spec.2,
 end
@@ -439,7 +439,7 @@ end
 
 lemma sum_digits_digit {d : ℕ} (h : is_digit d) : sum_digits d = d :=
 begin
-  rw [sum_digits_def, get_some_pos], swap,
+  rw [sum_digits_eq_get_some, get_some_pos], swap,
   { exact ⟨[d], all_singleton.mpr h, rfl⟩ },
   generalize_proofs h₁, obtain ⟨h₂, h₃⟩ := h₁.some_spec,
   exact sum_eq_of_foldr_eq_digit h₂ h h₃,
@@ -521,7 +521,7 @@ lemma sum_digits_pos_digit_add_9 {d : ℕ} (h₁ : is_digit d) (h₂ : 0 < d) :
 begin
   cases d,
   { cases h₂ },
-  { rw [sum_digits_def, get_some_pos], swap,
+  { rw [sum_digits_eq_get_some, get_some_pos], swap,
     { refine ⟨[d, 1], _, _⟩,
       { simp_rw [is_digit_list, all_cons, all_nil],
         exact ⟨is_digit_of_is_digit_succ h₁, dec_trivial, trivial⟩ },
@@ -755,7 +755,7 @@ begin
   split; intro h,
   { by_cases h₁ : n = 0,
     { subst n, dec_trivial },
-    { rw [sum_digits_def, get_some] at h, split_ifs at h with h₁,
+    { rw [sum_digits_eq_get_some, get_some] at h, split_ifs at h with h₁,
       { obtain ⟨h₂, h₃⟩ := h₁.some_spec, revert h h₂ h₃, generalize : h₁.some = l,
         rintro h₁ h₂ h₃, subst n, exact is_digit_sum_of_sum_eq_foldr h₂ h₃.symm },
       { subst n, dec_trivial }}},
@@ -785,9 +785,9 @@ end
 lemma sum_digits_digit_add_mul_10 {d n : ℕ} (h : is_digit d) :
   sum_digits (d + n * 10) = d + sum_digits n :=
 begin
-  rw [sum_digits_def, get_some_pos exi_sum_digits], generalize_proofs h₁,
+  rw [sum_digits_eq_get_some, get_some_pos exi_sum_digits], generalize_proofs h₁,
   obtain ⟨h₁, h₂⟩ := h₁.some_spec, revert h₁ h₂, generalize : exi_sum_digits.some = l₂,
-  clear h₁, rintro h₁ h₂, rw [sum_digits_def, get_some_pos exi_sum_digits],
+  clear h₁, rintro h₁ h₂, rw [sum_digits_eq_get_some, get_some_pos exi_sum_digits],
   generalize_proofs h₁, obtain ⟨h₁, h₂⟩ := h₁.some_spec, revert h₁ h₂,
   generalize : exi_sum_digits.some = l₁, clear h₁, rintro h₃ h₄, cases l₂ with d₂ l₂,
   { change 0 = _ at h₂, symmetry' at h₂, rw [add_eq_zero_iff, mul_eq_zero] at h₂,
@@ -865,6 +865,112 @@ begin
   iter_sum_digits_digit (is_digit_sum_digits_digit_add_digit h₁ h₂)] at h₄,
 end
 
+lemma sum_digits_def {n : ℕ} : sum_digits n = n % 10 + sum_digits (n / 10) :=
+begin
+  obtain ⟨a, b, ha, hb, h⟩ := nat_exi_mul n 10,
+  rw [←ha, ←hb, h, add_comm, hb],
+  exact sum_digits_digit_add_mul_10 is_digit_mod_10,
+end
+
+def converges_to {α : Type} (f : α → α) (z x : α) : Prop :=
+∃ (n : ℕ), (f^[n]) z = x ∧ (f^[n + 1]) z = x
+
+def converges {α : Type} (f : α → α) (z : α) : Prop :=
+∃ (x : α), converges_to f z x
+
+lemma iter_add {α : Type} {f : α → α} {z : α} {m n : ℕ} :
+  (f^[m + n]) z = (f^[n]) ((f^[m]) z) := by rw [add_comm, function.iterate_add_apply]
+
+lemma converges_to_congr_aux {α : Type} {n₂ n₁ : ℕ} {f : α → α} {z x y : α}
+  (h₁ : f^[n₁] z = x) (h₂ : f^[n₁ + 1] z = x) (h₃ : f^[n₂] z = y) (h₄ : f^[n₂ + 1] z = y)
+  (h₅ : n₁ ≤ n₂) : x = y :=
+begin
+  obtain ⟨n₂, rfl⟩ := nat.exists_eq_add_of_le h₅, clear h₅, rw add_assoc at h₄,
+  simp_rw iter_add at h₂ h₃ h₄, change (f^[1]) with f at h₂ h₄, rw ←h₁ at h₂,
+  have h₅ := function.iterate_fixed h₂ n₂, rw [h₃, h₁] at h₅, exact h₅.symm,
+end
+
+lemma converges_to_congr {α : Type} {f : α → α} {z x y : α}
+  (h₁ : converges_to f z x) (h₂ : converges_to f z y) : x = y :=
+begin
+  rcases h₂ with ⟨n₂, h₃, h₄⟩, rcases h₁ with ⟨n₁, h₁, h₂⟩, by_cases h₅ : n₁ ≤ n₂,
+  { exact converges_to_congr_aux h₁ h₂ h₃ h₄ h₅ },
+  { push_neg at h₅, exact (converges_to_congr_aux h₃ h₄ h₁ h₂ (le_of_lt h₅)).symm },
+end
+
+lemma fixed_eq_of_converges_to {α : Type} [inhabited α] {f : α → α} {z x : α}
+  (h : converges_to f z x) : fixed f z = x :=
+begin
+  rw [fixed, get_some_pos], swap, { exact ⟨x, h⟩ },
+  generalize_proofs h₃, exact converges_to_congr h₃.some_spec h,
+end
+
+lemma apply_eq_of_converges_to {α : Type} {f : α → α} {z x : α}
+  (h : converges_to f z x) : f x = x :=
+by { rcases h with ⟨n, h₁, h₂⟩, rwa [function.iterate_succ_apply', h₁] at h₂ }
+
+lemma apply_fixed_of_converges {α : Type} [inhabited α] {f : α → α} {z : α}
+  (h : converges f z) : f (fixed f z) = fixed f z :=
+by { cases h with x h, by rw [fixed_eq_of_converges_to h, apply_eq_of_converges_to h] }
+
+lemma iter_apply_comm {α : Type} {f : α → α} {x : α} {n : ℕ} :
+  (f^[n]) (f x) = f ((f^[n]) x) :=
+by rw [←function.iterate_succ_apply, function.iterate_succ_apply']
+
+lemma converges_of_le {f : ℕ → ℕ} {n : ℕ} (h : ∀ (n : ℕ), f n ≤ n) : converges f n :=
+begin
+  change ∃ (_ _ : ℕ), _, induction n using nat.strong_induction_on with n ih, dsimp at ih,
+  simp_rw function.iterate_succ_apply', have h₁ := h ((f^[n]) n),
+  rw le_iff_lt_or_eq at h₁, cases h₁,
+  { replace h₁ : _ < n := gt_of_ge_of_gt (iter_le_of_le h) h₁,
+    specialize ih _ h₁, rcases ih with ⟨y, k, h₂, h₃⟩,
+    use [y, n + 1 + k], split; simp_rw iter_add,
+    { exact h₂ },
+    { rwa ←@iter_apply_comm _ f }},
+  { exact ⟨_, _, rfl, h₁⟩ },
+end
+
+lemma converges_sum_digits {n : ℕ} : converges sum_digits n :=
+converges_of_le (λ _, sum_digits_le)
+
+lemma converges_to_fixed {α : Type} [inhabited α] {f : α → α} {z : α}
+  (h : converges f z) : converges_to f z (fixed f z) :=
+by { cases h with x h, rwa fixed_eq_of_converges_to h }
+
+lemma converges_to_apply {α : Type} {f : α → α} {z x : α}
+  (h : converges_to f z x) : converges_to f z (f x) :=
+begin
+  rcases h with ⟨n, h₁, h₂⟩, use n + 1, split; rw iter_add,
+  { rw h₁, refl },
+  { rw h₂, refl },
+end
+
+lemma apply_converges_to {α : Type} {f : α → α} {z x : α}
+  (h : converges_to f z x) : converges_to f (f z) x :=
+begin
+  rcases h with ⟨k, h₁, h₂⟩, cases k,
+  { use 0, split,
+    { exact h₂ },
+    { cases h₁, rwa [iter_apply_comm, h₂] }},
+  { exact ⟨k, h₁, h₂⟩ },
+end
+
+lemma apply_converges {α : Type} {f : α → α} {z : α}
+  (h : converges f z) : converges f (f z) := ⟨_, apply_converges_to h.some_spec⟩
+
+lemma fixed_eq_fixed_of {α : Type} [inhabited α] {f : α → α} {z₁ z₂ x : α}
+  (h₁ : converges_to f z₁ x) (h₂ : converges_to f z₂ x) : fixed f z₁ = fixed f z₂ :=
+by rw [fixed_eq_of_converges_to h₁, fixed_eq_of_converges_to h₂]
+
+lemma fixed_apply_eq_of_converges {α : Type} [inhabited α] {f : α → α} {z : α}
+  (h : converges f z) : fixed f (f z) = fixed f z :=
+by { cases h with x h, exact fixed_eq_fixed_of (apply_converges_to h) h }
+
+lemma digital_root_sum_digits {n : ℕ} : digital_root (sum_digits n) = digital_root n :=
+fixed_apply_eq_of_converges converges_sum_digits
+
+-- #exit
+
 lemma digital_root_succ {n : ℕ} : digital_root n.succ = sum_digits (digital_root n).succ :=
 begin
   change _ = sum_digits (_ + 1),
@@ -896,19 +1002,6 @@ lemma digital_root_digit_add_mul_10 {d n : ℕ} (h : is_digit d) :
   digital_root (d + n * 10) = sum_digits (d + digital_root n) :=
 begin
   rw sum_digits_digit_add_digit h is_digit_digital_root,
-end
-
-#exit
-
-lemma digital_root_sum_digits {n : ℕ} : digital_root (sum_digits n) = digital_root n :=
-begin
-  induction n using nat_digit_induction with d n h ih,
-  sorry {
-    rw sum_digits_zero,
-  },
-  {
-    rw sum_digits_digit_add_mul_10 h,
-  },
 end
 
 #exit
