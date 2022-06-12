@@ -1090,6 +1090,13 @@ begin
       { rw succ_mod_eq_succ_iff (nat.succ_pos _) }}},
 end
 
+lemma not_digit_succ_le_9_iff {d : ℕ} (h : is_digit d) : ¬d.succ ≤ 9 ↔ d = 9 :=
+begin
+  split; intro h₁,
+  { contrapose! h₁, exact nat.succ_le_of_lt (lt_of_le_of_ne h h₁) },
+  { subst d, dec_trivial }
+end
+
 lemma digital_root_succ_eq_sum_digits {n : ℕ} :
   digital_root n.succ = sum_digits (digital_root n).succ :=
 begin
@@ -1107,33 +1114,55 @@ begin
     have h₄ := lt_of_le_of_ne is_digit_digital_root h₃,
     rw [←digital_root_mod_9, nat.mod_eq_of_lt h₄, digital_root_succ_eq_of_ne_9],
     exact ne_of_lt (nat.lt_of_succ_le h₁) },
-  { replace h₁ : digital_root n = 9,
-    { contrapose! h₁,
-      exact nat.succ_le_of_lt (lt_of_le_of_ne is_digit_digital_root h₁) },
+  { rw not_digit_succ_le_9_iff is_digit_digital_root at h₁,
     rw [succ_mod_eq_zero_iff (nat.succ_pos _), ←digital_root_mod_9, h₁] at h₂, cases h₂ },
-  { replace h₁ : digital_root n = 9,
-    { contrapose! h₁,
-      exact nat.succ_le_of_lt (lt_of_le_of_ne is_digit_digital_root h₁) },
+  { rw not_digit_succ_le_9_iff is_digit_digital_root at h₁,
     symmetry, rw [h₁, succ_mod_eq_succ_iff (nat.succ_pos _), ←digital_root_mod_9, h₁], refl },
 end
 
--- #exit
-
 lemma sum_digits_digit_succ {d : ℕ} (h : is_digit d) : sum_digits d.succ = modp d.succ 9 :=
 begin
-  rw modp,
-  sorry
+  rw [←nat.add_one, sum_digits_digit_add_digit h (dec_trivial : is_digit 1), modp],
+  split_ifs with h₁ h₂ h₂; try { rw not_digit_succ_le_9_iff h at h₁ },
+  { rw [succ_mod_eq_zero_iff (nat.succ_pos _),
+    nat.mod_eq_of_lt (nat.lt_of_succ_le h₁)] at h₂, rwa h₂ },
+  { rw nat.mod_eq_of_lt, rw succ_mod_eq_zero_iff (nat.succ_pos _) at h₂,
+    rw le_iff_lt_or_eq at h₁, cases h₁,
+    { exact h₁ },
+    { rw nat.succ_inj' at h₁, subst d, cases h₂ rfl }},
+  { subst h₁, cases h₂ },
+  { subst h₁, refl },
 end
 
--- #exit
+lemma digital_root_add_aux {d₁ d₂ : ℕ} (h₁ : is_digit d₁) (h₂ : is_digit d₂) :
+  modp (sum_digits (d₁ + d₂)).succ 9 = sum_digits (d₁ + sum_digits d₂.succ) :=
+begin
+  rw [sum_digits_digit_succ h₂, sum_digits_digit_add_digit h₁ h₂,
+  sum_digits_digit_add_digit h₁ is_digit_modp_9],
+  split_ifs with h₃ h₄ h₄,
+  {
+    sorry
+  },
+  sorry,
+  sorry,
+  sorry,
+end
+
+#exit
 
 lemma digital_root_add {m n : ℕ} :
   digital_root (m + n) = sum_digits (digital_root m + digital_root n) :=
 begin
-  sorry
+  induction n with n ih,
+  { simp_rw [digital_root_zero, add_zero, sum_digits_digital_root] },
+  { rw [nat.add_succ, digital_root_succ_eq_sum_digits, ih, sum_digits_digit_succ
+    (is_digit_sum_digits_digit_add_digit is_digit_digital_root is_digit_digital_root)],
+    rw digital_root_succ_eq_sum_digits,
+    generalize hm : digital_root m = d₁, generalize hn : digital_root n = d₂,
+    have h₁ : is_digit d₁, { rw ←hm, exact is_digit_digital_root },
+    have h₂ : is_digit d₂, { rw ←hn, exact is_digit_digital_root },
+    exact digital_root_add_aux h₁ h₂ },
 end
-
-#exit
 
 lemma digital_root_add_eq_sum_digits {m n : ℕ} :
   digital_root (m + n) = sum_digits (digital_root m + digital_root n) :=
