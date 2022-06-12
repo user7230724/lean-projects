@@ -68,8 +68,6 @@ begin
     simp_rw h₃, rw dif_pos, swap, { split; assumption },
     ext; try {refl}, rw play_A_move_at', dsimp,
 
-    -- DAMN DEPENDENT TYPES!
-
     sorry
     -- simp_rw h₃, change (play_D_move_at (init_game a d s) hs).a with a,
     -- generalize_proofs h₄, convert_to _ = apply_A_move s' (a.f s' hs h₂).m,
