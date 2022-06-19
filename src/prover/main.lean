@@ -188,6 +188,15 @@ iff_intro
   (λ h₁ h₂, h # iff_intro (λ _, h₁) (λ _, h₂)))
 (λ h h₁, @not_iff_not_self Q # iff_symm # @iff_rec (λ x, ¬x ↔ Q) P Q h₁ h)
 
+lemma iff_true_intro {P : Prop} (h : P) : P ↔ true :=
+iff_intro (λ _, trivial) (λ _, h)
+
+-- lemma iff_true_elim {P : Prop} (h : P ↔ true) : P :=
+-- _
+
+-- lemma eq_true_or_false {P : Prop} : P = true ∨ P = false :=
+-- _
+
 -----
 
 end test
