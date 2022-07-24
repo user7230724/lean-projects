@@ -15,7 +15,7 @@ Inf {n | f n ≠ 0}
 
 @[simp] lemma M_const {a : ℕ} : M (λ _, a) = 0 :=
 begin
-  dsimp, by_cases h : a= 0,
+  dsimp, by_cases h : a = 0,
   { simp [h] },
   { rw [eq_true_intro h, nat.Inf_def ⟨0, _⟩], swap, { trivial },
     generalize_proofs h₁, have h₂ : nat.find h₁ ≤ 0 := nat.find_le trivial,
