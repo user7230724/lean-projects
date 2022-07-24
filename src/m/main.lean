@@ -55,3 +55,9 @@ by simp
 
 example {n : ℕ} : f₅ n = if n ≤ 1 then 1 else 0 :=
 by simp
+
+@[simp] def f₆ : ℕ → ℕ :=
+λ (a : ℕ), L ((λ (b : ℕ), L (M (λ (c : ℕ), b)) a) (M (λ (b : ℕ), b))) a
+
+example {n : ℕ} : f₆ n = if n = 0 then 0 else 1 :=
+by { simp only [f₆, L, M_const, zero_le, if_true], rw ←ite_not, simp }
