@@ -49,7 +49,7 @@ begin
         { rw [mk_list, list.mem_cons_iff], exact or.inr (hi h) }}}},
 end
 
-lemma le_cases {n k : ℕ} {P : Prop} (h : n ≤ k) : mk_stat P n k k :=
+lemma le_cases {P : Prop} {n k : ℕ} (h : n ≤ k) : mk_stat P n k k :=
 begin
   apply mk_stat_of, intro h₁, simp_rw mem_mk_list at h₁,
   rw le_iff_eq_or_lt at h, rcases h with (rfl | h),
