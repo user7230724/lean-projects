@@ -142,7 +142,7 @@ begin
 end
 
 lemma is_digit_of_is_digit_add {d₁ d₂ : ℕ} (h : is_digit (d₁ + d₂)) :
-  is_digit d₁ ∧ is_digit d₂ := ⟨nat.le_of_add_le_left h, nat.le_of_add_le_right h⟩
+  is_digit d₁ ∧ is_digit d₂ := ⟨le_of_add_le_left h, le_of_add_le_right h⟩
 
 lemma not_is_digit_add_10 {n : ℕ} : ¬is_digit (n + 10) := dec_trivial
 
@@ -549,7 +549,7 @@ end
 lemma modp_of_le_of_pos {k d : ℕ} (h₁ : 0 < d) (h₂ : d ≤ k) : modp d k = d :=
 begin
   rw modp, cases k,
-  { rw nat.le_zero_iff at h₂, subst d, refl },
+  { rw le_zero_iff at h₂, subst d, refl },
   { split_ifs with h₃,
     { rw le_iff_lt_or_eq at h₂, cases h₂,
       { rw nat.mod_eq_of_lt h₂ at h₃, subst d, cases h₁ },
@@ -567,7 +567,7 @@ by { simp_rw modp, split_ifs; simp [*, nat.add_mod] at * }
 lemma modp_pos_of_pos {k d : ℕ} (h : 0 < d) : 0 < modp d k :=
 begin
   rw modp, split_ifs with h₁,
-  { by_contra' h₂, rw nat.le_zero_iff at h₂, subst k,
+  { by_contra' h₂, rw le_zero_iff at h₂, subst k,
     rw nat.mod_zero at h₁, subst d, cases h },
   { rwa pos_iff_ne_zero },
 end
@@ -994,7 +994,7 @@ lemma digit_mod_10 {d : ℕ} (h : is_digit d) : d % 10 = d :=
 nat.mod_eq_of_lt (nat.lt_succ_of_le h)
 
 lemma pos_add_iff {a b : ℕ} : 0 < a + b ↔ 0 < a ∨ 0 < b :=
-by { rw ←not_iff_not, push_neg, simp_rw [nat.le_zero_iff, add_eq_zero_iff] }
+by { rw ←not_iff_not, push_neg, simp_rw [le_zero_iff, add_eq_zero_iff] }
 
 lemma sum_digits_pos_succ {n : ℕ} : 0 < sum_digits n.succ :=
 begin
@@ -1154,7 +1154,7 @@ begin
   { subst h₁, refl },
 end
 
-lemma not_pos_iff {n : ℕ} : ¬0 < n ↔ n = 0 := by rw [not_lt, nat.le_zero_iff]
+lemma not_pos_iff {n : ℕ} : ¬0 < n ↔ n = 0 := by rw [not_lt, le_zero_iff]
 
 lemma is_digit_zero : is_digit 0 := dec_trivial
 
@@ -1265,7 +1265,7 @@ begin
         { rw [modp_add, modp_digit_of_pos h₁ (nat.succ_pos _),
           modp_digit_add_digit h₁ is_digit_modp_9 (or.inl (nat.succ_pos _)), if_pos h] }},
       { have h₂ : 0 < d,
-        { contrapose! h, rw nat.le_zero_iff at h, subst d,
+        { contrapose! h, rw le_zero_iff at h, subst d,
           rw zero_add, apply modp_le, dec_trivial },
         rw [modp_add, modp_digit_of_pos h₁ h₂], revert h,
         generalize h₃ : modp n.succ 9 = d₂, intro h, have h₄ : 0 < d₂,
