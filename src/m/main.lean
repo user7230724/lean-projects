@@ -19,7 +19,7 @@ begin
   { simp [h] },
   { rw [eq_true_intro h, nat.Inf_def ⟨0, _⟩], swap, { trivial },
     generalize_proofs h₁, have h₂ : nat.find h₁ ≤ 0 := nat.find_le trivial,
-    rw nat.le_zero_iff at h₂, convert h₂ },
+    rw le_zero_iff at h₂, convert h₂ },
 end
 
 @[simp] lemma M_id : M (λ (a : ℕ), a) = 1 :=
