@@ -1209,7 +1209,6 @@ begin
       rwa [←nat.add_sub_assoc (le_of_lt h₇), ←nat.add_assoc, nat.succ_sub (le_of_lt h₆)] }},
 end
 
-
 lemma digital_root_add_aux {d₁ d₂ : ℕ} (h₁ : is_digit d₁) (h₂ : is_digit d₂) :
   sum_digits (d₁ + sum_digits d₂.succ) = modp (sum_digits (d₁ + d₂)).succ 9 :=
 begin
