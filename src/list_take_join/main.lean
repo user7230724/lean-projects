@@ -128,9 +128,10 @@ end
 lemma list.join_singleton {l : list α} : [l].join = l :=
 by simp
 
-lemma list.take_join_of_lt_length_join {l : list (list α)} {n : ℕ}
+lemma list.take_join_of_lt {l : list (list α)} {n : ℕ}
   (h : n < l.join.length) :
-  ∃ (m k : ℕ) hh, l.join.take n = (l.take m).join ++ (l.nth_le m hh).take k :=
+  ∃ (m k : ℕ) hh, k < (l.nth_le m hh).length ∧
+  l.join.take n = (l.take m).join ++ (l.nth_le m hh).take k :=
 begin
   generalize hX : l.length = X, symmetry' at hX,
   generalize hN : l.join.length = N, symmetry' at hN,
@@ -144,8 +145,16 @@ begin
   { rintro r hr, rw hP, push_neg, convert h, rw hX at hr,
     rw [hN, list.take_eq_self_of_ge_len hr] },
   obtain ⟨hm₁, hm₂⟩ := nat_get_max_spec ⟨0, hP0⟩ ⟨X, hPX⟩, rw ←hm at hm₁ hm₂,
-  refine ⟨m, k, _, _⟩, { rw ←hX, by_contra' hx, cases hPX m hx hm₁ },
   have hm₃ : ¬P m.succ := hm₂ _ (nat.lt_succ_self m),
+  refine ⟨m, k, _, _, _⟩,
+  { rw ←hX, by_contra' hx, cases hPX m hx hm₁ },
+  { generalize_proofs h₁, rw hP at hm₁ hm₃, push_neg at hm₃,
+    by_contra' hk₁, obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hk₁,
+    replace hk := congr_arg (λ (x : ℕ), x + (l.take m).join.length) hk,
+    dsimp at hk, rw nat.sub_add_cancel hm₁ at hk, rw ←hk at hm₃,
+    contrapose! hm₃, rw [add_comm, ←add_assoc], convert le_self_add,
+    simp [nat.succ_eq_add_one, list.take_add, list.join_append,
+      list.length_append, list.take_one_drop_eq_of_lt_length h₁] },
   conv { to_lhs, rw [←list.take_append_drop m.succ l, list.join_append] },
   have hn₁ : (l.take m).join.length ≤ n, { rwa hP at hm₁ },
   have hn₂ : n < (l.take m.succ).join.length,
@@ -172,5 +181,6 @@ begin
       { symmetry, apply list.take_eq_self_of_ge_len, refl },
       rw [list.take_length, ←list.join_drop_length_sub_one h, list.take_length,
         ←list.join_append, list.take_append_drop] }},
-  { push_neg at h₁, exact list.take_join_of_lt_length_join h₁ },
+  { push_neg at h₁, obtain ⟨m, k, h₂, h₃, h₄⟩ := list.take_join_of_lt h₁,
+    exact ⟨m, k, h₂, h₄⟩ },
 end
