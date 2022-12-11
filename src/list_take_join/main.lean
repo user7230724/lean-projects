@@ -38,15 +38,6 @@ begin
       { exact h₂ k hk }}},
 end
 
-lemma list.take_eq_self_of_ge_len {l : list α} {n : ℕ}
-  (h : l.length ≤ n) : l.take n = l :=
-begin
-  obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h, clear h,
-  induction n with n ih,
-  { apply list.take_length },
-  { simpa [nat.add_succ, list.take_succ, (by simp : l.nth (l.length + n) = none)] },
-end
-
 lemma list.take_eq_take {l : list α} {m n : ℕ} :
   l.take m = l.take n ↔ min m l.length = min n l.length :=
 begin
@@ -65,8 +56,11 @@ end
 lemma list.take_add {l : list α} {m n : ℕ} :
   l.take (m + n) = l.take m ++ (l.drop m).take n :=
 begin
-  nth_rewrite 0 ←(l.take_append_drop m),
-  rw [list.take_append_eq_append_take, list.take_eq_self_of_ge_len,
+  convert_to
+    list.take (m + n) (list.take m l ++ list.drop m l) =
+    list.take m l ++ list.take n (list.drop m l),
+  { rw list.take_append_drop },
+  rw [list.take_append_eq_append_take, list.take_all_of_le,
     list.append_right_inj], swap,
   { transitivity m,
     { apply list.length_take_le },
@@ -79,15 +73,7 @@ end
 
 lemma list.nth_le_length_sub_one {l : list α} (h₁ h₂) :
   l.nth_le (l.length - 1) h₂ = l.last h₁ :=
-begin
-  induction l with x l ih,
-  { cases h₁ rfl },
-  { cases l with y l, { simp },
-    simp only [list.length, nat.add_succ_sub_one, add_zero],
-    rw list.last_cons, swap, { simp },
-    specialize @ih (by simp) (by simp),
-    rwa [list.nth_le_cons, dif_neg], swap, { simp }},
-end
+(list.last_eq_nth_le l h₁).symm
 
 lemma list.join_drop_length_sub_one {l : list (list α)} (h) :
   (l.drop (l.length - 1)).join = l.last h :=
@@ -143,7 +129,7 @@ begin
   have hP0 : P 0, { rw hP, simp },
   have hPX : ∀ (r : ℕ), X ≤ r → ¬P r,
   { rintro r hr, rw hP, push_neg, convert h, rw hX at hr,
-    rw [hN, list.take_eq_self_of_ge_len hr] },
+    rw [hN, list.take_all_of_le hr] },
   obtain ⟨hm₁, hm₂⟩ := nat_get_max_spec ⟨0, hP0⟩ ⟨X, hPX⟩, rw ←hm at hm₁ hm₂,
   have hm₃ : ¬P m.succ := hm₂ _ (nat.lt_succ_self m),
   refine ⟨m, k, _, _, _⟩,
@@ -176,9 +162,9 @@ begin
   { refine ⟨l.length - 1, (l.last h).length, _, _⟩,
     { apply nat.pred_lt, change ¬(l.length = 0), rwa list.length_eq_zero },
     { generalize_proofs hh, revert hh, intro hh,
-      rw [list.take_eq_self_of_ge_len h₁, list.nth_le_length_sub_one h], clear hh,
+      rw [list.take_all_of_le h₁, list.nth_le_length_sub_one h], clear hh,
       rw (_ : l.last h = (l.last h).take (l.last h).length), swap,
-      { symmetry, apply list.take_eq_self_of_ge_len, refl },
+      { symmetry, apply list.take_all_of_le, refl },
       rw [list.take_length, ←list.join_drop_length_sub_one h, list.take_length,
         ←list.join_append, list.take_append_drop] }},
   { push_neg at h₁, obtain ⟨m, k, h₂, h₃, h₄⟩ := list.take_join_of_lt h₁,
