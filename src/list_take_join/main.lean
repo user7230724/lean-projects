@@ -38,82 +38,6 @@ begin
       { exact h₂ k hk }}},
 end
 
-lemma list.take_eq_take {l : list α} {m n : ℕ} :
-  l.take m = l.take n ↔ min m l.length = min n l.length :=
-begin
-  induction l with x l ih generalizing m n,
-  { simp },
-  { simp_rw list.length_cons, split; intro h,
-    { cases n, { simp at h, subst h },
-      cases m, { simp at h, cases h },
-      simp only [list.take, eq_self_iff_true, true_and] at h,
-      simpa [nat.min_succ_succ] using ih.mp h },
-    { cases n, { simp at h, subst h },
-      cases m, { simp [nat.min_succ_succ] at h, cases h },
-      simp_rw nat.min_succ_succ at h, simpa using ih.mpr h }},
-end
-
-lemma list.take_add {l : list α} {m n : ℕ} :
-  l.take (m + n) = l.take m ++ (l.drop m).take n :=
-begin
-  convert_to
-    list.take (m + n) (list.take m l ++ list.drop m l) =
-    list.take m l ++ list.take n (list.drop m l),
-  { rw list.take_append_drop },
-  rw [list.take_append_eq_append_take, list.take_all_of_le,
-    list.append_right_inj], swap,
-  { transitivity m,
-    { apply list.length_take_le },
-    { simp }},
-  simp only [list.take_eq_take, list.length_take, list.length_drop],
-  generalize : l.length = k, by_cases h : m ≤ k,
-  { simp [min_eq_left_iff.mpr h] },
-  { push_neg at h, simp [nat.sub_eq_zero_of_le (le_of_lt h)] },
-end
-
-lemma list.nth_le_length_sub_one {l : list α} (h₁ h₂) :
-  l.nth_le (l.length - 1) h₂ = l.last h₁ :=
-(list.last_eq_nth_le l h₁).symm
-
-lemma list.join_drop_length_sub_one {l : list (list α)} (h) :
-  (l.drop (l.length - 1)).join = l.last h :=
-begin
-  induction l using list.reverse_rec_on with l x ih,
-  { cases h rfl },
-  { simp },
-end
-
-lemma list.drop_length_cons {l : list α} {x : α}
-  (h : l ≠ []) : (x :: l).drop l.length = [l.last h] :=
-begin
-  induction l with y l ih generalizing x,
-  { cases h rfl },
-  { simp only [list.drop, list.length],
-    by_cases h₁ : l = [], { simp [h₁] },
-    convert ih h₁ using 2, exact list.last_cons h₁ },
-end
-
-lemma list.nth_le_length_cons {l : list α} {x : α} {hh}
-  (h : l ≠ []) : (x :: l).nth_le l.length hh = l.last h :=
-begin
-  rw [list.nth_le_cons, dif_neg], swap, { rwa list.length_eq_zero },
-  apply list.nth_le_length_sub_one,
-end
-
-lemma list.take_one_drop_eq_of_lt_length {l : list α} {n : ℕ}
-  (h : n < l.length) : (l.drop n).take 1 = [l.nth_le n h] :=
-begin
-  induction l with x l ih generalizing n,
-  { cases h },
-  { by_cases h₁ : l = [],
-    { subst h₁, rw list.nth_le_singleton, simp at h, subst h, simp },
-    have h₂ := h, rw [list.length_cons, nat.lt_succ_iff, le_iff_eq_or_lt] at h₂,
-    cases n, { simp }, rw [list.drop, list.nth_le], apply ih },
-end
-
-lemma list.join_singleton {l : list α} : [l].join = l :=
-by simp
-
 lemma list.take_join_of_lt {l : list (list α)} {n : ℕ}
   (h : n < l.join.length) :
   ∃ (m k : ℕ) hh, k < (l.nth_le m hh).length ∧
@@ -162,7 +86,8 @@ begin
   { refine ⟨l.length - 1, (l.last h).length, _, _⟩,
     { apply nat.pred_lt, change ¬(l.length = 0), rwa list.length_eq_zero },
     { generalize_proofs hh, revert hh, intro hh,
-      rw [list.take_all_of_le h₁, list.nth_le_length_sub_one h], clear hh,
+      change l.length - 1 < l.length at hh,
+      rw [list.take_all_of_le h₁, list.nth_le_length_sub_one hh],
       rw (_ : l.last h = (l.last h).take (l.last h).length), swap,
       { symmetry, apply list.take_all_of_le, refl },
       rw [list.take_length, ←list.join_drop_length_sub_one h, list.take_length,
